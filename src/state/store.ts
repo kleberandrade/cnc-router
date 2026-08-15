@@ -25,7 +25,7 @@ export { generateShapeId };
 
 /** localStorage key + schema version. Bump `PROJECT_SCHEMA_VERSION` and extend `migrateProject` on breaking changes. */
 export const PROJECT_STORAGE_KEY = "oficina-cnc:project";
-export const PROJECT_SCHEMA_VERSION = 4;
+export const PROJECT_SCHEMA_VERSION = 5;
 
 type PersistedProject = { shapes: Shape[]; settings: MachineSettings };
 
@@ -54,6 +54,11 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
   if (version < 4) {
     if (raw.rampAngle === undefined) settings.rampAngle = 0;
     if (!raw.orderMode) settings.orderMode = "auto";
+  }
+  // v4 -> v5: tool geometry.
+  if (version < 5) {
+    if (!raw.toolType) settings.toolType = "flat";
+    if (raw.vbitAngle === undefined) settings.vbitAngle = 90;
   }
   return { shapes, settings };
 }

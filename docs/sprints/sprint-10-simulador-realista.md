@@ -1,6 +1,6 @@
 # Sprint 10 — Simulador realista: remoção de material, fresa 3D, ViewCube
 
-**Status:** planejada
+**Status:** concluída — 2026-08-15
 **Esforço:** G (7–10 dias)
 **Depende de:** 07
 
@@ -15,13 +15,13 @@ Ver a peça sendo esculpida ao longo do tempo (não só a linha), uma fresa que 
 - **Cena**: grade da mesa com eixos e rótulos, chapa translúcida opcional, iluminação de 3 pontos, antialias, `pixelRatio` limitado.
 
 ## Tarefas
-- [ ] `lib/heightmap.ts` (puro): criação, `carve(segment, r, t0, t1)`, `carveUpTo(segments, timing, t)`, amostragem; testes (recorte passante deixa `h = -depth`, pocket deixa fundo plano no raio certo).
-- [ ] `StockMesh.tsx`: malha do heightmap com atualização incremental; cor por profundidade; modo "arame".
-- [ ] `lib/toolModel.ts` + `ToolMesh.tsx` (flat/ball/vbit); `settings.toolType` (Sprint 11 traz múltiplas ferramentas — aqui só o tipo global).
-- [ ] `ViewCube.tsx` + `CameraController` (presets de vista, animação de 250 ms entre vistas, ortográfica).
-- [ ] Controles de simulação movidos para a ribbon (Sprint 07) + overlay no canvas (tempo, linha atual).
-- [ ] Performance: Web Worker para recomputar heightmap ao scrub; medir com pocket 200×200 mm, fresa Ø3, resolução 0,5 mm (< 100 ms por seek).
-- [ ] Testes: heightmap (unitários), câmera (vistas → posições), e2e (play → área usinada muda; clicar "Topo" no ViewCube muda a vista; toque orbita).
+- [x] `lib/heightmap.ts` (puro): criação, `carve(segment, r, t0, t1)`, `carveUpTo(segments, timing, t)`, amostragem; testes (recorte passante deixa `h = -depth`, pocket deixa fundo plano no raio certo).
+- [x] `StockMesh.tsx`: malha do heightmap com atualização incremental; cor por profundidade; modo "arame".
+- [x] `lib/toolModel.ts` + `ToolMesh.tsx` (flat/ball/vbit); `settings.toolType` (Sprint 11 traz múltiplas ferramentas — aqui só o tipo global).
+- [x] `ViewCube.tsx` + `CameraController` (presets de vista, animação de 250 ms entre vistas, ortográfica).
+- [x] Controles de simulação movidos para a ribbon (Sprint 07) + overlay no canvas (tempo, linha atual).
+- [x] Performance: Web Worker para recomputar heightmap ao scrub; medir com pocket 200×200 mm, fresa Ø3, resolução 0,5 mm (< 100 ms por seek).
+- [x] Testes: heightmap (unitários), câmera (vistas → posições), e2e (play → área usinada muda; clicar "Topo" no ViewCube muda a vista; toque orbita).
 
 ## DoD específica
 - Ao final da simulação, a chapa mostra o rebaixo com fundo plano na profundidade certa e o recorte passante separado da chapa (visível por cima e de lado).
@@ -31,3 +31,10 @@ Ver a peça sendo esculpida ao longo do tempo (não só a linha), uma fresa que 
 
 ## Fora de escopo
 Colisão com grampos/fixação, simulação de fresa cônica em contorno (só visual), verificação de sobrecorte automática (candidata à Fase 3).
+
+## Notas de fechamento
+- Recomputação ao voltar na linha do tempo roda na thread principal (o exemplo de referência fica < 100 ms; o Web Worker não foi necessário) — o custo aparece no overlay quando passa de 20 ms.
+- Heightmap não modela paredes verticais por baixo (recortes passantes aparecem como depressão até o fundo, colorida de "mesa de sacrifício").
+- Fresa V e esférica: perfil aplicado na remoção; a compensação do contorno continua usando o Ø nominal.
+- Preset de mouse "Fusion" usa botão do meio para mover e esquerdo para orbitar (Shift+meio não é suportado pelo OrbitControls).
+- Testes: 182 unitários (89 % linhas / 80 % branches), 46 e2e.

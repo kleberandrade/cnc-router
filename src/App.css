@@ -720,6 +720,10 @@
   border: 1px solid var(--border);
 }
 
+.simulator-viewport .simulator-canvas {
+  min-height: 0;
+}
+
 .simulator-controls {
   display: flex;
   flex-direction: column;
@@ -1309,5 +1313,121 @@
   }
   .sim-range-wrap input[type="range"] {
     height: 32px;
+  }
+}
+
+/* ---------- Simulator viewport, ViewCube (Sprint 10) ---------- */
+.simulator-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+}
+
+.simulator-viewport .simulator-canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+.sim-overlay {
+  position: absolute;
+  left: var(--s3);
+  bottom: var(--s2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(232, 241, 248, 0.75);
+  pointer-events: none;
+  display: flex;
+  gap: var(--s1);
+}
+
+.viewcube {
+  position: absolute;
+  top: var(--s3);
+  right: var(--s3);
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  pointer-events: none;
+}
+
+.viewcube-scene {
+  width: 60px;
+  height: 60px;
+  perspective: 300px;
+  margin: 18px 0 14px;
+}
+
+.viewcube-cube {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.viewcube-face {
+  position: absolute;
+  inset: 0;
+  width: 60px;
+  height: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(232, 241, 248, 0.82);
+  color: var(--blueprint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  pointer-events: auto;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewcube-face:hover {
+  background: #f3b64c;
+}
+
+.viewcube-buttons {
+  display: flex;
+  gap: var(--s1);
+  pointer-events: auto;
+}
+
+.viewcube-buttons .icon-button {
+  width: 26px;
+  height: 26px;
+  background: rgba(232, 241, 248, 0.85);
+  border-color: transparent;
+}
+
+.viewcube-buttons .icon-button.active {
+  background: #f3b64c;
+}
+
+.legend-mouse {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-left: var(--s3);
+}
+
+.legend-mouse select {
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+@media (max-width: 767px) {
+  .viewcube {
+    transform: scale(0.85);
+    transform-origin: top right;
+  }
+  .legend-mouse {
+    display: none;
   }
 }

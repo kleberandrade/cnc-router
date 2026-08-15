@@ -88,7 +88,13 @@ export type CutParamKey = "feedRate" | "plungeRate" | "spindleSpeed" | "passDept
 
 export type OrderMode = "auto" | "manual";
 
+export type ToolType = "flat" | "ball" | "vbit";
+
 export interface MachineSettings {
+  /** Tool tip geometry (visual + material removal). */
+  toolType: ToolType;
+  /** Included angle for V-bits, degrees (e.g. 60, 90). */
+  vbitAngle: number;
   /** Ramp entry angle in degrees for outlines (0 = vertical plunge). */
   rampAngle: number;
   /** "auto": pockets → inner outlines → outer outlines, nearest-first; "manual": drawing order. */
@@ -131,6 +137,8 @@ export const DEFAULT_STOCK: Stock = {
 };
 
 export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  toolType: "flat",
+  vbitAngle: 90,
   rampAngle: 0,
   orderMode: "auto",
   material: "custom",

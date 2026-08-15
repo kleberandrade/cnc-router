@@ -2,7 +2,7 @@
 
 Editor web para CNC router: desenhe peças (formas prontas ou SVG importado) sobre a mesa e a chapa da sua máquina, configure a máquina e exporte G-code (dialeto GRBL), com simulação 3D do percurso da fresa antes de rodar na máquina.
 
-Funcionalidades atuais: simulador 3D em tempo real com passo a passo (segmento/passe/forma), barra de tempo e estimativa de tempo total; presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), presets de material (MDF, compensado, pinus, alumínio) que preenchem avanço/mergulho/RPM/passe/stepover a partir do Ø da fresa (com override manual), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
+Funcionalidades atuais: simulador 3D em tempo real com remoção de material, fresa realista e ViewCube, passo a passo (segmento/passe/forma), barra de tempo e estimativa de tempo total; presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), presets de material (MDF, compensado, pinus, alumínio) que preenchem avanço/mergulho/RPM/passe/stepover a partir do Ø da fresa (com override manual), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
 
 100% client-side — não precisa de servidor/backend para funcionar. Instalável como **PWA** (funciona offline) e responsivo (desktop, tablet e celular com toque).
 
@@ -66,6 +66,8 @@ src/
 │  ├─ timing.ts            # estimativa de tempo por segmento/total
 │  ├─ passes.ts            # profundidades por passe
 │  ├─ playback.ts          # posição no tempo, fronteiras de passo (segmento/passe/forma)
+│  ├─ heightmap.ts         # remoção de material (campo de alturas) para o simulador
+│  ├─ toolModel.ts         # fresa 3D (spindle, pinça, haste, ponta reta/esférica/V)
 │  ├─ gcode.ts             # Segment[] → G-code GRBL + validação/cabeçalho
 │  ├─ svgImport.ts         # SVG (unidades, viewBox, transform, curvas amostradas) → Shape[] + avisos
 │  ├─ validate.ts          # avisos/erros: limites da mesa, chapa, profundidade, Z

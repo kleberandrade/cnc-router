@@ -7,7 +7,7 @@ import { boundingBox, shapeToPoints } from "../lib/geometry";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { NumberField } from "./NumberField";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode } from "../types";
+import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType } from "../types";
 import { DEFAULT_TABS } from "../types";
 
 interface SectionProps {
@@ -267,6 +267,17 @@ export function SidePanel() {
           <p className={material.advanced ? "hint hint-warn" : "hint"} data-testid="material-notes">{material.notes}</p>
         )}
         <NumberField label="Ø da fresa" unit="mm" min={0.1} step={0.5} value={settings.toolDiameter} testId="tool-diameter" onChange={setToolDiameter} />
+        <label>
+          Tipo de fresa
+          <select value={settings.toolType} onChange={(e) => updateSettings({ toolType: e.target.value as ToolType })} data-testid="tool-type">
+            <option value="flat">Topo reto (flat)</option>
+            <option value="ball">Ponta esférica (ball nose)</option>
+            <option value="vbit">V (gravação)</option>
+          </select>
+        </label>
+        {settings.toolType === "vbit" && (
+          <NumberField label="Ângulo da fresa V" unit="°" min={10} max={170} step={5} value={settings.vbitAngle} testId="vbit-angle" onChange={(v) => updateSettings({ vbitAngle: v })} />
+        )}
       </Section>
 
       <Section id="cut" title="Corte (GRBL)" summary={`F${settings.feedRate} · S${settings.spindleSpeed} · ${settings.passDepth}mm/passe`}>

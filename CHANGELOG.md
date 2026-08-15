@@ -2,6 +2,17 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 10 — Simulador realista] — 2026-08-15
+
+### Adicionado
+- **Remoção de material** (`lib/heightmap.ts`): a chapa vira um campo de alturas (resolução adaptativa 0,25–2 mm, ≤ 250 k células) esculpido pela fresa ao longo do tempo — perfis reto, esférico e V; avanço incremental durante a reprodução e recomputação ao voltar na linha do tempo (pocket 200×150 mm, Ø3, res 0,5 mm: ~50 ms). Superfície colorida por profundidade (bege → escuro; marrom onde atravessa), laterais da chapa sólidas, sombras.
+- **Fresa 3D realista** (`lib/toolModel.ts`): ponta reta / esférica / V com ângulo, flautas com sulcos helicoidais, haste, porca ER11, nariz e corpo do spindle, materiais metálicos; `settings.toolType` e `vbitAngle` (seção Material & ferramenta; persistência v5).
+- **ViewCube** estilo Fusion (CSS 3D sincronizado com a câmera): faces TOPO/BASE/FRENTE/TRÁS/ESQ/DIR clicáveis, botões Home, Isométrica e Ortográfica/Perspectiva; câmera anima entre vistas (260 ms); zoom no cursor; preset de mouse "Padrão" ou "Fusion" (meio = mover) salvo localmente; iluminação de 3 pontos + hemisférica, grade da mesa, névoa.
+- Ribbon (aba Simular): Ajustar / Vista superior / Isométrica ligados à nova câmera; overlay com tempo total e custo da malha.
+
+### Testes
+- `heightmap.test.ts` (perfis, recorte passante, fundo plano do pocket, incremental/scrub, desempenho), `toolModel.test.ts`; e2e `simulator3d.spec.ts` (volume removido cresce e volta ao scrub, ViewCube/vistas movem a câmera, ortográfica, tipo de fresa). Total: 182 unitários, 46 e2e.
+
 ## [Sprint 08 — Responsivo e PWA] — 2026-08-15
 
 ### Adicionado
