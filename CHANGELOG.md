@@ -2,6 +2,43 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 07 — Interface unificada (ribbon), espaçamento, ícones] — 2026-08-15
+
+### Adicionado
+- **TopBar** única (64 px) estilo Fusion: menu do projeto no logo (Novo, Abrir, Salvar, Importar SVG, Exportar, Atalhos, Sobre), abas Desenhar/Simular que trocam os grupos da ribbon (Projeto · Criar · Modificar · Vista / Reproduzir · Ajustes · Vista), Exportar G-code à direita, botão do painel lateral. Diálogo de atalhos e "Sobre".
+- Controles de transporte da simulação (início/anterior/play/próximo/fim, velocidade, passo, Ajustar/Vista superior/Isométrica) movidos para a ribbon; abaixo do 3D ficam a linha do tempo e o status.
+- Ícones `lucide-react` em toda a UI (ribbon, menu, acordeão, avisos, status, legenda) — nenhum emoji/glifo unicode decorativo.
+- Tokens de design (`--s1..--s6`, alturas de controle, semânticos prontos para tema escuro) e `docs/design-tokens.md`.
+- `useProjectActions` (hook com as ações e atalhos globais; substitui `ActionBar`); `uiStore.view` e `uiStore.simCamera`.
+
+### Corrigido
+- Campos numéricos cortando o valor (X/Y/Z da máquina): mínimo 72 px de texto, sufixo com reticências, linhas de campos em grid `auto-fit` (3 → 2 + 1).
+- Padding interno dos containers ≥ 12 px, gap consistente entre campos, checkbox com margem, seções do acordeão não são mais cortadas (`flex: none`).
+
+### Testes
+- `TopBar.test.tsx`; e2e: barra ≤ 64 px e troca de contexto, menu/diálogo, campos sem corte em 1280/1024/800 px, padding ≥ 12 px. Total: 173 unitários, 36 e2e.
+
+## [Sprint 06 — Qualidade de usinagem] — 2026-08-15
+
+### Adicionado
+- `lib/offset.ts` (Clipper): offset de polígonos com junções redondas, `scanlineSpans`, `perimeter`, `pointAlong`.
+- **Compensação da fresa** por contorno (`shape.side`): por fora (recorte fica no tamanho), por dentro (furo fica no tamanho) ou na linha. Novas formas nascem "por fora"; formas antigas continuam "na linha" (G-code inalterado). Furo/rebaixo menor que a fresa vira erro de validação e bloqueia a exportação.
+- **Pocket real**: scanlines recortadas pelo polígono ofsetado para dentro (múltiplos vãos por linha, salto com retração quando a ligação sairia da forma) + passe de acabamento na parede, por passe de profundidade.
+- **Ordem de usinagem** (`settings.orderMode`): automática (rebaixos → furos → recortes, mais próximo primeiro) ou manual.
+- **Tabs (pontes)** por contorno (`shape.tabs`: quantidade, largura, altura) — só nos passes abaixo do topo da ponte.
+- **Rampa de entrada** (`settings.rampAngle`, 0 = mergulho vertical): descida ao longo do próprio contorno; volta completa a partir do ponto em que atinge a profundidade.
+- G-code: `G1 X Y Z F` para movimentos 3D (rampa), avisos do gerador de percurso como comentários.
+- **SVG** reescrito (`parseSvg`): `viewBox` + `width/height` com unidades (mm, cm, in, px, pt), `transform` aninhados (translate/scale/rotate/skew/matrix), `rect` com cantos arredondados, `circle`/`ellipse`/`polygon`/`polyline`/`line`, `path` com **curvas e arcos amostrados** (`svg-path-properties`, tolerância 0,1 mm), eixo Y espelhado para o desenho manter a orientação, avisos do que foi aproximado/ignorado (texto/imagem/use) exibidos no aviso de importação. `parseSvgToShapes` mantido.
+- Painel: Compensação da fresa e Pontes na seção Peça; Rampa e Ordem de usinagem na seção Corte.
+- Amostras: `baseline-v1.gcode`, `sprint06-compensacao-tabs-rampa.gcode`, `generate-samples.ts`.
+
+### Alterado
+- Persistência v4 (`rampAngle`, `orderMode`).
+- Baseline de regressão passa a ser `baseline-v1.gcode` (o motor mudou de propósito: pocket dentro da forma e ordem automática).
+
+### Testes
+- `offset.test.ts`, toolpath (46×36 / 34×24 / 40×30, tabs, rampa, ordenação, pocket dentro do círculo ofsetado, formas menores que a fresa), `svgImport.test.ts` com fixture Inkscape (px + mm); e2e `machining.spec.ts`. Total: 169 unitários, 32 e2e.
+
 ## [Sprint 05 — Toolbar reorganizada] — 2026-08-15
 
 ### Adicionado

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="60mm" viewBox="0 0 377.95276 226.77165">
+  <g transform="translate(37.795276,0)">
+    <rect x="0" y="0" width="188.97638" height="113.38583" />
+    <circle cx="283.46457" cy="170.07874" r="37.795276" />
+    <path d="M 0,226.77165 C 0,150 100,150 100,226.77165 Z" />
+    <text x="10" y="10">ignorado</text>
+  </g>
+</svg>

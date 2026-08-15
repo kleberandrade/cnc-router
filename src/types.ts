@@ -9,7 +9,28 @@ export interface BaseShape {
   operation: "outline" | "pocket";
   /** When true, depth follows the stock thickness + THROUGH_CUT_EXTRA (kept in sync when the stock changes). */
   cutThrough?: boolean;
+  /**
+   * Tool compensation for outlines: "on" follows the line with the tool centre (legacy/engraving),
+   * "outside" keeps the drawn size for a part cut-out, "inside" keeps the drawn size for a hole.
+   * Ignored for pockets. Defaults to "on".
+   */
+  side?: CutSide;
+  /** Holding tabs left on the last passes of an outline (through-cuts). */
+  tabs?: TabSettings;
 }
+
+export type CutSide = "on" | "outside" | "inside";
+
+export interface TabSettings {
+  /** Number of tabs spread evenly along the perimeter (0 = none). */
+  count: number;
+  /** Tab length along the path, mm. */
+  width: number;
+  /** Tab height above the bottom of the cut, mm. */
+  height: number;
+}
+
+export const DEFAULT_TABS: TabSettings = { count: 4, width: 8, height: 3 };
 
 /** Extra depth (mm) added below the stock for through-cuts, so the bottom face is fully cut. */
 export const THROUGH_CUT_EXTRA = 0.2;
@@ -65,7 +86,13 @@ export type MaterialId = "mdf" | "plywood" | "pine" | "aluminum" | "custom";
 /** Cutting parameters that a material preset fills in (and the user may override). */
 export type CutParamKey = "feedRate" | "plungeRate" | "spindleSpeed" | "passDepth" | "stepover";
 
+export type OrderMode = "auto" | "manual";
+
 export interface MachineSettings {
+  /** Ramp entry angle in degrees for outlines (0 = vertical plunge). */
+  rampAngle: number;
+  /** "auto": pockets → inner outlines → outer outlines, nearest-first; "manual": drawing order. */
+  orderMode: OrderMode;
   /** Selected material preset (see lib/materials). */
   material: MaterialId;
   /** Pocket stepover, mm (distance between scanlines). */
@@ -104,6 +131,8 @@ export const DEFAULT_STOCK: Stock = {
 };
 
 export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  rampAngle: 0,
+  orderMode: "auto",
   material: "custom",
   stepover: 1.8,
   overrides: {},

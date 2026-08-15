@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useProjectStore } from "../state/store";
 import { useSimStore } from "../state/simStore";
+import { useUiStore } from "../state/uiStore";
 import { buildToolpath, workOriginOffset, type Segment } from "../lib/toolpath";
 import { estimateTime, formatDuration, type Timing } from "../lib/timing";
 import { positionAt, boundariesFor, segmentIndexAt } from "../lib/playback";
@@ -251,25 +252,27 @@ export function Simulator() {
     }
   }, [t, segments, timing]);
 
-  const fit = () => refs.current && fitCamera(refs.current, settings, segments);
-  const topView = () => refs.current && topCamera(refs.current, settings, segments);
+  // Expose camera actions to the TopBar ribbon while mounted.
+  useEffect(() => {
+    useUiStore.getState().setSimCamera({
+      fit: () => refs.current && fitCamera(refs.current, settings, segments),
+      top: () => refs.current && topCamera(refs.current, settings, segments),
+      iso: () => refs.current && fitCamera(refs.current, settings, segments),
+    });
+    return () => useUiStore.getState().setSimCamera(null);
+  }, [settings, segments]);
 
   const currentLine = segments.length ? gcodeLines[segmentIndexAt(timing, t)] ?? "" : "";
 
   return (
     <div className="simulator" data-testid="simulator">
       <div ref={mountRef} className="simulator-canvas" />
-      <SimulatorControls
-        segments={segments}
-        timing={timing}
-        currentLine={currentLine}
-        onFit={fit}
-        onTopView={topView}
-      />
+      <SimulatorControls segments={segments} timing={timing} currentLine={currentLine} />
       <p className="simulator-legend">
-        <span className="legend-cut">■</span> cortado · <span className="legend-future">■</span> a cortar ·{" "}
-        <span className="legend-rapid">┄</span> deslocamento rápido · tempo total {formatDuration(timing.total)}
-        {playing ? " · reproduzindo" : ""}
+        <span className="legend-swatch legend-cut" aria-hidden="true" /> cortado
+        <span className="legend-swatch legend-future" aria-hidden="true" /> a cortar
+        <span className="legend-swatch legend-rapid" aria-hidden="true" /> deslocamento rápido
+        <span className="legend-total">tempo total {formatDuration(timing.total)}{playing ? " · reproduzindo" : ""}</span>
       </p>
     </div>
   );

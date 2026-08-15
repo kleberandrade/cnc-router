@@ -8,7 +8,7 @@ test.describe("materials (sprint 02)", () => {
     await page.getByTestId("section-toggle-cut").click();
     await expect(page.getByTestId("cut-feedRate")).toHaveValue("300");
     await page.getByTestId("cut-feedRate").fill("450");
-    await expect(page.getByText("manual")).toBeVisible();
+    await expect(page.locator(".badge", { hasText: "manual" })).toBeVisible();
     await page.getByTestId("section-toggle-material").click();
     await expect(page.getByTestId("material-notes")).toContainText("Avançado");
     await page.getByTestId("material-select").selectOption("mdf");

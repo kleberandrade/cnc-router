@@ -10,9 +10,24 @@ Planejamento derivado da auditoria (`docs/auditoria.md`). Cada sprint é um arqu
 | [03](sprint-03-motor-de-percurso-e-tempo.md) ✅ | Motor único de percurso + estimativa de tempo | 01 | M |
 | [04](sprint-04-simulador.md) ✅ | Simulador: tempo real, step/step, barra de tempo, mesa/chapa em 3D | 03 | G |
 | [05](sprint-05-toolbar.md) ✅ | Toolbar reorganizada, atalhos, undo/redo, status | 01, 02, 03 | M |
-| [06](sprint-06-qualidade-de-usinagem.md) | Compensação de fresa, pocket real, ordem de operações, SVG melhor | 03 | G |
+| [06](sprint-06-qualidade-de-usinagem.md) ✅ | Compensação de fresa, pocket real, ordem de operações, SVG melhor | 03 | G |
 
-Ordem recomendada: 00 → 01 → 03 → 04 → 02 → 05 → 06 (mesa + simulador crível primeiro; 02 e 05 podem ser paralelizadas após 01/03).
+Ordem executada: 00 → 01 → 03 → 04 → 02 → 05 → 06 — **todas concluídas em 2026-08-15**.
+
+## Fase 2
+
+Avaliação do feedback e plano completo em [`fase-2.md`](fase-2.md).
+
+| Sprint | Tema | Depende de | Esforço |
+|---|---|---|---|
+| [07](sprint-07-interface-unificada.md) ✅ | Interface unificada (ribbon), tokens de espaçamento, ícones sem emoji | — | M |
+| [08](sprint-08-responsivo-e-pwa.md) | Responsivo (celular/tablet, toque) + PWA instalável/offline | 07 | M |
+| [09](sprint-09-formas-e-edicao-no-canvas.md) | Cantos de retângulo, handles, medidas inline, snap, novas formas | 07 | M/G |
+| [10](sprint-10-simulador-realista.md) | Remoção de material, fresa 3D realista, ViewCube/gizmo | 07 | G |
+| [11](sprint-11-navegador-e-produtividade.md) | Navegador de peças, ferramentas por peça, tema escuro, DXF | 07, 09 | M |
+| [12](sprint-12-backlog.md) | Backlog priorizado (Fase 3) | — | — |
+
+Ordem recomendada: 07 → 08 → 10 → 09 → 11.
 
 ## Definition of Done (global — vale para toda sprint)
 

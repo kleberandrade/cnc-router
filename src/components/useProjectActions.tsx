@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useProjectStore, generateShapeId, undo, redo, useTemporalStore, throughCutDepth } from "../state/store";
+import { useProjectStore, generateShapeId, undo, redo, useTemporalStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
-import { parseSvgToShapes } from "../lib/svgImport";
+import { parseSvg } from "../lib/svgImport";
 import { tryGenerateGCode } from "../lib/gcode";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape } from "../types";
@@ -16,43 +16,11 @@ function downloadTextFile(filename: string, content: string, type = "text/plain"
   URL.revokeObjectURL(url);
 }
 
-function Icon({ id }: { id: string }) {
-  return (
-    <svg className="icon" aria-hidden="true" width="16" height="16">
-      <use href={`/icons.svg#${id}`} />
-    </svg>
-  );
-}
-
-interface ActionProps {
-  icon: string;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  primary?: boolean;
-  active?: boolean;
-  testId?: string;
-  title?: string;
-}
-
-function Action({ icon, label, onClick, disabled, primary, active, testId, title }: ActionProps) {
-  return (
-    <button
-      type="button"
-      className={`action${primary ? " primary" : ""}${active ? " active" : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-      data-testid={testId}
-      title={title ?? label}
-      aria-pressed={active}
-    >
-      <Icon id={icon} />
-      <span>{label}</span>
-    </button>
-  );
-}
-
-export function ActionBar() {
+/**
+ * Project-level actions (create shapes, import/open/save/export, new project) + global keyboard shortcuts.
+ * Renders nothing but the hidden file inputs; the TopBar consumes the returned handlers.
+ */
+export function useProjectActions() {
   const shapes = useProjectStore((s) => s.shapes);
   const selectedId = useProjectStore((s) => s.selectedId);
   const settings = useProjectStore((s) => s.settings);
@@ -84,7 +52,7 @@ export function ActionBar() {
   const handleAddRectangle = () => {
     const shape: RectangleShape = {
       id: generateShapeId("rect"), kind: "rectangle", x: spawnX, y: spawnY, width: 40, height: 30, rotation: 0,
-      depth: stock.thickness, operation: "outline",
+      depth: stock.thickness, operation: "outline", side: "outside",
     };
     addShape(shape);
     setSection("shape");
@@ -93,7 +61,7 @@ export function ActionBar() {
   const handleAddCircle = () => {
     const shape: CircleShape = {
       id: generateShapeId("circle"), kind: "circle", x: spawnX + 15, y: spawnY + 15, radius: 15,
-      depth: stock.thickness, operation: "outline",
+      depth: stock.thickness, operation: "outline", side: "outside",
     };
     addShape(shape);
     setSection("shape");
@@ -103,11 +71,13 @@ export function ActionBar() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const imported = parseSvgToShapes(await file.text());
-      addShapes(imported);
+      const { shapes: imported, warnings } = parseSvg(await file.text(), { depth: stock.thickness });
+      addShapes(imported.map((sh) => ({ ...sh, side: "outside" as const })));
+      const details = warnings.filter((w) => !w.startsWith("Nenhuma forma"));
       setNotice({
-        kind: imported.length > 0 ? "info" : "warning",
+        kind: imported.length > 0 ? (details.length ? "warning" : "info") : "warning",
         title: imported.length > 0 ? `${imported.length} forma(s) importada(s).` : "Nenhuma forma reconhecida nesse SVG.",
+        details: details.length ? details : undefined,
       });
     } catch {
       setNotice({ kind: "error", title: "Não foi possível importar esse arquivo SVG." });
@@ -216,46 +186,35 @@ export function ActionBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tool, shapes, settings]);
 
-  return (
-    <div className="action-bar" role="toolbar" aria-label="Ações">
-      <div className="action-group">
-        <Action icon="new" label="Novo" onClick={handleNewProject} testId="new-project" />
-        <Action icon="open" label="Abrir" onClick={() => jsonInputRef.current?.click()} testId="open-project" title="Abrir projeto (.json)" />
-        <Action icon="save" label="Salvar" onClick={handleSave} testId="save-project" title="Salvar projeto (.json) — Ctrl+S" />
-        <Action icon="import" label="SVG" onClick={() => svgInputRef.current?.click()} testId="import-svg" title="Importar SVG" />
-      </div>
-      <div className="action-group">
-        <Action icon="undo" label="Desfazer" onClick={undo} disabled={pastStates === 0} testId="undo" title="Desfazer (Ctrl+Z)" />
-        <Action icon="redo" label="Refazer" onClick={redo} disabled={futureStates === 0} testId="redo" title="Refazer (Ctrl+Y)" />
-      </div>
-      <div className="action-group">
-        <Action icon="rect" label="Retângulo" onClick={handleAddRectangle} testId="add-rectangle" title="Retângulo (R)" />
-        <Action icon="circle" label="Círculo" onClick={handleAddCircle} testId="add-circle" title="Círculo (C)" />
-        <Action
-          icon="polygon"
-          label="Polígono"
-          onClick={() => setTool(tool === "polygon" ? "select" : "polygon")}
-          active={tool === "polygon"}
-          testId="tool-polygon"
-          title="Polígono: clique os vértices no desenho, Enter/duplo clique fecha (P)"
-        />
-        <Action icon="duplicate" label="Duplicar" onClick={() => selectedId && duplicateShape(selectedId)} disabled={!selectedId} testId="duplicate" title="Duplicar (Ctrl+D)" />
-        <Action icon="delete" label="Excluir" onClick={() => selectedId && removeShape(selectedId)} disabled={!selectedId} testId="delete" title="Excluir (Del)" />
-      </div>
-      <div className="action-group">
-        <Action icon="zoom-out" label="" onClick={zoomOut} title="Reduzir (−)" testId="zoom-out" />
-        <button type="button" className="action" onClick={zoomFit} title="Ajustar à mesa (0)" data-testid="zoom-fit">
-          <span className="zoom-label">{Math.round(zoom * 100)}%</span>
-        </button>
-        <Action icon="zoom-in" label="" onClick={zoomIn} title="Ampliar (+)" testId="zoom-in" />
-      </div>
-      <div className="action-spacer" />
-      <Action icon="export" label="Exportar G-code" onClick={handleExport} primary testId="export-gcode" />
-
+  const inputs = (
+    <>
       <input ref={svgInputRef} type="file" accept=".svg,image/svg+xml" style={{ display: "none" }} onChange={handleSvgFile} data-testid="svg-file-input" />
       <input ref={jsonInputRef} type="file" accept=".json,application/json" style={{ display: "none" }} onChange={handleJsonFile} data-testid="json-file-input" />
-    </div>
+    </>
   );
-}
 
-export { throughCutDepth };
+  return {
+    inputs,
+    shapes,
+    selectedId,
+    tool,
+    setTool,
+    zoom,
+    zoomIn,
+    zoomOut,
+    zoomFit,
+    pastStates,
+    futureStates,
+    addRectangle: handleAddRectangle,
+    addCircle: handleAddCircle,
+    importSvg: () => svgInputRef.current?.click(),
+    openProject: () => jsonInputRef.current?.click(),
+    saveProject: handleSave,
+    exportGcode: handleExport,
+    newProject: handleNewProject,
+    duplicate: () => selectedId && duplicateShape(selectedId),
+    remove: () => selectedId && removeShape(selectedId),
+    undo,
+    redo,
+  };
+}

@@ -10,6 +10,30 @@
   --warn: #b5601f;
   --muted: #6b7280;
   --radius: 10px;
+  --radius-sm: 6px;
+
+  /* spacing scale */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+
+  /* control sizes */
+  --control-h: 32px;
+  --control-h-sm: 28px;
+  --topbar-h: 64px;
+
+  /* semantic (theme-ready; dark theme swaps these in Sprint 11) */
+  --bg: var(--paper);
+  --surface: var(--panel);
+  --surface-2: #f2f2ef;
+  --text: var(--ink);
+  --text-muted: var(--muted);
+  --border-strong: #cfcfca;
+  --danger: #b3261e;
+  --success: #3a7d44;
 
   --font-display: "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;

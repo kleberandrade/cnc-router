@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AlertTriangle, CircleCheck, OctagonAlert, Clock, Layers, Ruler } from "lucide-react";
 import { useProjectStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
 import { validateProject } from "../lib/validate";
@@ -27,14 +28,15 @@ export function StatusBar() {
 
   return (
     <footer className="status-bar" data-testid="status-bar">
-      <span>
-        Mesa {workArea.width}×{workArea.height} · Chapa {stock.width}×{stock.height}×{stock.thickness} mm
+      <span className="status-item">
+        <Ruler size={13} aria-hidden="true" /> Mesa {workArea.width}×{workArea.height} · Chapa {stock.width}×{stock.height}×{stock.thickness} mm
       </span>
-      <span data-testid="status-shapes">{shapes.length} forma(s)</span>
-      <span data-testid="toolbar-estimate">tempo estimado {formatDuration(estimatedTime)}</span>
+      <span className="status-item" data-testid="status-shapes"><Layers size={13} aria-hidden="true" /> {shapes.length} forma(s)</span>
+      <span className="status-item" data-testid="toolbar-estimate"><Clock size={13} aria-hidden="true" /> tempo estimado {formatDuration(estimatedTime)}</span>
       {issues.length > 0 ? (
         <details className="status-issues" data-testid="issues">
-          <summary className={errors ? "issue-error" : "issue-warning"} data-testid="issues-summary">
+          <summary className={`status-item ${errors ? "issue-error" : "issue-warning"}`} data-testid="issues-summary">
+            {errors ? <OctagonAlert size={13} aria-hidden="true" /> : <AlertTriangle size={13} aria-hidden="true" />}{" "}
             {errors ? `${errors} erro(s)` : ""}
             {errors && warnings ? " · " : ""}
             {warnings ? `${warnings} aviso(s)` : ""}
@@ -61,7 +63,7 @@ export function StatusBar() {
           </ul>
         </details>
       ) : (
-        <span className="status-ok">sem avisos</span>
+        <span className="status-item status-ok"><CircleCheck size={13} aria-hidden="true" /> sem avisos</span>
       )}
     </footer>
   );

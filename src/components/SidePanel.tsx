@@ -4,9 +4,11 @@ import { useUiStore, type PanelSection } from "../state/uiStore";
 import { MACHINE_PRESETS, CUSTOM_PRESET_ID, findMachinePreset } from "../lib/machinePresets";
 import { MATERIAL_PRESETS, CUSTOM_MATERIAL_ID, findMaterial } from "../lib/materials";
 import { boundingBox, shapeToPoints } from "../lib/geometry";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { NumberField } from "./NumberField";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape } from "../types";
+import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode } from "../types";
+import { DEFAULT_TABS } from "../types";
 
 interface SectionProps {
   id: PanelSection;
@@ -28,7 +30,7 @@ function Section({ id, title, children, summary }: SectionProps) {
         onClick={() => setSection(id)}
         data-testid={`section-toggle-${id}`}
       >
-        <span className="chevron" aria-hidden="true">{open ? "▾" : "▸"}</span>
+        <span className="chevron" aria-hidden="true">{open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
         <span className="panel-title">{title}</span>
         {!open && summary && <span className="panel-summary">{summary}</span>}
       </button>
@@ -158,6 +160,41 @@ export function SidePanel() {
                 <option value="pocket">Rebaixo (pocket)</option>
               </select>
             </label>
+            {selectedShape.operation === "outline" && (
+              <>
+                <label>
+                  Compensação da fresa
+                  <select
+                    value={selectedShape.side ?? "on"}
+                    onChange={(e) => updateShape(selectedShape.id, { side: e.target.value as CutSide })}
+                    data-testid="shape-side"
+                  >
+                    <option value="outside">Por fora (recorte — peça fica no tamanho)</option>
+                    <option value="inside">Por dentro (furo — abertura fica no tamanho)</option>
+                    <option value="on">Na linha (gravação / sem compensação)</option>
+                  </select>
+                </label>
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={!!selectedShape.tabs && selectedShape.tabs.count > 0}
+                    onChange={(e) => updateShape(selectedShape.id, { tabs: e.target.checked ? { ...DEFAULT_TABS } : undefined })}
+                    data-testid="shape-tabs"
+                  />
+                  Pontes (tabs) para segurar a peça
+                </label>
+                {selectedShape.tabs && selectedShape.tabs.count > 0 && (
+                  <div className="field-row">
+                    <NumberField label="Qtd" min={1} max={20} step={1} value={selectedShape.tabs.count} testId="tabs-count"
+                      onChange={(v) => updateShape(selectedShape.id, { tabs: { ...selectedShape.tabs!, count: Math.round(v) } })} />
+                    <NumberField label="Largura" unit="mm" min={1} step={1} value={selectedShape.tabs.width} testId="tabs-width"
+                      onChange={(v) => updateShape(selectedShape.id, { tabs: { ...selectedShape.tabs!, width: v } })} />
+                    <NumberField label="Altura" unit="mm" min={0.5} step={0.5} value={selectedShape.tabs.height} testId="tabs-height"
+                      onChange={(v) => updateShape(selectedShape.id, { tabs: { ...selectedShape.tabs!, height: v } })} />
+                  </div>
+                )}
+              </>
+            )}
             <button type="button" className="danger" onClick={() => removeShape(selectedShape.id)}>
               Remover forma
             </button>
@@ -264,6 +301,14 @@ export function SidePanel() {
             onChange={(v) => setCutParam(key, v)}
           />
         ))}
+        <NumberField label="Rampa de entrada (0 = mergulho vertical)" unit="°" min={0} max={45} step={1} value={settings.rampAngle} testId="ramp-angle" onChange={(v) => updateSettings({ rampAngle: v })} />
+        <label>
+          Ordem de usinagem
+          <select value={settings.orderMode} onChange={(e) => updateSettings({ orderMode: e.target.value as OrderMode })} data-testid="order-mode">
+            <option value="auto">Automática (rebaixos → furos → recortes, mais próximo primeiro)</option>
+            <option value="manual">Manual (ordem de criação)</option>
+          </select>
+        </label>
         <NumberField label="Deslocamento rápido G0" unit="mm/min" min={1} step={100} value={settings.rapidRate} testId="rapid-rate" onChange={(v) => updateSettings({ rapidRate: v })} />
         <NumberField label="Altura segura" unit="mm" min={0} step={1} value={settings.safeHeight} testId="safe-height" onChange={(v) => updateSettings({ safeHeight: v })} />
       </Section>

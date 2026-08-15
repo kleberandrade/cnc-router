@@ -25,7 +25,7 @@ export { generateShapeId };
 
 /** localStorage key + schema version. Bump `PROJECT_SCHEMA_VERSION` and extend `migrateProject` on breaking changes. */
 export const PROJECT_STORAGE_KEY = "oficina-cnc:project";
-export const PROJECT_SCHEMA_VERSION = 3;
+export const PROJECT_SCHEMA_VERSION = 4;
 
 type PersistedProject = { shapes: Shape[]; settings: MachineSettings };
 
@@ -49,6 +49,11 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
     if (raw.stepover === undefined) settings.stepover = Math.round(Math.max(settings.toolDiameter * 0.6, 0.1) * 100) / 100;
     if (!raw.material) settings.material = "custom";
     settings.overrides = { ...(raw.overrides ?? {}) };
+  }
+  // v3 -> v4: rampAngle/orderMode; existing shapes keep side "on" (undefined) so their G-code is unchanged.
+  if (version < 4) {
+    if (raw.rampAngle === undefined) settings.rampAngle = 0;
+    if (!raw.orderMode) settings.orderMode = "auto";
   }
   return { shapes, settings };
 }

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ActionBar } from "./components/ActionBar";
+import { TopBar } from "./components/TopBar";
 import { SidePanel } from "./components/SidePanel";
 import { StatusBar } from "./components/StatusBar";
 import { Editor } from "./components/Editor";
@@ -7,45 +6,17 @@ import { Simulator } from "./components/Simulator";
 import { useUiStore } from "./state/uiStore";
 import "./App.css";
 
-type Tab = "editor" | "simulator";
-
 function App() {
-  const [tab, setTab] = useState<Tab>("editor");
+  const view = useUiStore((s) => s.view);
   const panelOpen = useUiStore((s) => s.panelOpen);
-  const togglePanel = useUiStore((s) => s.togglePanel);
 
   return (
     <div className="app">
-      <header className="app-header">
-        <button
-          type="button"
-          className="panel-toggle"
-          onClick={togglePanel}
-          aria-label={panelOpen ? "Ocultar painel" : "Mostrar painel"}
-          aria-expanded={panelOpen}
-          data-testid="panel-toggle"
-        >
-          ☰
-        </button>
-        <span className="app-header-mark" aria-hidden="true">⌗</span>
-        <h1>Oficina CNC</h1>
-        <nav className="tabs" aria-label="Modo de visualização">
-          <button type="button" className={tab === "editor" ? "tab active" : "tab"} onClick={() => setTab("editor")} data-testid="tab-editor">
-            Desenhar
-          </button>
-          <button type="button" className={tab === "simulator" ? "tab active" : "tab"} onClick={() => setTab("simulator")} data-testid="tab-simulator">
-            Simular
-          </button>
-        </nav>
-      </header>
-
-      <ActionBar />
-
+      <TopBar />
       <main className={`app-body${panelOpen ? "" : " panel-collapsed"}`}>
         {panelOpen && <SidePanel />}
-        <section className="workspace">{tab === "editor" ? <Editor /> : <Simulator />}</section>
+        <section className="workspace">{view === "editor" ? <Editor /> : <Simulator />}</section>
       </main>
-
       <StatusBar />
     </div>
   );

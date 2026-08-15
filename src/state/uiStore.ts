@@ -2,9 +2,16 @@ import { create } from "zustand";
 import type { NoticeData } from "../components/Notice";
 
 export type PanelSection = "machine" | "stock" | "material" | "cut" | "shape";
+export type View = "editor" | "simulator";
+export interface SimCameraActions { fit: () => void; top: () => void; iso: () => void }
 export type EditorTool = "select" | "polygon";
 
 interface UiState {
+  view: View;
+  setView: (v: View) => void;
+  /** Camera actions registered by the Simulator while mounted. */
+  simCamera: SimCameraActions | null;
+  setSimCamera: (a: SimCameraActions | null) => void;
   notice: NoticeData | null;
   setNotice: (n: NoticeData | null) => void;
   /** Open accordion section in the side panel. */
@@ -34,6 +41,10 @@ export const ZOOM_MAX = 8;
 const clampZoom = (z: number) => Math.min(Math.max(z, ZOOM_MIN), ZOOM_MAX);
 
 export const useUiStore = create<UiState>((set) => ({
+  view: "editor",
+  setView: (view) => set({ view }),
+  simCamera: null,
+  setSimCamera: (simCamera) => set({ simCamera }),
   notice: null,
   setNotice: (notice) => set({ notice }),
   section: "shape",

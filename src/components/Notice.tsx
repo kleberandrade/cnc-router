@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { X, Info, AlertTriangle, OctagonAlert } from "lucide-react";
 
 export type NoticeKind = "info" | "warning" | "error";
 
@@ -31,6 +32,9 @@ export function Notice({ notice, onDismiss, autoHideMs = 4000 }: NoticeProps) {
 
   return (
     <div className={`notice notice-${notice.kind}`} role="alert" data-testid="notice">
+      <span className="notice-icon" aria-hidden="true">
+        {notice.kind === "info" ? <Info size={16} /> : notice.kind === "warning" ? <AlertTriangle size={16} /> : <OctagonAlert size={16} />}
+      </span>
       <div className="notice-body">
         <strong>{notice.title}</strong>
         {notice.details && notice.details.length > 0 && (
@@ -47,7 +51,7 @@ export function Notice({ notice, onDismiss, autoHideMs = 4000 }: NoticeProps) {
         onClick={onDismiss}
         aria-label="Fechar aviso"
       >
-        ×
+        <X size={14} />
       </button>
     </div>
   );

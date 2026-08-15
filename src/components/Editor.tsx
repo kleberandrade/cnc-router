@@ -97,6 +97,7 @@ export function Editor() {
         closed: true,
         depth: stock.thickness,
         operation: "outline",
+        side: "outside",
       });
       setSection("shape");
     }

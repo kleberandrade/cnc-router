@@ -97,9 +97,14 @@ export function segmentsToGCode(segments: Segment[]): string[] {
       case "plunge":
         lines.push(`G1 Z${fmt(tz)} F${fmt(seg.feed)}`);
         break;
-      case "feed":
-        lines.push(`G1 X${fmt(tx)} Y${fmt(ty)} F${fmt(seg.feed)}`);
+      case "feed": {
+        const zChanged = seg.from[2] !== tz;
+        const xyChanged = seg.from[0] !== tx || seg.from[1] !== ty;
+        if (zChanged && !xyChanged) lines.push(`G1 Z${fmt(tz)} F${fmt(seg.feed)}`);
+        else if (zChanged) lines.push(`G1 X${fmt(tx)} Y${fmt(ty)} Z${fmt(tz)} F${fmt(seg.feed)}`);
+        else lines.push(`G1 X${fmt(tx)} Y${fmt(ty)} F${fmt(seg.feed)}`);
         break;
+      }
     }
   }
   return lines;
@@ -130,6 +135,9 @@ export function generateGCode(
   );
   lines.push(`; tempo estimado: ${formatDuration(timing.total)} (rapid ${fmt(settings.rapidRate)} mm/min)`);
   for (const w of issues.filter((i) => i.level === "warning")) {
+    lines.push(`; WARNING: ${w.message}`);
+  }
+  for (const w of toolpath.warnings) {
     lines.push(`; WARNING: ${w.message}`);
   }
   lines.push("G21 ; millimeters");

@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useSimStore, SPEEDS, type Speed } from "../state/simStore";
+import { useSimStore } from "../state/simStore";
 import type { Segment } from "../lib/toolpath";
 import type { Timing } from "../lib/timing";
 import { formatClock } from "../lib/timing";
-import { progressAt, type StepMode } from "../lib/playback";
+import { progressAt } from "../lib/playback";
 
 interface Props {
   segments: Segment[];
   timing: Timing;
   currentLine: string;
-  onFit: () => void;
-  onTopView: () => void;
 }
 
 const OP_LABEL: Record<Segment["op"], string> = {
@@ -19,14 +17,13 @@ const OP_LABEL: Record<Segment["op"], string> = {
   travel: "deslocamento",
 };
 
-export function SimulatorControls({ segments, timing, currentLine, onFit, onTopView }: Props) {
+/** Timeline + status readout under the 3D view (transport buttons live in the TopBar ribbon). */
+export function SimulatorControls({ segments, timing, currentLine }: Props) {
   const t = useSimStore((s) => s.t);
-  const playing = useSimStore((s) => s.playing);
-  const speed = useSimStore((s) => s.speed);
   const stepMode = useSimStore((s) => s.stepMode);
   const duration = useSimStore((s) => s.duration);
   const boundaries = useSimStore((s) => s.boundaries);
-  const { toggle, seek, stepForward, stepBack, reset, toEnd, setSpeed, setStepMode } = useSimStore.getState();
+  const { toggle, seek, stepForward, stepBack, reset, toEnd } = useSimStore.getState();
 
   const disabled = segments.length === 0 || duration <= 0;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -76,8 +73,6 @@ export function SimulatorControls({ segments, timing, currentLine, onFit, onTopV
     return marks;
   }, [segments, timing]);
 
-  const atEnd = duration > 0 && t >= duration;
-
   return (
     <div
       ref={rootRef}
@@ -86,56 +81,6 @@ export function SimulatorControls({ segments, timing, currentLine, onFit, onTopV
       aria-label="Controles da simulação"
       data-testid="simulator-controls"
     >
-      <div className="sim-row">
-        <button type="button" onClick={reset} disabled={disabled} title="Início (Home)" aria-label="Início">
-          ⏮
-        </button>
-        <button type="button" onClick={stepBack} disabled={disabled} title="Passo anterior (←)" aria-label="Passo anterior" data-testid="sim-step-back">
-          ⏪
-        </button>
-        <button
-          type="button"
-          className="primary"
-          onClick={toggle}
-          disabled={disabled}
-          title="Reproduzir/pausar (espaço)"
-          data-testid="simulate-toggle"
-        >
-          {playing ? "Pausar simulação" : atEnd ? "Reiniciar" : "Simular"}
-        </button>
-        <button type="button" onClick={stepForward} disabled={disabled} title="Próximo passo (→)" aria-label="Próximo passo" data-testid="sim-step-forward">
-          ⏩
-        </button>
-        <button type="button" onClick={toEnd} disabled={disabled} title="Fim (End)" aria-label="Fim">
-          ⏭
-        </button>
-
-        <label className="sim-select">
-          Velocidade
-          <select value={speed} onChange={(e) => setSpeed(Number(e.target.value) as Speed)} data-testid="sim-speed">
-            {SPEEDS.map((s) => (
-              <option key={s} value={s}>
-                {s}×
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="sim-select">
-          Passo
-          <select value={stepMode} onChange={(e) => setStepMode(e.target.value as StepMode)} data-testid="sim-step-mode">
-            <option value="segment">segmento</option>
-            <option value="pass">passe</option>
-            <option value="shape">forma</option>
-          </select>
-        </label>
-        <button type="button" onClick={onFit} title="Ajustar à peça">
-          Ajustar
-        </button>
-        <button type="button" onClick={onTopView} title="Vista superior">
-          Vista superior
-        </button>
-      </div>
-
       <div className="sim-timeline">
         <span className="sim-clock" data-testid="sim-elapsed">
           {formatClock(t)}

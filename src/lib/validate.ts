@@ -1,5 +1,6 @@
 import type { Shape, MachineSettings } from "../types";
 import { shapeToPoints, boundingBox } from "./geometry";
+import { offsetPolygon } from "./offset";
 
 export type IssueLevel = "error" | "warning";
 
@@ -12,7 +13,8 @@ export interface Issue {
     | "depth-exceeds-z"
     | "safe-height-exceeds-z"
     | "stock-outside-table"
-    | "invalid-setting";
+    | "invalid-setting"
+    | "shape-narrower-than-tool";
   message: string;
   shapeId?: string;
 }
@@ -82,6 +84,18 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
         message: `${label} está fora da chapa (${stock.width} × ${stock.height} mm).`,
         shapeId: shape.id,
       });
+    }
+
+    if (shape.operation === "pocket" || shape.side === "inside") {
+      const open = pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1] ? pts.slice(0, -1) : pts;
+      if (open.length >= 3 && offsetPolygon(open, -settings.toolDiameter / 2).length === 0) {
+        issues.push({
+          level: "error",
+          code: "shape-narrower-than-tool",
+          message: `${label}: ${shape.operation === "pocket" ? "rebaixo" : "furo (contorno interno)"} menor que a fresa Ø${settings.toolDiameter} mm — nada será cortado.`,
+          shapeId: shape.id,
+        });
+      }
     }
 
     if (shape.depth > workArea.zTravel) {

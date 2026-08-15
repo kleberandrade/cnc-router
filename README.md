@@ -61,12 +61,13 @@ src/
 ├─ types.ts              # Shape (retângulo/círculo/path), MachineSettings (WorkArea, Stock)
 ├─ lib/
 │  ├─ geometry.ts         # shape → pontos (mm), bounding box, scanlines para pocket
-│  ├─ toolpath.ts          # formas → Segment[] (fonte única para G-code e simulador)
+│  ├─ toolpath.ts          # formas → Segment[] (compensação, pocket real, tabs, rampa, ordem) — fonte única
+│  ├─ offset.ts            # offset de polígonos (Clipper), scanlines recortadas, perímetro
 │  ├─ timing.ts            # estimativa de tempo por segmento/total
 │  ├─ passes.ts            # profundidades por passe
 │  ├─ playback.ts          # posição no tempo, fronteiras de passo (segmento/passe/forma)
 │  ├─ gcode.ts             # Segment[] → G-code GRBL + validação/cabeçalho
-│  ├─ svgImport.ts         # SVG (rect/circle/path M-L-H-V-Z) → Shape[]
+│  ├─ svgImport.ts         # SVG (unidades, viewBox, transform, curvas amostradas) → Shape[] + avisos
 │  ├─ validate.ts          # avisos/erros: limites da mesa, chapa, profundidade, Z
 │  ├─ machinePresets.ts    # tamanhos comuns de router
 │  ├─ materials.ts         # presets de material (MDF, compensado, pinus, alumínio) e escala por Ø
@@ -78,11 +79,12 @@ src/
 ├─ state/simStore.ts       # estado do player da simulação (tempo, velocidade, modo de passo)
 ├─ state/uiStore.ts        # estado de UI (aviso, seção aberta, zoom/pan, ferramenta ativa)
 └─ components/
-   ├─ ActionBar.tsx         # barra de ações (novo/abrir/salvar, formas, undo/redo, zoom, exportar) + atalhos
+   ├─ TopBar.tsx            # barra única: menu do projeto, abas, ribbon por contexto, exportar
+   ├─ useProjectActions.tsx # ações do projeto (formas, importar/abrir/salvar/exportar) + atalhos globais
    ├─ SidePanel.tsx         # painel em acordeão: peça, máquina, chapa, material, corte
    ├─ StatusBar.tsx         # rodapé: mesa/chapa, nº formas, tempo estimado, avisos clicáveis
    ├─ NumberField.tsx       # campo numérico com unidade/step/validação
-   ├─ Toolbar.tsx           # wrapper ActionBar+SidePanel+StatusBar (usado nos testes)
+   ├─ Toolbar.tsx           # wrapper TopBar+SidePanel+StatusBar (usado nos testes)
    ├─ Notice.tsx            # avisos inline (substitui alert)
    ├─ Editor.tsx             # canvas 2D (Konva) — mesa em mm, chapa, origem, arrastar/selecionar formas
    └─ Simulator.tsx           # visualização 3D (Three.js) do percurso da ferramenta
@@ -91,15 +93,20 @@ src/
 ## Extensões futuras sugeridas
 
 - Redimensionar formas por arraste (handles) no editor (já é possível pelo painel numérico)
-- Texto → contorno (para gravação de nomes/logos)
+- Texto → contorno (para gravação de nomes/logos) — hoje: converta texto em curvas no Inkscape antes de exportar o SVG
 - Importar DXF além de SVG
 - Nesting automático de peças na chapa
+
+## Design
+
+Tokens, regras de layout e ícones: [`docs/design-tokens.md`](docs/design-tokens.md).
 
 ## Convenções de coordenadas
 
 - Internamente tudo é em **mm**, no sistema da **mesa**: X para a direita, Y para o fundo da máquina, origem no canto frontal esquerdo da área útil.
 - A **origem de trabalho** (G54, X0 Y0 do G-code) é definida pela chapa: canto frontal esquerdo ou centro. O G-code exportado já sai transformado.
-- SVGs importados são lidos com Y "para baixo" (padrão SVG) e ainda não são espelhados — tratamento de unidades/eixos vem na Sprint 06.
+- SVGs importados são convertidos para mm (viewBox/width/height) e espelhados em Y, para que o desenho fique com a mesma orientação do arquivo.
+- **Compensação da fresa**: contornos "por fora" mantêm o tamanho da peça, "por dentro" o do furo, "na linha" seguem o traçado com o centro da fresa. Rebaixos ficam sempre dentro da forma.
 
 ## Atalhos de teclado
 
