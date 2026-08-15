@@ -1,6 +1,7 @@
 import { svgPathProperties } from "svg-path-properties";
 import type { Shape } from "../types";
 import { generateShapeId } from "./ids";
+import { nestLoops } from "./text";
 
 export interface SvgImportResult {
   shapes: Shape[];
@@ -256,7 +257,17 @@ export function parseSvg(svgText: string, options: SvgImportOptions = {}): SvgIm
         const d = el.getAttribute("d");
         if (!d) return;
         if (/[CcSsQqTtAa]/.test(d)) curves++;
-        for (const sp of samplePathData(d, tolUU)) pushPath(sp.points.map(([px, py]) => toMm(m, px, py)), sp.closed);
+        const subs = samplePathData(d, tolUU).map((sp) => ({ pts: sp.points.map(([px, py]) => toMm(m, px, py)), closed: sp.closed }));
+        const closedSubs = subs.filter((sp) => sp.closed && sp.pts.length >= 3);
+        if (closedSubs.length > 1) {
+          // several closed sub-paths in one element: inner ones become holes (islands) of the outer that contains them
+          for (const poly of nestLoops(closedSubs.map((sp) => sp.pts))) {
+            shapes.push({ id: generateShapeId("path"), kind: "path", points: poly.outer, holes: poly.holes.length ? poly.holes : undefined, closed: true, depth, operation: "outline" });
+          }
+          for (const sp of subs.filter((x) => !x.closed)) pushPath(sp.pts, false);
+        } else {
+          for (const sp of subs) pushPath(sp.pts, sp.closed);
+        }
         return;
       }
       case "text": case "image": case "use":

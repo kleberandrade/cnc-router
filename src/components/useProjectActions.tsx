@@ -5,7 +5,7 @@ import { parseSvg } from "../lib/svgImport";
 import { parseDxf } from "../lib/dxfImport";
 import { tryGenerateGCode } from "../lib/gcode";
 import { serializeProject, parseProject } from "../lib/projectFile";
-import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape } from "../types";
+import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
 
 function downloadTextFile(filename: string, content: string, type = "text/plain") {
   const blob = new Blob([content], { type });
@@ -80,6 +80,15 @@ export function useProjectActions() {
     const shape: SlotShape = {
       id: generateShapeId("slot"), kind: "slot", x: spawnX + 25, y: spawnY + 10, length: 50, width: 12, rotation: 0,
       depth: stock.thickness, operation: "outline", side: "inside",
+    };
+    addShape(shape);
+    setSection("shape");
+  };
+
+  const handleAddText = () => {
+    const shape: TextShape = {
+      id: generateShapeId("text"), kind: "text", x: spawnX, y: spawnY + 10, text: "Texto", fontId: "inter", size: 20, rotation: 0, align: "left", letterSpacing: 0,
+      depth: Math.min(1, stock.thickness), operation: "outline", side: "on",
     };
     addShape(shape);
     setSection("shape");
@@ -179,6 +188,7 @@ export function useProjectActions() {
         case "s": case "S": if (!mod) useUiStore.getState().toggleSnap(); break;
         case "n": case "N": if (!mod) handleAddNgon(); break;
         case "o": case "O": if (!mod) handleAddSlot(); break;
+        case "t": case "T": if (!mod) handleAddText(); break;
         case "d":
         case "D":
           if (mod && st.selectedId) { e.preventDefault(); st.duplicateShape(st.selectedId); }
@@ -229,6 +239,7 @@ export function useProjectActions() {
     toggleSnap,
     addNgon: handleAddNgon,
     addSlot: handleAddSlot,
+    addText: handleAddText,
     alignSelected: useProjectStore.getState().alignSelected,
     distributeSelected: useProjectStore.getState().distributeSelected,
     tool,

@@ -8,6 +8,7 @@ import { boundingBox, shapeToPoints, rotatePoint } from "../lib/geometry";
 import { gridStepFor, fitScale, RULER, PADDING, snapBox, buildSnapTargets } from "../lib/editorMath";
 import { InlineDimensions } from "./InlineDimensions";
 import { useTheme } from "../hooks/useTheme";
+import { textToPolygons } from "../lib/text";
 import type { Shape } from "../types";
 import type { Point } from "../lib/geometry";
 
@@ -49,6 +50,12 @@ function shapeCenter(shape: Shape): Point {
   switch (shape.kind) {
     case "rectangle": return [shape.x + shape.width / 2, shape.y + shape.height / 2];
     case "circle": case "ngon": case "slot": return [shape.x, shape.y];
+    case "text": {
+      const pts = shapeToPoints(shape);
+      if (!pts.length) return [shape.x, shape.y];
+      const b = boundingBox(pts);
+      return [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
+    }
     default: {
       const b = boundingBox(shape.points);
       return [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
@@ -90,6 +97,7 @@ export function Editor() {
   const setDraft = useUiStore((s) => s.setDraft);
   const setSection = useUiStore((s) => s.setSection);
   const snap = useUiStore((s) => s.snap);
+  useUiStore((s) => s.fontsVersion); // re-render when fonts load (text outlines appear)
 
   const { workArea, stock } = settings;
   const COLORS = useTheme() === "dark" ? DARK : LIGHT;
@@ -251,6 +259,14 @@ export function Editor() {
         updateShape(shape.id, { length: r2(Math.max(shape.length * sx, 0.1)), width: r2(Math.max(shape.width * sy, 0.1)), rotation: r2(rot), x: r2(cx), y: r2(cy) });
         break;
       }
+      case "text": {
+        const k = Math.max(sx, sy);
+        const updated = { ...shape, size: r2(Math.max(shape.size * k, 1)), rotation: r2(rot) };
+        node.rotation(-updated.rotation);
+        const moved = moveShapeTo(updated, cx, cy) as typeof updated;
+        updateShape(shape.id, { size: updated.size, rotation: updated.rotation, x: r2(moved.x), y: r2(moved.y) });
+        break;
+      }
       case "path": {
         const [ocx, ocy] = shapeCenter(shape);
         const dRot = rot - 0; // path has no stored rotation; bake it into points
@@ -391,6 +407,34 @@ export function Editor() {
             };
             if (shape.kind === "circle") {
               return <Circle key={shape.id} {...common} radius={shape.radius * scale} />;
+            }
+            if (shape.kind === "text" || (shape.kind === "path" && shape.holes && shape.holes.length)) {
+              // compound outline: outer loops + holes, drawn with even-odd fill inside a Group
+              const [cx0, cy0] = shapeCenter(shape);
+              const loops: { pts: number[]; hole: boolean }[] = [];
+              if (shape.kind === "text") {
+                const unrot = { ...shape, rotation: 0 };
+                for (const g of textToPolygons(unrot)) {
+                  loops.push({ pts: g.outer.flatMap(([x, y]) => [(x - cx0) * scale, -(y - cy0) * scale]), hole: false });
+                  for (const h of g.holes) loops.push({ pts: h.flatMap(([x, y]) => [(x - cx0) * scale, -(y - cy0) * scale]), hole: true });
+                }
+              } else {
+                loops.push({ pts: shape.points.flatMap(([x, y]) => [(x - cx0) * scale, -(y - cy0) * scale]), hole: false });
+                for (const h of shape.holes!) loops.push({ pts: h.flatMap(([x, y]) => [(x - cx0) * scale, -(y - cy0) * scale]), hole: true });
+              }
+              const { fill: _fill, stroke: _stroke, strokeWidth: _sw, ...groupProps } = common;
+              void _fill; void _stroke; void _sw;
+              if (loops.length === 0) {
+                // font not loaded yet: placeholder box at the anchor
+                return <Rect key={shape.id} {...groupProps} width={40 * scale} height={10 * scale} offsetX={20 * scale} offsetY={5 * scale} stroke={stroke} dash={[4, 4]} strokeWidth={1} />;
+              }
+              return (
+                <Group key={shape.id} {...groupProps}>
+                  {loops.map((l, i) => (
+                    <Line key={i} points={l.pts} closed stroke={stroke} strokeWidth={strokeWidth} fill={l.hole ? (COLORS.table === "#ffffff" ? "#ffffff" : COLORS.table) : COLORS.fill} fillEnabled />
+                  ))}
+                </Group>
+              );
             }
             const pts = localPoints(shape).flatMap(([x, y]) => [x * scale, -y * scale]);
             return <Line key={shape.id} {...common} points={pts} closed={shape.kind !== "path" || shape.closed} fill={shape.kind === "path" && !shape.closed ? undefined : COLORS.fill} />;

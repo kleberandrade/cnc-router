@@ -321,6 +321,12 @@
   font-size: 20px;
 }
 
+.about-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
 .dialog p {
   margin: 0 0 var(--s3);
   font-size: 14px;

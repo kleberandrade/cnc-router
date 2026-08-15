@@ -10,8 +10,12 @@ import '@fontsource-variable/fraunces/opsz.css'
 import './index.css'
 import App from './App.tsx'
 import { initPwa } from './lib/pwa'
+import { loadEmbeddedFonts, onFontsChanged } from './lib/text'
+import { useUiStore } from './state/uiStore'
 
 initPwa()
+onFontsChanged(() => useUiStore.getState().bumpFonts())
+void loadEmbeddedFonts()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

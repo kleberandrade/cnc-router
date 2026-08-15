@@ -11,8 +11,10 @@ export function StatusBar() {
   const settings = useProjectStore((s) => s.settings);
   const select = useProjectStore((s) => s.select);
   const setSection = useUiStore((s) => s.setSection);
+  const fontsVersion = useUiStore((s) => s.fontsVersion);
 
-  const issues = useMemo(() => validateProject(shapes, settings), [shapes, settings]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const issues = useMemo(() => validateProject(shapes, settings), [shapes, settings, fontsVersion]);
   const estimatedTime = useMemo(() => {
     if (shapes.length === 0) return 0;
     try {
@@ -20,7 +22,8 @@ export function StatusBar() {
     } catch {
       return 0;
     }
-  }, [shapes, settings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shapes, settings, fontsVersion]);
 
   const errors = issues.filter((i) => i.level === "error").length;
   const warnings = issues.length - errors;

@@ -4,7 +4,7 @@ Editor web para CNC router: desenhe peças (formas prontas ou SVG importado) sob
 
 Funcionalidades atuais: importação SVG/DXF, várias fresas por projeto (troca com M0), navegador de peças, tema escuro, simulador 3D em tempo real com remoção de material, fresa realista e ViewCube, passo a passo (segmento/passe/forma), barra de tempo e estimativa de tempo total; presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), presets de material (MDF, compensado, pinus, alumínio) que preenchem avanço/mergulho/RPM/passe/stepover a partir do Ø da fresa (com override manual), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
 
-100% client-side — não precisa de servidor/backend para funcionar. Instalável como **PWA** (funciona offline) e responsivo (desktop, tablet e celular com toque).
+100% client-side — não precisa de servidor/backend para funcionar. Instalável como **PWA** (funciona offline) e responsivo (desktop, tablet e celular com toque). Produção: [cnc-router.vercel.app](https://cnc-router.vercel.app) (marca **Oficina CNC**, Open Graph e ícones próprios).
 
 ## Stack
 
@@ -58,7 +58,7 @@ A auditoria que originou o plano está em [`docs/auditoria.md`](docs/auditoria.m
 
 ```
 src/
-├─ types.ts              # Shape (retângulo c/ cantos, círculo, path, polígono regular, rasgo), MachineSettings
+├─ types.ts              # Shape (retângulo c/ cantos, círculo, path c/ ilhas, polígono regular, rasgo, texto), MachineSettings
 ├─ lib/
 │  ├─ geometry.ts         # shape → pontos (mm), bounding box, scanlines para pocket
 │  ├─ toolpath.ts          # formas → Segment[] (compensação, pocket real, tabs, rampa, ordem) — fonte única
@@ -72,6 +72,8 @@ src/
 │  ├─ svgImport.ts         # SVG (unidades, viewBox, transform, curvas amostradas) → Shape[] + avisos
 │  ├─ dxfImport.ts         # DXF (LINE, POLYLINE c/ bulge, CIRCLE, ARC, ELLIPSE, SPLINE, INSERT) → Shape[]
 │  ├─ tools.ts             # fresa efetiva por peça (biblioteca de fresas)
+│  ├─ text.ts              # fontes embarcadas (opentype.js) → contornos de texto com furos
+│  ├─ expand.ts            # texto → um polígono (com ilhas) por glifo para usinagem
 │  ├─ validate.ts          # avisos/erros: limites da mesa, chapa, profundidade, Z
 │  ├─ machinePresets.ts    # tamanhos comuns de router
 │  ├─ materials.ts         # presets de material (MDF, compensado, pinus, alumínio) e escala por Ø
@@ -103,7 +105,6 @@ src/
 
 ## Extensões futuras sugeridas
 
-- Texto → contorno (para gravação de nomes/logos) — hoje: converta texto em curvas no Inkscape antes de exportar o SVG
 - Nesting automático de peças na chapa
 
 ## Design
@@ -119,4 +120,4 @@ Tokens, regras de layout e ícones: [`docs/design-tokens.md`](docs/design-tokens
 
 ## Atalhos de teclado
 
-R retângulo · C círculo · P polígono (Enter/duplo clique fecha, Esc cancela) · N polígono regular · O rasgo · S snap · Shift+clique / arrastar no fundo = seleção múltipla · Del excluir · Ctrl+D duplicar · Ctrl+Z / Ctrl+Y desfazer/refazer · Ctrl+S salvar projeto · setas movem 1 mm (Shift = 10 mm) · Esc desseleciona · roda do mouse zoom · +/−/0 zoom/ajustar · espaço + arrastar move a vista · no simulador: espaço play/pause, ←/→ passo, Home/End.
+R retângulo · C círculo · T texto · P polígono (Enter/duplo clique fecha, Esc cancela) · N polígono regular · O rasgo · S snap · Shift+clique / arrastar no fundo = seleção múltipla · Del excluir · Ctrl+D duplicar · Ctrl+Z / Ctrl+Y desfazer/refazer · Ctrl+S salvar projeto · setas movem 1 mm (Shift = 10 mm) · Esc desseleciona · roda do mouse zoom · +/−/0 zoom/ajustar · espaço + arrastar move a vista · no simulador: espaço play/pause, ←/→ passo, Home/End.

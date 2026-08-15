@@ -9,7 +9,8 @@ import { NumberField } from "./NumberField";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId } from "../types";
+import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign } from "../types";
+import { FONTS } from "../lib/text";
 import { DEFAULT_TABS } from "../types";
 
 interface SectionProps {
@@ -51,7 +52,8 @@ function shapeSummary(shape: Shape): string {
     case "circle": return `círculo r${shape.radius}`;
     case "ngon": return `polígono regular ${shape.sides} lados r${shape.radius}`;
     case "slot": return `rasgo ${shape.length}×${shape.width}`;
-    default: return `polígono (${shape.points.length} pts)`;
+    case "text": return `texto "${shape.text.slice(0, 10)}" ${shape.size} mm`;
+    default: return `polígono (${shape.points.length} pts${shape.holes?.length ? `, ${shape.holes.length} furo(s)` : ""})`;
   }
 }
 
@@ -217,6 +219,41 @@ export function SidePanel() {
                 </div>
                 <NumberField label="Rotação" unit="°" min={-360} max={360} step={5} value={selectedShape.rotation} testId="shape-rotation"
                   onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
+              </>
+            )}
+            {selectedShape.kind === "text" && (
+              <>
+                <label>
+                  Texto
+                  <input type="text" value={selectedShape.text} onChange={(e) => updateShape(selectedShape.id, { text: e.target.value })} data-testid="text-value" />
+                </label>
+                <div className="field-row">
+                  <label>
+                    Fonte
+                    <select value={selectedShape.fontId} onChange={(e) => updateShape(selectedShape.id, { fontId: e.target.value })} data-testid="text-font">
+                      {FONTS.map((f) => (
+                        <option key={f.id} value={f.id}>{f.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Alinhamento
+                    <select value={selectedShape.align} onChange={(e) => updateShape(selectedShape.id, { align: e.target.value as TextAlign })} data-testid="text-align">
+                      <option value="left">Esquerda</option>
+                      <option value="center">Centro</option>
+                      <option value="right">Direita</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="field-row">
+                  <NumberField label="Tamanho" unit="mm" min={1} step={1} value={selectedShape.size} testId="text-size"
+                    onChange={(v) => updateShape(selectedShape.id, { size: v })} />
+                  <NumberField label="Espaçamento" unit="mm" min={-10} max={50} step={0.5} value={selectedShape.letterSpacing} testId="text-spacing"
+                    onChange={(v) => updateShape(selectedShape.id, { letterSpacing: v })} />
+                </div>
+                <NumberField label="Rotação" unit="°" min={-360} max={360} step={5} value={selectedShape.rotation} testId="shape-rotation"
+                  onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
+                <p className="hint">Letras com furos (a, o, e) mantêm o miolo. Para gravar, use contorno "na linha" com fresa V; para recortar, "por fora".</p>
               </>
             )}
             {selectedShape.kind === "slot" && (

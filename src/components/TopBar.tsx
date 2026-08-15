@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Grid2x2, Hexagon, RectangleHorizontal, Magnet, Settings2,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceAround, AlignVerticalSpaceAround,
 } from "lucide-react";
@@ -11,6 +11,7 @@ import { useUiStore, type View } from "../state/uiStore";
 import { useSimStore, SPEEDS, type Speed } from "../state/simStore";
 import type { StepMode } from "../lib/playback";
 import { useInstallAction } from "../hooks/useInstallAction";
+import { BrandMark } from "./BrandMark";
 
 const ICON = 18;
 
@@ -74,7 +75,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
   return (
     <div className="brand" ref={ref}>
       <button type="button" className="brand-button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} data-testid="project-menu">
-        <Grid2x2 size={ICON} className="brand-mark" aria-hidden="true" />
+        <BrandMark size={ICON} className="brand-mark" />
         <span className="brand-name">Oficina CNC</span>
         <ChevronDown size={14} aria-hidden="true" />
       </button>
@@ -163,8 +164,11 @@ function Preferences() {
 function About() {
   return (
     <>
-      <h2>Oficina CNC</h2>
-      <p>Editor 2D, gerador de G-code (GRBL) e simulador 3D para router CNC — 100 % no navegador.</p>
+      <h2 className="about-title">
+        <BrandMark size={28} filled />
+        Oficina CNC
+      </h2>
+      <p>Editor 2D com importação SVG/DXF, gerador de G-code GRBL e simulador 3D para router CNC — 100% no navegador, instalável como PWA.</p>
       <p className="hint">Unidades: milímetros. Origem de trabalho definida pela chapa. Percurso do simulador é o mesmo do G-code exportado.</p>
     </>
   );
@@ -174,6 +178,10 @@ export function TopBar() {
   const actions = useProjectActions();
   const view = useUiStore((s) => s.view);
   const setView = useUiStore((s) => s.setView);
+
+  useEffect(() => {
+    document.title = view === "simulator" ? "Simular — Oficina CNC" : "Desenhar — Oficina CNC";
+  }, [view]);
   const panelOpen = useUiStore((s) => s.panelOpen);
   const togglePanel = useUiStore((s) => s.togglePanel);
   const simCamera = useUiStore((s) => s.simCamera);
@@ -243,6 +251,7 @@ export function TopBar() {
               />
               <RibbonButton icon={<Hexagon size={ICON} />} label="Regular" onClick={actions.addNgon} testId="add-ngon" title="Polígono regular (N)" />
               <RibbonButton icon={<RectangleHorizontal size={ICON} />} label="Rasgo" onClick={actions.addSlot} testId="add-slot" title="Rasgo / oblongo (O)" />
+              <RibbonButton icon={<Type size={ICON} />} label="Texto" onClick={actions.addText} testId="add-text" title="Texto (T)" />
             </RibbonGroup>
             <RibbonGroup title="Modificar">
               <RibbonButton icon={<Copy size={ICON} />} label="Duplicar" onClick={actions.duplicate} disabled={!actions.selectedId} testId="duplicate" title="Duplicar (Ctrl+D)" />

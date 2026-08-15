@@ -8,11 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'og-image.png', 'robots.txt', 'sitemap.xml', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Oficina CNC',
         short_name: 'Oficina CNC',
-        description: 'Editor 2D, gerador de G-code (GRBL) e simulador 3D para router CNC — 100% no navegador.',
+        description: 'Editor 2D com importação SVG/DXF, gerador de G-code GRBL e simulador 3D para router CNC — 100% no navegador, instalável como PWA.',
         lang: 'pt-BR',
         start_url: '/',
         scope: '/',

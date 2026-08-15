@@ -3,6 +3,7 @@ import { shapeToPoints, boundingBox, scanlines, type Point } from "./geometry";
 import { buildPassDepths } from "./passes";
 import { offsetPolygon, scanlineSpans, perimeter, pointAlong, ccw, type Polygon } from "./offset";
 import { toolsInUse, toolForShape, settingsForTool, type EffectiveTool } from "./tools";
+import { expandShapes } from "./expand";
 
 export type Vec3 = [number, number, number];
 export type MoveType = "rapid" | "plunge" | "feed" | "retract" | "toolchange";
@@ -200,13 +201,21 @@ function outline(b: PathBuilder, shape: Shape, points: Point[], settings: Machin
 
   let loops: Polygon[];
   const base = openLoop(points);
+  const holes = shape.kind === "path" && shape.holes ? shape.holes.map(openLoop).filter((h) => h.length >= 3) : [];
   if (side === "on" || base.length < 3) {
-    loops = [base]; // open polylines (2 pts) are also traced "on"
+    loops = [base, ...holes]; // open polylines (2 pts) are also traced "on"
   } else {
     loops = offsetPolygon(base, side === "outside" ? r : -r);
     if (loops.length === 0) {
       warnings.push({ shapeId: shape.id, message: `Contorno interno menor que a fresa (Ø${settings.toolDiameter} mm) — forma ignorada.` });
       return;
+    }
+    // holes: for a part cut "outside", the holes keep their size (tool inside the hole → -r);
+    // for an opening cut "inside", the holes are islands of material (+r).
+    for (const h of holes) {
+      const off = offsetPolygon(h, side === "outside" ? -r : r);
+      if (off.length === 0) warnings.push({ shapeId: shape.id, message: `Furo interno menor que a fresa (Ø${settings.toolDiameter} mm) — furo ignorado.` });
+      loops.push(...off);
     }
   }
 
@@ -245,13 +254,17 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
   const r = settings.toolDiameter / 2;
   const base = openLoop(points);
   if (base.length < 3) return;
-  const inner = offsetPolygon(base, -r);
-  if (inner.length === 0) {
+  const innerOnly = offsetPolygon(base, -r);
+  if (innerOnly.length === 0) {
     warnings.push({ shapeId: shape.id, message: `Rebaixo menor que a fresa (Ø${settings.toolDiameter} mm) — forma ignorada.` });
     return;
   }
+  // islands (holes) grow by r; the pocket region is inner − islands (even-odd over all loops)
+  const holes = shape.kind === "path" && shape.holes ? shape.holes.map(openLoop).filter((h) => h.length >= 3) : [];
+  const islands = holes.flatMap((h) => offsetPolygon(h, r));
+  const inner = [...innerOnly, ...islands];
   const stepover = Math.max(settings.stepover, 0.1);
-  const box = boundingBox(inner.flat());
+  const box = boundingBox(innerOnly.flat());
   // Rows strictly inside the offset region: start half a stepover in so the wall pass cleans the rest.
   const rows = scanlines(box.minY + 1e-6, box.maxY - 1e-6, stepover);
   const passes = buildPassDepths(shape.depth, settings.passDepth);
@@ -370,7 +383,7 @@ export function buildToolpath(shapes: Shape[], settings: MachineSettings): Toolp
 
   b.move([0, 0, safe], "retract", 0, travel);
 
-  const visible = shapes.filter((s) => !s.hidden);
+  const visible = expandShapes(shapes.filter((s) => !s.hidden));
   const tools = toolsInUse(visible, settings);
   tools.forEach((tool, ti) => {
     const group = visible.filter((s) => toolForShape(s, settings).id === tool.id);

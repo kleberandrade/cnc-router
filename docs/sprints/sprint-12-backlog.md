@@ -1,6 +1,6 @@
-# Sprint 12 — Backlog priorizado (Fase 3 candidata)
+# Sprint 12 — Backlog priorizado → Fase 3
 
-**Status:** backlog
+**Status:** concluída — 2026-08-15 (backlog convertido nas sprints 13–17; ver [`fase-3.md`](fase-3.md))
 
 Itens avaliados e ainda não planejados em sprint, em ordem sugerida de valor:
 

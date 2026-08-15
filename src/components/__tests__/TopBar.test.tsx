@@ -10,6 +10,13 @@ describe("TopBar", () => {
     useSimStore.getState().configure(0, []);
   });
 
+  it("updates the document title when switching views", () => {
+    render(<TopBar />);
+    expect(document.title).toBe("Desenhar — Oficina CNC");
+    fireEvent.click(screen.getByTestId("tab-simulator"));
+    expect(document.title).toBe("Simular — Oficina CNC");
+  });
+
   it("shows drawing groups in the editor view and transport in the simulator view", () => {
     render(<TopBar />);
     expect(screen.getByTestId("add-rectangle")).toBeInTheDocument();

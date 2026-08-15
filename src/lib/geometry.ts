@@ -1,4 +1,5 @@
 import type { Shape, RectangleShape, CircleShape, PathShape, RegularPolygonShape, SlotShape, CornerId } from "../types";
+import { textToPolygons } from "./text";
 
 export type Point = [number, number];
 
@@ -120,6 +121,10 @@ export function shapeToPoints(shape: Shape): Point[] {
       return ngonToPoints(shape);
     case "slot":
       return slotToPoints(shape);
+    case "text": {
+      // All glyph outlines concatenated (for bounding boxes / hit areas); machining uses lib/expand.
+      return textToPolygons(shape).flatMap((g) => [...g.outer, g.outer[0]]);
+    }
     case "path": {
       const p = shape as PathShape;
       if (p.closed && p.points.length > 0) {

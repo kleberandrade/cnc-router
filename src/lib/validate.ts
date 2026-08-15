@@ -1,6 +1,7 @@
 import type { Shape, MachineSettings } from "../types";
 import { shapeToPoints, boundingBox } from "./geometry";
 import { offsetPolygon } from "./offset";
+import { expandShape } from "./expand";
 
 export type IssueLevel = "error" | "warning";
 
@@ -88,8 +89,13 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
     }
 
     if (shape.operation === "pocket" || shape.side === "inside") {
-      const open = pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1] ? pts.slice(0, -1) : pts;
-      if (open.length >= 3 && offsetPolygon(open, -settings.toolDiameter / 2).length === 0) {
+      const parts = expandShape(shape);
+      const anyTooNarrow = parts.some((part) => {
+        const pp = shapeToPoints(part);
+        const open = pp.length > 1 && pp[0][0] === pp[pp.length - 1][0] && pp[0][1] === pp[pp.length - 1][1] ? pp.slice(0, -1) : pp;
+        return open.length >= 3 && offsetPolygon(open, -settings.toolDiameter / 2).length === 0;
+      });
+      if (anyTooNarrow) {
         issues.push({
           level: "error",
           code: "shape-narrower-than-tool",

@@ -9,6 +9,9 @@ export interface SimCameraActions { fit: () => void; top: () => void; iso: () =>
 export type EditorTool = "select" | "polygon";
 
 interface UiState {
+  /** Bumped when a font finishes loading (text shapes re-render). */
+  fontsVersion: number;
+  bumpFonts: () => void;
   theme: Theme;
   setTheme: (t: Theme) => void;
   mousePreset: MousePreset;
@@ -75,6 +78,8 @@ const readMouse = (): MousePreset => {
 };
 
 export const useUiStore = create<UiState>((set) => ({
+  fontsVersion: 0,
+  bumpFonts: () => set((s) => ({ fontsVersion: s.fontsVersion + 1 })),
   mousePreset: readMouse(),
   setMousePreset: (mousePreset) => {
     try { localStorage.setItem("oficina-cnc:mouse", mousePreset); } catch { /* ignore */ }

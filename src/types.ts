@@ -1,4 +1,4 @@
-export type ShapeKind = "rectangle" | "circle" | "path" | "ngon" | "slot";
+export type ShapeKind = "rectangle" | "circle" | "path" | "ngon" | "slot" | "text";
 
 export interface BaseShape {
   id: string;
@@ -96,9 +96,30 @@ export interface PathShape extends BaseShape {
   /** Flat list of [x, y] points in machine units (mm), already resolved (no curves). */
   points: [number, number][];
   closed: boolean;
+  /** Inner loops (islands) that stay uncut in pockets / are cut as holes in outlines. Only for closed paths. */
+  holes?: [number, number][][];
 }
 
-export type Shape = RectangleShape | CircleShape | PathShape | RegularPolygonShape | SlotShape;
+export type TextAlign = "left" | "center" | "right";
+
+/** Text rendered with an embedded font; machined as one path (with holes) per glyph. */
+export interface TextShape extends BaseShape {
+  kind: "text";
+  /** Anchor (baseline start for left align, baseline centre/right for the others), mm. */
+  x: number;
+  y: number;
+  text: string;
+  /** Font id from lib/text (e.g. "inter", "inter-bold"). */
+  fontId: string;
+  /** Cap height-ish: font size in mm (em size). */
+  size: number;
+  rotation: number;
+  align: TextAlign;
+  /** Extra tracking in mm. */
+  letterSpacing: number;
+}
+
+export type Shape = RectangleShape | CircleShape | PathShape | RegularPolygonShape | SlotShape | TextShape;
 
 /** Usable travel of the machine (work envelope), in mm. */
 export interface WorkArea {

@@ -19,6 +19,8 @@ function fieldsFor(shape: Shape): Field[] {
         { key: "r", label: "R", value: shape.radius, min: 0.1, apply: (v) => ({ radius: v }) },
         { key: "n", label: "N", value: shape.sides, min: 3, apply: (v) => ({ sides: Math.round(v) }) },
       ];
+    case "text":
+      return [{ key: "s", label: "Tam", value: shape.size, min: 1, apply: (v) => ({ size: v }) }];
     case "slot":
       return [
         { key: "l", label: "L", value: shape.length, min: 0.1, apply: (v) => ({ length: v }) },

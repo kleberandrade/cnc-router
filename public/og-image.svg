@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#16283d"/>
+  <g stroke="#4f88b8" stroke-width="1" opacity="0.22" fill="none">
+    <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200"/>
+    <path d="M80 0V630M160 0V630M240 0V630M320 0V630M400 0V630M480 0V630M560 0V630M640 0V630M720 0V630M800 0V630M880 0V630M960 0V630M1040 0V630M1120 0V630"/>
+  </g>
+  <g transform="translate(96 183)">
+    <rect width="264" height="264" rx="56" fill="#0f1720"/>
+    <rect x="37" y="37" width="190" height="190" rx="28" fill="none" stroke="#4f88b8" stroke-width="8"/>
+    <path d="M62 176V209H95" fill="none" stroke="#f7f7f5" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="149" cy="118" r="50" fill="none" stroke="#f7f7f5" stroke-width="12"/>
+    <circle cx="149" cy="118" r="15" fill="#f7f7f5"/>
+    <path d="M149 70V166" fill="none" stroke="#f7f7f5" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <text x="408" y="300" fill="#f7f7f5" font-family="Iowan Old Style, Palatino, Georgia, serif" font-size="72" font-weight="600">Oficina CNC</text>
+  <text x="408" y="360" fill="#8fb4d4" font-family="Inter, system-ui, sans-serif" font-size="28">Desenhe, simule e exporte G-code no navegador</text>
+</svg>

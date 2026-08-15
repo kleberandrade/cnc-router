@@ -2,6 +2,23 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 13 — Pockets com ilhas e texto → contorno] — 2026-08-15
+
+### Adicionado
+- **Ilhas em polígonos** (`PathShape.holes`): rebaixos deixam o miolo intacto (linhas recortadas por outer − ilhas ofsetadas +r, com passe de parede nas ilhas); contornos "por fora" cortam os furos no tamanho (−r) e "por dentro" tratam-nos como material (+r); "na linha" traça tudo. Importação SVG: sub-paths fechados internos de um mesmo `<path>` viram furos do laço que os contém.
+- **Texto** (`TextShape`, botão Texto / tecla T): fontes embarcadas Inter Regular/Bold (OFL, `public/fonts`, offline via PWA) com `opentype.js`; texto, fonte, tamanho (em mm), alinhamento, espaçamento, rotação; contornos amostrados a 0,1 mm, laços agrupados em outer + furos por glifo (letras com miolo preservado); expandido em um polígono por glifo para usinagem (`lib/expand.ts`), com handles, cotas inline (Tam), navegador e validação.
+- `lib/text.ts` (registro/carga de fontes, `textToPolygons`, `nestLoops`), `lib/expand.ts`; `fontsVersion` no `uiStore` re-renderiza quando as fontes chegam.
+
+### Testes
+- `text.test.ts` (fonte carregada, "O" com 1 furo, "Oi" → 3 laços, alinhamento/rotação/espaçamento, `nestLoops`, expansão + G-code, pocket não invade a ilha e usina a parede); e2e `text.spec.ts` (texto → G-code com laço interno, cota inline/fonte/alinhamento, SVG com furo → pocket contorna a ilha). Total: 226 unitários, 60 e2e.
+
+## [Identidade e SEO] — 2026-08-15
+
+### Adicionado
+- **Marca Oficina CNC**: SVG inline na TopBar e no Sobre (`BrandMark`); favicon e ícones PWA (192/512/maskable/180) na paleta blueprint, no lugar do raio roxo do Vite.
+- **SEO**: Open Graph, Twitter Card, canonical, JSON-LD (`WebApplication`), `robots.txt` e `sitemap.xml` apontando para `https://cnc-router.vercel.app/`; imagem social `og-image.png`.
+- Título da aba acompanha a vista (`Desenhar` / `Simular — Oficina CNC`).
+
 ## [Sprint 11 — Navegador, fresas por peça, tema escuro, DXF] — 2026-08-15
 
 ### Adicionado
