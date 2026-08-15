@@ -4,7 +4,7 @@ import { useUiStore } from "../state/uiStore";
 import { parseSvg } from "../lib/svgImport";
 import { tryGenerateGCode } from "../lib/gcode";
 import { serializeProject, parseProject } from "../lib/projectFile";
-import type { RectangleShape, CircleShape } from "../types";
+import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape } from "../types";
 
 function downloadTextFile(filename: string, content: string, type = "text/plain") {
   const blob = new Blob([content], { type });
@@ -26,7 +26,6 @@ export function useProjectActions() {
   const settings = useProjectStore((s) => s.settings);
   const addShape = useProjectStore((s) => s.addShape);
   const addShapes = useProjectStore((s) => s.addShapes);
-  const removeShape = useProjectStore((s) => s.removeShape);
   const duplicateShape = useProjectStore((s) => s.duplicateShape);
   const newProject = useProjectStore((s) => s.newProject);
   const loadProject = useProjectStore((s) => s.loadProject);
@@ -62,6 +61,24 @@ export function useProjectActions() {
     const shape: CircleShape = {
       id: generateShapeId("circle"), kind: "circle", x: spawnX + 15, y: spawnY + 15, radius: 15,
       depth: stock.thickness, operation: "outline", side: "outside",
+    };
+    addShape(shape);
+    setSection("shape");
+  };
+
+  const handleAddNgon = () => {
+    const shape: RegularPolygonShape = {
+      id: generateShapeId("ngon"), kind: "ngon", x: spawnX + 20, y: spawnY + 20, radius: 20, sides: 6, rotation: 0,
+      depth: stock.thickness, operation: "outline", side: "outside",
+    };
+    addShape(shape);
+    setSection("shape");
+  };
+
+  const handleAddSlot = () => {
+    const shape: SlotShape = {
+      id: generateShapeId("slot"), kind: "slot", x: spawnX + 25, y: spawnY + 10, length: 50, width: 12, rotation: 0,
+      depth: stock.thickness, operation: "outline", side: "inside",
     };
     addShape(shape);
     setSection("shape");
@@ -154,8 +171,11 @@ export function useProjectActions() {
       switch (e.key) {
         case "Delete":
         case "Backspace":
-          if (st.selectedId) { e.preventDefault(); st.removeShape(st.selectedId); }
+          if (st.selectedIds.length) { e.preventDefault(); st.removeSelected(); }
           break;
+        case "s": case "S": if (!mod) useUiStore.getState().toggleSnap(); break;
+        case "n": case "N": if (!mod) handleAddNgon(); break;
+        case "o": case "O": if (!mod) handleAddSlot(); break;
         case "d":
         case "D":
           if (mod && st.selectedId) { e.preventDefault(); st.duplicateShape(st.selectedId); }
@@ -168,12 +188,12 @@ export function useProjectActions() {
           else st.select(null);
           break;
         case "ArrowUp": case "ArrowDown": case "ArrowLeft": case "ArrowRight": {
-          if (!st.selectedId) break;
+          if (!st.selectedIds.length) break;
           e.preventDefault();
           const d = e.shiftKey ? 10 : 1;
           const dx = e.key === "ArrowLeft" ? -d : e.key === "ArrowRight" ? d : 0;
           const dy = e.key === "ArrowUp" ? d : e.key === "ArrowDown" ? -d : 0;
-          st.nudgeShape(st.selectedId, dx, dy);
+          for (const id of st.selectedIds) st.nudgeShape(id, dx, dy);
           break;
         }
         case "+": case "=": zoomIn(); break;
@@ -193,10 +213,21 @@ export function useProjectActions() {
     </>
   );
 
+  const selectedIds = useProjectStore((s) => s.selectedIds);
+  const snap = useUiStore((s) => s.snap);
+  const toggleSnap = useUiStore((s) => s.toggleSnap);
+
   return {
     inputs,
     shapes,
     selectedId,
+    selectedIds,
+    snap,
+    toggleSnap,
+    addNgon: handleAddNgon,
+    addSlot: handleAddSlot,
+    alignSelected: useProjectStore.getState().alignSelected,
+    distributeSelected: useProjectStore.getState().distributeSelected,
     tool,
     setTool,
     zoom,
@@ -213,7 +244,7 @@ export function useProjectActions() {
     exportGcode: handleExport,
     newProject: handleNewProject,
     duplicate: () => selectedId && duplicateShape(selectedId),
-    remove: () => selectedId && removeShape(selectedId),
+    remove: () => useProjectStore.getState().removeSelected(),
     undo,
     redo,
   };

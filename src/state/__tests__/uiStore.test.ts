@@ -1,0 +1,45 @@
+import { describe, it, expect } from "vitest";
+import { useUiStore, ZOOM_MAX, ZOOM_MIN } from "../uiStore";
+
+const S = useUiStore.getState;
+
+describe("uiStore", () => {
+  it("zoom clamps and fit resets pan", () => {
+    S().setZoom(100);
+    expect(S().zoom).toBe(ZOOM_MAX);
+    S().setZoom(0.01);
+    expect(S().zoom).toBe(ZOOM_MIN);
+    S().setZoom(1);
+    S().zoomIn();
+    expect(S().zoom).toBeCloseTo(1.25);
+    S().zoomOut();
+    expect(S().zoom).toBeCloseTo(1);
+    S().setPan({ x: 5, y: 5 });
+    S().zoomFit();
+    expect(S().pan).toEqual({ x: 0, y: 0 });
+  });
+  it("tool/draft/snap/panel/sheet/view/notice/section/simCamera", () => {
+    S().setDraft([[1, 2]]);
+    S().setTool("polygon");
+    expect(S().draft).toEqual([]);
+    S().setTool("select");
+    const snap = S().snap;
+    S().toggleSnap();
+    expect(S().snap).toBe(!snap);
+    S().togglePanel();
+    S().setPanelOpen(true);
+    expect(S().panelOpen).toBe(true);
+    S().setSheetOpen(true);
+    S().toggleSheetExpanded();
+    expect(S().sheetExpanded).toBe(true);
+    S().setView("simulator");
+    expect(S().view).toBe("simulator");
+    S().setNotice({ kind: "info", title: "x" });
+    expect(S().notice?.title).toBe("x");
+    S().setSection("cut");
+    expect(S().section).toBe("cut");
+    const cam = { fit: () => {}, top: () => {}, iso: () => {} };
+    S().setSimCamera(cam);
+    expect(S().simCamera).toBe(cam);
+  });
+});

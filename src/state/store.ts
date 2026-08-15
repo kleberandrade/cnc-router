@@ -9,6 +9,7 @@ import { presetIdForWorkArea } from "../lib/machinePresets";
 import { applyMaterial, applyToolDiameter } from "../lib/materials";
 import type { WorkArea, Stock, MaterialId, CutParamKey } from "../types";
 import { THROUGH_CUT_EXTRA } from "../types";
+import { boundingBox, shapeToPoints } from "../lib/geometry";
 
 /** Translate any shape by (dx, dy) mm. */
 export function translateShape(shape: Shape, dx: number, dy: number): Shape {
@@ -63,15 +64,28 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
   return { shapes, settings };
 }
 
+export type AlignMode = "left" | "centerX" | "right" | "top" | "centerY" | "bottom";
+export type DistributeMode = "horizontal" | "vertical";
+
 interface ProjectState {
   shapes: Shape[];
+  /** Primary selection (last selected). */
   selectedId: string | null;
+  /** All selected ids (multi-selection); always contains selectedId when not null. */
+  selectedIds: string[];
   settings: MachineSettings;
   addShape: (shape: Shape) => void;
   addShapes: (shapes: Shape[]) => void;
   updateShape: (id: string, patch: Partial<Shape>) => void;
   removeShape: (id: string) => void;
   select: (id: string | null) => void;
+  /** Toggle a shape in/out of the multi-selection (Shift+click). */
+  toggleSelect: (id: string) => void;
+  selectMany: (ids: string[]) => void;
+  /** Remove every selected shape. */
+  removeSelected: () => void;
+  alignSelected: (mode: AlignMode) => void;
+  distributeSelected: (mode: DistributeMode) => void;
   updateSettings: (patch: Partial<MachineSettings>) => void;
   /** Sets the work area and re-derives `machinePreset` ("custom" when it matches none). */
   setWorkArea: (patch: Partial<WorkArea>) => void;
@@ -101,10 +115,11 @@ export const useProjectStore = create<ProjectState>()(
     (set) => ({
   shapes: [],
   selectedId: null,
+  selectedIds: [],
   settings: DEFAULT_MACHINE_SETTINGS,
 
   addShape: (shape) =>
-    set((state) => ({ shapes: [...state.shapes, shape], selectedId: shape.id })),
+    set((state) => ({ shapes: [...state.shapes, shape], selectedId: shape.id, selectedIds: [shape.id] })),
 
   addShapes: (shapes) =>
     set((state) => ({ shapes: [...state.shapes, ...shapes] })),
@@ -120,9 +135,70 @@ export const useProjectStore = create<ProjectState>()(
     set((state) => ({
       shapes: state.shapes.filter((s) => s.id !== id),
       selectedId: state.selectedId === id ? null : state.selectedId,
+      selectedIds: state.selectedIds.filter((x) => x !== id),
     })),
 
-  select: (id) => set({ selectedId: id }),
+  select: (id) => set({ selectedId: id, selectedIds: id ? [id] : [] }),
+
+  toggleSelect: (id) =>
+    set((state) => {
+      const has = state.selectedIds.includes(id);
+      const selectedIds = has ? state.selectedIds.filter((x) => x !== id) : [...state.selectedIds, id];
+      return { selectedIds, selectedId: has ? (selectedIds[selectedIds.length - 1] ?? null) : id };
+    }),
+
+  selectMany: (ids) => set({ selectedIds: ids, selectedId: ids[ids.length - 1] ?? null }),
+
+  removeSelected: () =>
+    set((state) => ({
+      shapes: state.shapes.filter((s) => !state.selectedIds.includes(s.id)),
+      selectedId: null,
+      selectedIds: [],
+    })),
+
+  alignSelected: (mode) =>
+    set((state) => {
+      const sel = state.shapes.filter((s) => state.selectedIds.includes(s.id));
+      if (sel.length < 2) return {};
+      const boxes = sel.map((s) => ({ s, b: boundingBox(shapeToPoints(s)) }));
+      const minX = Math.min(...boxes.map((x) => x.b.minX)), maxX = Math.max(...boxes.map((x) => x.b.maxX));
+      const minY = Math.min(...boxes.map((x) => x.b.minY)), maxY = Math.max(...boxes.map((x) => x.b.maxY));
+      const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+      const moved = new Map<string, Shape>();
+      for (const { s, b } of boxes) {
+        let dx = 0, dy = 0;
+        switch (mode) {
+          case "left": dx = minX - b.minX; break;
+          case "right": dx = maxX - b.maxX; break;
+          case "centerX": dx = cx - (b.minX + b.maxX) / 2; break;
+          case "top": dy = maxY - b.maxY; break;
+          case "bottom": dy = minY - b.minY; break;
+          case "centerY": dy = cy - (b.minY + b.maxY) / 2; break;
+        }
+        moved.set(s.id, translateShape(s, dx, dy));
+      }
+      return { shapes: state.shapes.map((s) => moved.get(s.id) ?? s) };
+    }),
+
+  distributeSelected: (mode) =>
+    set((state) => {
+      const sel = state.shapes.filter((s) => state.selectedIds.includes(s.id));
+      if (sel.length < 3) return {};
+      const boxes = sel.map((s) => ({ s, b: boundingBox(shapeToPoints(s)) }));
+      const key = mode === "horizontal" ? "X" : "Y";
+      boxes.sort((a, b) => (a.b[`min${key}`] + a.b[`max${key}`]) / 2 - (b.b[`min${key}`] + b.b[`max${key}`]) / 2);
+      const first = boxes[0], last = boxes[boxes.length - 1];
+      const c0 = (first.b[`min${key}`] + first.b[`max${key}`]) / 2;
+      const c1 = (last.b[`min${key}`] + last.b[`max${key}`]) / 2;
+      const step = (c1 - c0) / (boxes.length - 1);
+      const moved = new Map<string, Shape>();
+      boxes.forEach(({ s, b }, i) => {
+        const cur = (b[`min${key}`] + b[`max${key}`]) / 2;
+        const d = c0 + step * i - cur;
+        moved.set(s.id, mode === "horizontal" ? translateShape(s, d, 0) : translateShape(s, 0, d));
+      });
+      return { shapes: state.shapes.map((s) => moved.get(s.id) ?? s) };
+    }),
 
   updateSettings: (patch) =>
     set((state) => ({ settings: { ...state.settings, ...patch } })),
@@ -162,24 +238,24 @@ export const useProjectStore = create<ProjectState>()(
       ),
     })),
 
-  clear: () => set({ shapes: [], selectedId: null }),
+  clear: () => set({ shapes: [], selectedId: null, selectedIds: [] }),
 
   newProject: () =>
-    set({ shapes: [], selectedId: null, settings: DEFAULT_MACHINE_SETTINGS }),
+    set({ shapes: [], selectedId: null, selectedIds: [], settings: DEFAULT_MACHINE_SETTINGS }),
 
   duplicateShape: (id) =>
     set((state) => {
       const src = state.shapes.find((s) => s.id === id);
       if (!src) return {};
       const copy = translateShape({ ...src, id: generateShapeId(src.kind) }, 10, 10);
-      return { shapes: [...state.shapes, copy], selectedId: copy.id };
+      return { shapes: [...state.shapes, copy], selectedId: copy.id, selectedIds: [copy.id] };
     }),
 
   nudgeShape: (id, dx, dy) =>
     set((state) => ({ shapes: state.shapes.map((s) => (s.id === id ? translateShape(s, dx, dy) : s)) })),
 
   loadProject: (project) =>
-    set({ shapes: project.shapes, settings: project.settings, selectedId: null }),
+    set({ shapes: project.shapes, settings: project.settings, selectedId: null, selectedIds: [] }),
     }),
     {
       name: PROJECT_STORAGE_KEY,

@@ -58,7 +58,7 @@ A auditoria que originou o plano está em [`docs/auditoria.md`](docs/auditoria.m
 
 ```
 src/
-├─ types.ts              # Shape (retângulo/círculo/path), MachineSettings (WorkArea, Stock)
+├─ types.ts              # Shape (retângulo c/ cantos, círculo, path, polígono regular, rasgo), MachineSettings
 ├─ lib/
 │  ├─ geometry.ts         # shape → pontos (mm), bounding box, scanlines para pocket
 │  ├─ toolpath.ts          # formas → Segment[] (compensação, pocket real, tabs, rampa, ordem) — fonte única
@@ -92,13 +92,13 @@ src/
    ├─ PwaBanner.tsx         # aviso de atualização / instalar app
    ├─ Toolbar.tsx           # wrapper TopBar+SidePanel+StatusBar (usado nos testes)
    ├─ Notice.tsx            # avisos inline (substitui alert)
-   ├─ Editor.tsx             # canvas 2D (Konva) — mesa em mm, chapa, origem, arrastar/selecionar formas
+   ├─ Editor.tsx             # canvas 2D (Konva) — mesa em mm, chapa, handles, snap, marquee, polígono
+   ├─ InlineDimensions.tsx   # cotas editáveis ao lado da forma selecionada
    └─ Simulator.tsx           # visualização 3D (Three.js) do percurso da ferramenta
 ```
 
 ## Extensões futuras sugeridas
 
-- Redimensionar formas por arraste (handles) no editor (já é possível pelo painel numérico)
 - Texto → contorno (para gravação de nomes/logos) — hoje: converta texto em curvas no Inkscape antes de exportar o SVG
 - Importar DXF além de SVG
 - Nesting automático de peças na chapa
@@ -116,4 +116,4 @@ Tokens, regras de layout e ícones: [`docs/design-tokens.md`](docs/design-tokens
 
 ## Atalhos de teclado
 
-R retângulo · C círculo · P polígono (Enter/duplo clique fecha, Esc cancela) · Del excluir · Ctrl+D duplicar · Ctrl+Z / Ctrl+Y desfazer/refazer · Ctrl+S salvar projeto · setas movem 1 mm (Shift = 10 mm) · Esc desseleciona · roda do mouse zoom · +/−/0 zoom/ajustar · espaço + arrastar move a vista · no simulador: espaço play/pause, ←/→ passo, Home/End.
+R retângulo · C círculo · P polígono (Enter/duplo clique fecha, Esc cancela) · N polígono regular · O rasgo · S snap · Shift+clique / arrastar no fundo = seleção múltipla · Del excluir · Ctrl+D duplicar · Ctrl+Z / Ctrl+Y desfazer/refazer · Ctrl+S salvar projeto · setas movem 1 mm (Shift = 10 mm) · Esc desseleciona · roda do mouse zoom · +/−/0 zoom/ajustar · espaço + arrastar move a vista · no simulador: espaço play/pause, ←/→ passo, Home/End.

@@ -2,6 +2,20 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 09 — Formas: cantos, handles, medidas inline, snap] — 2026-08-15
+
+### Adicionado
+- **Cantos de retângulo**: vivos, arredondados (raio, arco amostrado a 0,05 mm) ou chanfrados, por canto (seletor visual dos 4 cantos), com o tamanho limitado a metade do lado menor — a geometria alimenta contorno, pocket, compensação e simulação.
+- **Novas primitivas**: polígono regular (raio, nº de lados, rotação — N) e rasgo/oblongo (comprimento, largura, rotação — O; nasce como furo "por dentro").
+- **Handles no canvas** (Konva Transformer): redimensionar e girar retângulos, círculos, polígonos regulares, rasgos e polígonos livres (escala/rotação aplicadas nos pontos); Shift mantém proporção e trava a rotação em 15°; valores refletem no painel.
+- **Cotas inline** ao lado da forma selecionada (L/A, R, R/N, L/A): Tab alterna, Enter confirma, Esc cancela.
+- **Snap** (S / botão Snap): bordas e centros da chapa e das outras formas, com guias magenta; Shift durante o arraste desliga; clamp à mesa mantido.
+- **Seleção múltipla**: Shift+clique e marquee no fundo; **Alinhar** (esq./centro/dir./topo/meio/base) e **Distribuir** (H/V) na ribbon (grupo contextual) e no painel; setas movem e Del apaga toda a seleção; `selectedIds` no store (undo continua por operação).
+- Store: `toggleSelect`, `selectMany`, `removeSelected`, `alignSelected`, `distributeSelected`; `editorMath.snapBox/buildSnapTargets/snapToGrid`.
+
+### Testes
+- Geometria (fillet/chamfer/which/clamp, ngon, slot), snap, seleção/alinhar/distribuir, InlineDimensions, ViewCube, BottomBar/Sheet, uiStore, pwa; e2e `shapes.spec.ts` (fillet no G-code, ngon/slot, cotas inline, handle de redimensionar, snap ao centro da chapa, marquee + alinhar + Delete). Total: 204 unitários, 52 e2e.
+
 ## [Sprint 10 — Simulador realista] — 2026-08-15
 
 ### Adicionado

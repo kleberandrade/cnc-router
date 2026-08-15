@@ -1,4 +1,4 @@
-export type ShapeKind = "rectangle" | "circle" | "path";
+export type ShapeKind = "rectangle" | "circle" | "path" | "ngon" | "slot";
 
 export interface BaseShape {
   id: string;
@@ -35,12 +35,44 @@ export const DEFAULT_TABS: TabSettings = { count: 4, width: 8, height: 3 };
 /** Extra depth (mm) added below the stock for through-cuts, so the bottom face is fully cut. */
 export const THROUGH_CUT_EXTRA = 0.2;
 
+export type CornerType = "sharp" | "fillet" | "chamfer";
+export type CornerId = "bl" | "br" | "tr" | "tl";
+
+export interface RectangleCorners {
+  type: CornerType;
+  /** Fillet radius or chamfer distance, mm. */
+  size: number;
+  /** Which corners; undefined/empty = all four. Order: bl (x,y), br, tr, tl. */
+  which?: CornerId[];
+}
+
 export interface RectangleShape extends BaseShape {
   kind: "rectangle";
   x: number;
   y: number;
   width: number;
   height: number;
+  rotation: number;
+  corners?: RectangleCorners;
+}
+
+/** Regular polygon (n sides) inscribed in a circle of `radius`, centred at (x, y). */
+export interface RegularPolygonShape extends BaseShape {
+  kind: "ngon";
+  x: number;
+  y: number;
+  radius: number;
+  sides: number;
+  rotation: number;
+}
+
+/** Slot / obround: total `length` (end to end) and `width` (= end diameter), centred at (x, y). */
+export interface SlotShape extends BaseShape {
+  kind: "slot";
+  x: number;
+  y: number;
+  length: number;
+  width: number;
   rotation: number;
 }
 
@@ -58,7 +90,7 @@ export interface PathShape extends BaseShape {
   closed: boolean;
 }
 
-export type Shape = RectangleShape | CircleShape | PathShape;
+export type Shape = RectangleShape | CircleShape | PathShape | RegularPolygonShape | SlotShape;
 
 /** Usable travel of the machine (work envelope), in mm. */
 export interface WorkArea {

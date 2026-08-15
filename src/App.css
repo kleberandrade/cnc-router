@@ -1431,3 +1431,65 @@
     display: none;
   }
 }
+
+/* ---------- Sprint 09: inline dimensions, corner picker ---------- */
+.inline-dims {
+  position: absolute;
+  display: flex;
+  gap: var(--s1);
+  padding: var(--s1);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 14px rgba(22, 32, 43, 0.15);
+  z-index: 5;
+}
+
+.inline-dim {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.inline-dim input {
+  width: 58px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.inline-dim .unit {
+  font-size: 10px;
+}
+
+.corner-grid {
+  display: grid;
+  grid-template-columns: 24px 24px;
+  grid-template-rows: 24px 24px;
+  gap: 4px;
+  align-self: flex-start;
+}
+
+.corner-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+  padding: 0;
+}
+
+.corner-btn.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.corner-btn.tl { border-top-left-radius: 10px; }
+.corner-btn.tr { border-top-right-radius: 10px; }
+.corner-btn.bl { border-bottom-left-radius: 10px; }
+.corner-btn.br { border-bottom-right-radius: 10px; }

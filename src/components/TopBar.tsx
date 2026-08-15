@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Grid2x2,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Grid2x2, Hexagon, RectangleHorizontal, Magnet,
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
+  AlignHorizontalSpaceAround, AlignVerticalSpaceAround,
 } from "lucide-react";
 import { useProjectActions } from "./useProjectActions";
 import { useUiStore, type View } from "../state/uiStore";
@@ -210,6 +212,8 @@ export function TopBar() {
                 testId="tool-polygon"
                 title="Polígono: clique os vértices, Enter/duplo clique fecha (P)"
               />
+              <RibbonButton icon={<Hexagon size={ICON} />} label="Regular" onClick={actions.addNgon} testId="add-ngon" title="Polígono regular (N)" />
+              <RibbonButton icon={<RectangleHorizontal size={ICON} />} label="Rasgo" onClick={actions.addSlot} testId="add-slot" title="Rasgo / oblongo (O)" />
             </RibbonGroup>
             <RibbonGroup title="Modificar">
               <RibbonButton icon={<Copy size={ICON} />} label="Duplicar" onClick={actions.duplicate} disabled={!actions.selectedId} testId="duplicate" title="Duplicar (Ctrl+D)" />
@@ -217,6 +221,18 @@ export function TopBar() {
               <RibbonButton icon={<Undo2 size={ICON} />} label="Desfazer" onClick={actions.undo} disabled={actions.pastStates === 0} testId="undo" title="Desfazer (Ctrl+Z)" />
               <RibbonButton icon={<Redo2 size={ICON} />} label="Refazer" onClick={actions.redo} disabled={actions.futureStates === 0} testId="redo" title="Refazer (Ctrl+Y)" />
             </RibbonGroup>
+            {actions.selectedIds.length >= 2 && (
+            <RibbonGroup title="Alinhar">
+              <RibbonButton icon={<AlignStartVertical size={ICON} />} label="Esq." onClick={() => actions.alignSelected("left")} disabled={actions.selectedIds.length < 2} testId="align-left" title="Alinhar à esquerda" />
+              <RibbonButton icon={<AlignCenterVertical size={ICON} />} label="Centro" onClick={() => actions.alignSelected("centerX")} disabled={actions.selectedIds.length < 2} testId="align-centerx" title="Centralizar horizontalmente" />
+              <RibbonButton icon={<AlignEndVertical size={ICON} />} label="Dir." onClick={() => actions.alignSelected("right")} disabled={actions.selectedIds.length < 2} testId="align-right" title="Alinhar à direita" />
+              <RibbonButton icon={<AlignStartHorizontal size={ICON} />} label="Topo" onClick={() => actions.alignSelected("top")} disabled={actions.selectedIds.length < 2} testId="align-top" title="Alinhar ao topo" />
+              <RibbonButton icon={<AlignCenterHorizontal size={ICON} />} label="Meio" onClick={() => actions.alignSelected("centerY")} disabled={actions.selectedIds.length < 2} testId="align-centery" title="Centralizar verticalmente" />
+              <RibbonButton icon={<AlignEndHorizontal size={ICON} />} label="Base" onClick={() => actions.alignSelected("bottom")} disabled={actions.selectedIds.length < 2} testId="align-bottom" title="Alinhar à base" />
+              <RibbonButton icon={<AlignHorizontalSpaceAround size={ICON} />} label="Distr. H" onClick={() => actions.distributeSelected("horizontal")} disabled={actions.selectedIds.length < 3} testId="distribute-h" title="Distribuir horizontalmente" />
+              <RibbonButton icon={<AlignVerticalSpaceAround size={ICON} />} label="Distr. V" onClick={() => actions.distributeSelected("vertical")} disabled={actions.selectedIds.length < 3} testId="distribute-v" title="Distribuir verticalmente" />
+            </RibbonGroup>
+            )}
             <RibbonGroup title="Vista">
               <RibbonButton icon={<ZoomOut size={ICON} />} label="Reduzir" onClick={actions.zoomOut} testId="zoom-out" title="Reduzir (−)" />
               <button type="button" className="rb" onClick={actions.zoomFit} title="Ajustar à mesa (0)" data-testid="zoom-fit">
@@ -224,6 +240,7 @@ export function TopBar() {
                 <span className="rb-label zoom-label">{Math.round(actions.zoom * 100)}%</span>
               </button>
               <RibbonButton icon={<ZoomIn size={ICON} />} label="Ampliar" onClick={actions.zoomIn} testId="zoom-in" title="Ampliar (+)" />
+              <RibbonButton icon={<Magnet size={ICON} />} label="Snap" onClick={actions.toggleSnap} active={actions.snap} testId="snap-toggle" title="Snap a chapa/formas (S)" />
             </RibbonGroup>
           </>
         ) : (

@@ -28,6 +28,9 @@ interface UiState {
   setPan: (p: { x: number; y: number }) => void;
   tool: EditorTool;
   setTool: (t: EditorTool) => void;
+  /** Snap to stock/shapes/grid while dragging. */
+  snap: boolean;
+  toggleSnap: () => void;
   /** Points (mm) of the polygon being drawn. */
   draft: [number, number][];
   setDraft: (pts: [number, number][]) => void;
@@ -64,6 +67,8 @@ export const useUiStore = create<UiState>((set) => ({
   setPan: (pan) => set({ pan }),
   tool: "select",
   setTool: (tool) => set({ tool, draft: [] }),
+  snap: true,
+  toggleSnap: () => set((s) => ({ snap: !s.snap })),
   draft: [],
   setDraft: (draft) => set({ draft }),
   panelOpen: true,

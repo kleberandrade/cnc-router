@@ -6,6 +6,8 @@ import {
   rotatePoint,
   boundingBox,
   scanlines,
+  ngonToPoints,
+  slotToPoints,
 } from "../geometry";
 import type { RectangleShape, CircleShape, PathShape } from "../../types";
 
@@ -178,5 +180,57 @@ describe("scanlines", () => {
   it("handles a range smaller than the stepover", () => {
     const rows = scanlines(0, 1, 5);
     expect(rows).toEqual([0, 1]);
+  });
+});
+
+describe("rectangle corners, ngon and slot (sprint 09)", () => {
+  const base = { id: "r", kind: "rectangle" as const, x: 0, y: 0, width: 40, height: 30, rotation: 0, depth: 5, operation: "outline" as const };
+
+  it("fillet keeps the bounding box and replaces corners by arcs", () => {
+    const pts = rectangleToPoints({ ...base, corners: { type: "fillet", size: 5 } });
+    const b = boundingBox(pts);
+    expect(b).toEqual({ minX: 0, minY: 0, maxX: 40, maxY: 30 });
+    // no point exactly at the sharp corner (0,0); the arc centre is (5,5) with radius 5
+    expect(pts.some(([x, y]) => x === 0 && y === 0)).toBe(false);
+    const nearCorner = pts.filter(([x, y]) => x < 5 && y < 5);
+    for (const [x, y] of nearCorner) expect(Math.hypot(x - 5, y - 5)).toBeCloseTo(5, 6);
+    expect(pts.length).toBeGreaterThan(20);
+  });
+
+  it("chamfer cuts each corner with one straight segment", () => {
+    const pts = rectangleToPoints({ ...base, corners: { type: "chamfer", size: 4 } });
+    expect(pts.length).toBe(9); // 8 points + closing
+    expect(pts[0]).toEqual([0, 4]);
+    expect(pts[1]).toEqual([4, 0]);
+  });
+
+  it("corner size is clamped to half the shorter side and can target specific corners", () => {
+    const pts = rectangleToPoints({ ...base, corners: { type: "chamfer", size: 100, which: ["tr"] } });
+    expect(pts[0]).toEqual([0, 0]);
+    expect(pts.some(([x, y]) => x === 40 && y === 30)).toBe(false);
+    expect(pts.some(([x, y]) => x === 40 && y === 15)).toBe(true); // clamped to 15
+  });
+
+  it("sharp corners are unchanged", () => {
+    expect(rectangleToPoints({ ...base, corners: { type: "sharp", size: 5 } })).toEqual(rectangleToPoints(base));
+  });
+
+  it("ngon has n vertices on the radius", () => {
+    const pts = ngonToPoints({ id: "n", kind: "ngon", x: 10, y: 10, radius: 5, sides: 6, rotation: 0, depth: 1, operation: "outline" });
+    expect(pts).toHaveLength(7);
+    for (const [x, y] of pts) expect(Math.hypot(x - 10, y - 10)).toBeCloseTo(5, 6);
+    expect(pts[0]).toEqual([15, 10]);
+  });
+
+  it("slot bbox is length × width and its ends are semicircles", () => {
+    const pts = slotToPoints({ id: "s", kind: "slot", x: 0, y: 0, length: 30, width: 10, rotation: 0, depth: 1, operation: "outline" });
+    const b = boundingBox(pts);
+    expect(b.maxX - b.minX).toBeCloseTo(30, 6);
+    expect(b.maxY - b.minY).toBeCloseTo(10, 6);
+    const rightEnd = pts.filter(([x]) => x > 10);
+    for (const [x, y] of rightEnd) expect(Math.hypot(x - 10, y)).toBeCloseTo(5, 6);
+    const rot = slotToPoints({ id: "s", kind: "slot", x: 0, y: 0, length: 30, width: 10, rotation: 90, depth: 1, operation: "outline" });
+    const rb = boundingBox(rot);
+    expect(rb.maxY - rb.minY).toBeCloseTo(30, 6);
   });
 });

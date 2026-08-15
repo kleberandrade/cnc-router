@@ -22,7 +22,7 @@ Avaliação do feedback e plano completo em [`fase-2.md`](fase-2.md).
 |---|---|---|---|
 | [07](sprint-07-interface-unificada.md) ✅ | Interface unificada (ribbon), tokens de espaçamento, ícones sem emoji | — | M |
 | [08](sprint-08-responsivo-e-pwa.md) ✅ | Responsivo (celular/tablet, toque) + PWA instalável/offline | 07 | M |
-| [09](sprint-09-formas-e-edicao-no-canvas.md) | Cantos de retângulo, handles, medidas inline, snap, novas formas | 07 | M/G |
+| [09](sprint-09-formas-e-edicao-no-canvas.md) ✅ | Cantos de retângulo, handles, medidas inline, snap, novas formas | 07 | M/G |
 | [10](sprint-10-simulador-realista.md) ✅ | Remoção de material, fresa 3D realista, ViewCube/gizmo | 07 | G |
 | [11](sprint-11-navegador-e-produtividade.md) | Navegador de peças, ferramentas por peça, tema escuro, DXF | 07, 09 | M |
 | [12](sprint-12-backlog.md) | Backlog priorizado (Fase 3) | — | — |

@@ -46,3 +46,68 @@ export function clampShapeToTable(
   return [clampedMinX - dxMin, clampedMinY - dyMin];
 }
 
+
+export interface SnapTargets {
+  xs: number[];
+  ys: number[];
+}
+
+export interface SnapResult {
+  x: number;
+  y: number;
+  guideX: number | null;
+  guideY: number | null;
+}
+
+/**
+ * Snap a moving box (given by its min corner and size, mm) so that its edges/centre align with
+ * target lines when within `threshold` mm. Returns the adjusted min corner and the guide lines hit.
+ */
+export function snapBox(
+  minX: number,
+  minY: number,
+  w: number,
+  h: number,
+  targets: SnapTargets,
+  threshold: number
+): SnapResult {
+  let bestDx = Infinity, guideX: number | null = null;
+  for (const edge of [0, w / 2, w]) {
+    for (const tx of targets.xs) {
+      const d = tx - (minX + edge);
+      if (Math.abs(d) <= threshold && Math.abs(d) < Math.abs(bestDx)) { bestDx = d; guideX = tx; }
+    }
+  }
+  let bestDy = Infinity, guideY: number | null = null;
+  for (const edge of [0, h / 2, h]) {
+    for (const ty of targets.ys) {
+      const d = ty - (minY + edge);
+      if (Math.abs(d) <= threshold && Math.abs(d) < Math.abs(bestDy)) { bestDy = d; guideY = ty; }
+    }
+  }
+  return {
+    x: guideX !== null ? minX + bestDx : minX,
+    y: guideY !== null ? minY + bestDy : minY,
+    guideX,
+    guideY,
+  };
+}
+
+/** Snap targets: stock edges/centre, other shapes' bbox edges/centres. */
+export function buildSnapTargets(
+  stock: { minX: number; minY: number; maxX: number; maxY: number },
+  others: { minX: number; minY: number; maxX: number; maxY: number }[]
+): SnapTargets {
+  const xs = [stock.minX, (stock.minX + stock.maxX) / 2, stock.maxX];
+  const ys = [stock.minY, (stock.minY + stock.maxY) / 2, stock.maxY];
+  for (const b of others) {
+    xs.push(b.minX, (b.minX + b.maxX) / 2, b.maxX);
+    ys.push(b.minY, (b.minY + b.maxY) / 2, b.maxY);
+  }
+  return { xs, ys };
+}
+
+/** Round to the nearest grid step. */
+export function snapToGrid(v: number, step: number): number {
+  return Math.round(v / step) * step;
+}

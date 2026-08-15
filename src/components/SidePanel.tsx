@@ -7,7 +7,7 @@ import { boundingBox, shapeToPoints } from "../lib/geometry";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { NumberField } from "./NumberField";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType } from "../types";
+import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId } from "../types";
 import { DEFAULT_TABS } from "../types";
 
 interface SectionProps {
@@ -47,6 +47,8 @@ function shapeSummary(shape: Shape): string {
   switch (shape.kind) {
     case "rectangle": return `retângulo ${shape.width}×${shape.height}`;
     case "circle": return `círculo r${shape.radius}`;
+    case "ngon": return `polígono regular ${shape.sides} lados r${shape.radius}`;
+    case "slot": return `rasgo ${shape.length}×${shape.width}`;
     default: return `polígono (${shape.points.length} pts)`;
   }
 }
@@ -69,7 +71,10 @@ export function SidePanel() {
   const notice = useUiStore((s) => s.notice);
   const setNotice = useUiStore((s) => s.setNotice);
 
-  const selectedShape = shapes.find((s) => s.id === selectedId);
+  const selectedIds = useProjectStore((s) => s.selectedIds);
+  const alignSelected = useProjectStore((s) => s.alignSelected);
+  const removeSelected = useProjectStore((s) => s.removeSelected);
+  const selectedShape = selectedIds.length === 1 ? shapes.find((s) => s.id === selectedId) : undefined;
   const { workArea, stock } = settings;
   const material = findMaterial(settings.material);
   const hasOverrides = Object.values(settings.overrides).some(Boolean);
@@ -86,8 +91,19 @@ export function SidePanel() {
     <aside className="toolbar side-panel" aria-label="Configurações">
       <Notice notice={notice} onDismiss={() => setNotice(null)} />
 
-      <Section id="shape" title="Peça selecionada" summary={selectedShape ? shapeSummary(selectedShape) : "nenhuma"}>
-        {!selectedShape && <p className="hint">Clique numa forma no desenho, ou adicione uma pela barra de ações.</p>}
+      <Section id="shape" title="Peça selecionada" summary={selectedShape ? shapeSummary(selectedShape) : selectedIds.length > 1 ? `${selectedIds.length} formas` : "nenhuma"}>
+        {!selectedShape && selectedIds.length < 2 && <p className="hint">Clique numa forma no desenho, ou adicione uma pela barra de ações. Shift+clique ou arraste no fundo para selecionar várias.</p>}
+        {selectedIds.length > 1 && (
+          <>
+            <p className="hint" data-testid="multi-summary">{selectedIds.length} formas selecionadas — use os botões Alinhar/Distribuir da barra, setas para mover, Del para excluir.</p>
+            <div className="field-row">
+              <button type="button" onClick={() => alignSelected("left")}>Alinhar esq.</button>
+              <button type="button" onClick={() => alignSelected("centerX")}>Centralizar</button>
+              <button type="button" onClick={() => alignSelected("bottom")}>Alinhar base</button>
+            </div>
+            <button type="button" className="danger" onClick={removeSelected}>Remover {selectedIds.length} formas</button>
+          </>
+        )}
         {selectedShape && selectedBox && (
           <>
             <p className="hint">{shapeSummary(selectedShape)}</p>
@@ -127,9 +143,87 @@ export function SidePanel() {
                   onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
               </>
             )}
+            {selectedShape.kind === "rectangle" && (
+              <>
+                <label>
+                  Cantos
+                  <select
+                    value={selectedShape.corners?.type ?? "sharp"}
+                    onChange={(e) => {
+                      const type = e.target.value as CornerType;
+                      updateShape(selectedShape.id, { corners: type === "sharp" ? undefined : { type, size: selectedShape.corners?.size || 5, which: selectedShape.corners?.which } });
+                    }}
+                    data-testid="corner-type"
+                  >
+                    <option value="sharp">Vivos</option>
+                    <option value="fillet">Arredondados (raio)</option>
+                    <option value="chamfer">Chanfrados</option>
+                  </select>
+                </label>
+                {selectedShape.corners && selectedShape.corners.type !== "sharp" && (
+                  <>
+                    <NumberField
+                      label={selectedShape.corners.type === "fillet" ? "Raio do canto" : "Chanfro"}
+                      unit="mm"
+                      min={0.1}
+                      max={Math.min(selectedShape.width, selectedShape.height) / 2}
+                      step={0.5}
+                      value={selectedShape.corners.size}
+                      testId="corner-size"
+                      onChange={(v) => updateShape(selectedShape.id, { corners: { ...selectedShape.corners!, size: v } })}
+                    />
+                    <div className="corner-grid" role="group" aria-label="Quais cantos">
+                      {(["tl", "tr", "bl", "br"] as CornerId[]).map((id) => {
+                        const all = !selectedShape.corners!.which || selectedShape.corners!.which.length === 0;
+                        const on = all || selectedShape.corners!.which!.includes(id);
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            className={`corner-btn ${id}${on ? " on" : ""}`}
+                            aria-pressed={on}
+                            title={{ tl: "Superior esquerdo", tr: "Superior direito", bl: "Inferior esquerdo", br: "Inferior direito" }[id]}
+                            data-testid={`corner-${id}`}
+                            onClick={() => {
+                              const cur = all ? (["tl", "tr", "bl", "br"] as CornerId[]) : selectedShape.corners!.which!;
+                              const next = cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id];
+                              updateShape(selectedShape.id, { corners: { ...selectedShape.corners!, which: next.length === 4 ? undefined : next } });
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
             {selectedShape.kind === "circle" && (
               <NumberField label="Raio" unit="mm" min={0.1} step={1} value={selectedShape.radius} testId="shape-radius"
                 onChange={(v) => updateShape(selectedShape.id, { radius: v })} />
+            )}
+            {selectedShape.kind === "ngon" && (
+              <>
+                <div className="field-row">
+                  <NumberField label="Raio" unit="mm" min={0.1} step={1} value={selectedShape.radius} testId="shape-radius"
+                    onChange={(v) => updateShape(selectedShape.id, { radius: v })} />
+                  <NumberField label="Lados" min={3} max={64} step={1} value={selectedShape.sides} testId="shape-sides"
+                    onChange={(v) => updateShape(selectedShape.id, { sides: Math.round(v) })} />
+                </div>
+                <NumberField label="Rotação" unit="°" min={-360} max={360} step={5} value={selectedShape.rotation} testId="shape-rotation"
+                  onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
+              </>
+            )}
+            {selectedShape.kind === "slot" && (
+              <>
+                <div className="field-row">
+                  <NumberField label="Comprimento" unit="mm" min={0.1} step={1} value={selectedShape.length} testId="shape-length"
+                    onChange={(v) => updateShape(selectedShape.id, { length: v })} />
+                  <NumberField label="Largura" unit="mm" min={0.1} step={1} value={selectedShape.width} testId="shape-width"
+                    onChange={(v) => updateShape(selectedShape.id, { width: v })} />
+                </div>
+                <NumberField label="Rotação" unit="°" min={-360} max={360} step={5} value={selectedShape.rotation} testId="shape-rotation"
+                  onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
+              </>
             )}
             <NumberField
               label="Profundidade de corte"
