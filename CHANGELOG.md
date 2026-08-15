@@ -2,6 +2,18 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 02 — Materiais e ferramenta] — 2026-08-15
+
+### Adicionado
+- `lib/materials.ts` — presets MDF, Compensado, Pinus e Alumínio (avançado) com avanço, mergulho, RPM, fator de passe e de stepover por Ø da fresa; `applyMaterial` (respeita campos manuais; `force` restaura), `applyToolDiameter`, `suggestedParams`.
+- `MachineSettings.material`, `stepover` (mm, substitui o `0.6 × Ø` fixo do pocket) e `overrides` (campos editados à mão); persistência v3 com migração (`stepover` derivado do Ø).
+- Toolbar: seção **Material & ferramenta** (material com notas/aviso "avançado", Ø da fresa) e seção **Corte (GRBL)** com badge "manual" por campo, "restaurar preset", mergulho, stepover e altura segura expostos.
+- Propriedades da peça: **Cortar através (espessura + 0,2 mm)** — `shape.cutThrough`, profundidade acompanha a espessura da chapa.
+- G-code: cabeçalho `; material MDF | tool Ø6mm | stepover 3mm | pass 3mm`; `stepover` validado.
+
+### Testes
+- `materials.test.ts`, store (migração v3, ações de material/ferramenta/cortar através), Toolbar, G-code; e2e `materials.spec.ts`. Total: 143 unitários, 20 e2e.
+
 ## [Sprint 04 — Simulador: tempo real, step/step, barra de tempo] — 2026-08-15
 
 ### Adicionado

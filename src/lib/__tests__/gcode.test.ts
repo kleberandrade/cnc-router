@@ -175,3 +175,16 @@ describe("work origin & header", () => {
     if (!res.ok) expect(res.problems.join()).toMatch(/fora da área útil/);
   });
 });
+
+describe("material in G-code", () => {
+  const rect: RectangleShape = { id: "r", kind: "rectangle", x: 20, y: 20, width: 30, height: 30, rotation: 0, depth: 4, operation: "pocket" };
+  it("writes material/tool/stepover in the header", () => {
+    const g = generateGCode([rect], { ...DEFAULT_MACHINE_SETTINGS, material: "mdf", toolDiameter: 6, stepover: 3 });
+    expect(g).toContain("; material MDF | tool Ø6mm | stepover 3mm | pass 2mm");
+  });
+  it("pocket rows follow the stepover (aluminium denser than MDF)", () => {
+    const rows = (stepover: number) =>
+      generateGCode([rect], { ...DEFAULT_MACHINE_SETTINGS, stepover }).split("\n").filter((l) => l.startsWith("G1 X")).length;
+    expect(rows(0.9)).toBeGreaterThan(rows(3));
+  });
+});

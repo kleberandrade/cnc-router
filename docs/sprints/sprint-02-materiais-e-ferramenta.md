@@ -1,6 +1,6 @@
 # Sprint 02 — Materiais e ferramenta
 
-**Status:** planejada
+**Status:** concluída — 2026-08-15
 **Esforço:** M (2–4 dias)
 **Depende de:** 01
 
@@ -30,14 +30,14 @@ Presets (`src/lib/materials.ts`), referência fresa reta 2 cortes, router hobby 
 | custom | mantém atuais | | | | | |
 
 ## Tarefas
-- [ ] `lib/materials.ts` + `applyMaterial(settings, materialId)` que respeita `overrides` (campos editados manualmente não são sobrescritos até o usuário clicar "reaplicar preset").
-- [ ] `stepover` calculado por material × Ø (remove o `0.6` fixo de `gcode.ts`); campo editável.
-- [ ] Toolbar: seletor Material, Ø da fresa, campos de corte com indicador "manual" quando sobrescritos + botão "Restaurar preset"; alumínio marcado "avançado" com tooltip de cuidados.
-- [ ] Trocar material recalcula `passDepth` sugerido; trocar Ø recalcula passe/stepover se não sobrescritos.
-- [ ] Espessura da chapa (sprint 01) continua sendo padrão de `depth`; toggle "Cortar através (+0,2 mm)" por forma.
-- [ ] G-code: cabeçalho inclui `; material MDF | tool Ø6 | stepover 3mm`.
-- [ ] Testes: presets, `applyMaterial` com overrides, escala por Ø, header.
-- [ ] E2E: selecionar "Alumínio" muda avanço para 300; editar avanço e trocar material mantém o valor editado.
+- [x] `lib/materials.ts` + `applyMaterial(settings, materialId)` que respeita `overrides` (campos editados manualmente não são sobrescritos até o usuário clicar "reaplicar preset").
+- [x] `stepover` calculado por material × Ø (remove o `0.6` fixo de `gcode.ts`); campo editável.
+- [x] Toolbar: seletor Material, Ø da fresa, campos de corte com indicador "manual" quando sobrescritos + botão "Restaurar preset"; alumínio marcado "avançado" com tooltip de cuidados.
+- [x] Trocar material recalcula `passDepth` sugerido; trocar Ø recalcula passe/stepover se não sobrescritos.
+- [x] Espessura da chapa (sprint 01) continua sendo padrão de `depth`; toggle "Cortar através (+0,2 mm)" por forma.
+- [x] G-code: cabeçalho inclui `; material MDF | tool Ø6 | stepover 3mm`.
+- [x] Testes: presets, `applyMaterial` com overrides, escala por Ø, header.
+- [x] E2E: selecionar "Alumínio" muda avanço para 300; editar avanço e trocar material mantém o valor editado.
 
 ## DoD específica
 - Todos os quatro materiais + Personalizado selecionáveis; valores batem com a tabela.
@@ -46,3 +46,9 @@ Presets (`src/lib/materials.ts`), referência fresa reta 2 cortes, router hobby 
 
 ## Fora de escopo
 Biblioteca de ferramentas múltiplas (fresa por forma), refrigeração/M8.
+
+## Notas de fechamento
+- Material padrão de projetos novos/antigos é **Personalizado** com `stepover = 0,6 × Ø` (comportamento anterior preservado; baseline de G-code inalterado fora do cabeçalho).
+- Overrides são por campo e sobrevivem à troca de material; "restaurar preset" limpa todos.
+- Alumínio marcado "(avançado)" no seletor com notas de cuidado; não há refrigeração/M8 nem rampa (Sprint 06).
+- Testes: 143 unitários (94 % linhas / 87 % branches), 20 e2e.

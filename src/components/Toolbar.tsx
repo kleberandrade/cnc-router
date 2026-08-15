@@ -5,10 +5,11 @@ import { tryGenerateGCode } from "../lib/gcode";
 import { parseNumberInput } from "../lib/numberInput";
 import { MACHINE_PRESETS, CUSTOM_PRESET_ID, findMachinePreset } from "../lib/machinePresets";
 import { validateProject } from "../lib/validate";
+import { MATERIAL_PRESETS, CUSTOM_MATERIAL_ID, findMaterial } from "../lib/materials";
 import { buildToolpath } from "../lib/toolpath";
 import { estimateTime, formatDuration } from "../lib/timing";
 import { Notice, type NoticeData } from "./Notice";
-import type { RectangleShape, CircleShape, StockOrigin } from "../types";
+import type { RectangleShape, CircleShape, StockOrigin, MaterialId, CutParamKey } from "../types";
 
 function downloadTextFile(filename: string, content: string) {
   const blob = new Blob([content], { type: "text/plain" });
@@ -32,6 +33,10 @@ export function Toolbar() {
   const newProject = useProjectStore((s) => s.newProject);
   const setWorkArea = useProjectStore((s) => s.setWorkArea);
   const updateStock = useProjectStore((s) => s.updateStock);
+  const setMaterial = useProjectStore((s) => s.setMaterial);
+  const setToolDiameter = useProjectStore((s) => s.setToolDiameter);
+  const setCutParam = useProjectStore((s) => s.setCutParam);
+  const setCutThrough = useProjectStore((s) => s.setCutThrough);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<NoticeData | null>(null);
   const dismissNotice = useCallback(() => setNotice(null), []);
@@ -47,6 +52,8 @@ export function Toolbar() {
     }
   }, [shapes, settings]);
   const { workArea, stock } = settings;
+  const material = findMaterial(settings.material);
+  const hasOverrides = Object.values(settings.overrides).some(Boolean);
 
   // New shapes are placed inside the stock, 10 mm from its front-left corner,
   // and default to a through-cut (depth = stock thickness).
@@ -187,9 +194,19 @@ export function Toolbar() {
               onChange={(e) =>
                 updateShape(selectedShape.id, {
                   depth: parseNumberInput(e.target.value, selectedShape.depth, { min: 0.01 }),
+                  cutThrough: false,
                 })
               }
             />
+          </label>
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={!!selectedShape.cutThrough}
+              onChange={(e) => setCutThrough(selectedShape.id, e.target.checked)}
+              data-testid="cut-through"
+            />
+            Cortar através (espessura + 0,2 mm)
           </label>
           <label>
             Operação
@@ -346,18 +363,97 @@ export function Toolbar() {
       )}
 
       <div className="toolbar-section">
-        <h2>Corte (GRBL)</h2>
+        <h2>Material &amp; ferramenta</h2>
         <label>
-          Avanço de corte (mm/min)
+          Material
+          <select
+            value={settings.material}
+            onChange={(e) => {
+              const id = e.target.value as MaterialId;
+              setMaterial(id);
+              if (id !== CUSTOM_MATERIAL_ID) {
+                setNotice({
+                  kind: "info",
+                  title: hasOverrides
+                    ? "Parâmetros de corte atualizados (campos manuais mantidos) — revise."
+                    : "Parâmetros de corte atualizados para o material — revise.",
+                });
+              }
+            }}
+            data-testid="material-select"
+          >
+            {MATERIAL_PRESETS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+                {m.advanced ? " (avançado)" : ""}
+              </option>
+            ))}
+            <option value={CUSTOM_MATERIAL_ID}>Personalizado</option>
+          </select>
+        </label>
+        {material?.notes && (
+          <p className={material.advanced ? "hint hint-warn" : "hint"} data-testid="material-notes">
+            {material.notes}
+          </p>
+        )}
+        <label>
+          Ø da fresa (mm)
           <input
             type="number"
-            min={1}
-            value={settings.feedRate}
-            onChange={(e) =>
-              updateSettings({ feedRate: parseNumberInput(e.target.value, settings.feedRate, { min: 1 }) })
-            }
+            min={0.1}
+            step={0.5}
+            value={settings.toolDiameter}
+            data-testid="tool-diameter"
+            onChange={(e) => setToolDiameter(num(e.target.value, settings.toolDiameter, 0.1))}
           />
         </label>
+      </div>
+
+      <div className="toolbar-section">
+        <h2>
+          Corte (GRBL)
+          {material && hasOverrides && (
+            <button
+              type="button"
+              className="link"
+              onClick={() => {
+                setMaterial(settings.material, true);
+                setNotice({ kind: "info", title: `Preset ${material.label} restaurado.` });
+              }}
+              data-testid="restore-preset"
+            >
+              restaurar preset
+            </button>
+          )}
+        </h2>
+        {(
+          [
+            ["feedRate", "Avanço de corte (mm/min)", 1],
+            ["plungeRate", "Avanço de mergulho (mm/min)", 1],
+            ["spindleSpeed", "Rotação do spindle (RPM)", 1],
+            ["passDepth", "Profundidade por passe (mm)", 0.01],
+            ["stepover", "Passo lateral do pocket (mm)", 0.05],
+          ] as [CutParamKey, string, number][]
+        ).map(([key, label, min]) => (
+          <label key={key}>
+            <span className="label-row">
+              {label}
+              {settings.overrides[key] && material && (
+                <span className="badge" title="Editado manualmente — o preset não sobrescreve">
+                  manual
+                </span>
+              )}
+            </span>
+            <input
+              type="number"
+              min={min}
+              step={key === "passDepth" ? 0.5 : key === "stepover" ? 0.1 : undefined}
+              value={settings[key]}
+              data-testid={`cut-${key}`}
+              onChange={(e) => setCutParam(key, num(e.target.value, settings[key], min))}
+            />
+          </label>
+        ))}
         <label>
           Deslocamento rápido G0 (mm/min)
           <input
@@ -370,25 +466,14 @@ export function Toolbar() {
           />
         </label>
         <label>
-          Profundidade por passe (mm)
+          Altura segura (mm)
           <input
             type="number"
-            min={0.1}
-            step={0.5}
-            value={settings.passDepth}
+            min={0}
+            step={1}
+            value={settings.safeHeight}
             onChange={(e) =>
-              updateSettings({ passDepth: parseNumberInput(e.target.value, settings.passDepth, { min: 0.01 }) })
-            }
-          />
-        </label>
-        <label>
-          Rotação do spindle (RPM)
-          <input
-            type="number"
-            min={1}
-            value={settings.spindleSpeed}
-            onChange={(e) =>
-              updateSettings({ spindleSpeed: parseNumberInput(e.target.value, settings.spindleSpeed, { min: 1 }) })
+              updateSettings({ safeHeight: parseNumberInput(e.target.value, settings.safeHeight, { min: 0 }) })
             }
           />
         </label>

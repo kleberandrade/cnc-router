@@ -117,6 +117,27 @@ describe("Toolbar", () => {
     expect(screen.getByTestId("notice")).toHaveTextContent(/fora da área útil/);
   });
 
+  it("selecting a material fills cutting params; manual edits survive a material change", async () => {
+    render(<Toolbar />);
+    fireEvent.change(screen.getByTestId("material-select"), { target: { value: "aluminum" } });
+    expect(useProjectStore.getState().settings.feedRate).toBe(300);
+    expect(screen.getByTestId("material-notes")).toHaveTextContent(/Avançado/);
+    fireEvent.change(screen.getByTestId("cut-feedRate"), { target: { value: "450" } });
+    expect(screen.getByText("manual")).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("material-select"), { target: { value: "mdf" } });
+    expect(useProjectStore.getState().settings.feedRate).toBe(450);
+    expect(useProjectStore.getState().settings.spindleSpeed).toBe(18000);
+    await userEvent.click(screen.getByTestId("restore-preset"));
+    expect(useProjectStore.getState().settings.feedRate).toBe(1500);
+  });
+
+  it("cut-through checkbox sets depth to thickness + 0.2", async () => {
+    render(<Toolbar />);
+    await userEvent.click(screen.getByTestId("add-rectangle"));
+    await userEvent.click(screen.getByTestId("cut-through"));
+    expect(useProjectStore.getState().shapes[0].depth).toBe(18.2);
+  });
+
   it("starts a new project (shapes + default settings) after confirmation", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Toolbar />);

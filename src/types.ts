@@ -7,7 +7,12 @@ export interface BaseShape {
   depth: number;
   /** Whether the toolpath follows the outline (outline) or removes the interior (pocket). */
   operation: "outline" | "pocket";
+  /** When true, depth follows the stock thickness + THROUGH_CUT_EXTRA (kept in sync when the stock changes). */
+  cutThrough?: boolean;
 }
+
+/** Extra depth (mm) added below the stock for through-cuts, so the bottom face is fully cut. */
+export const THROUGH_CUT_EXTRA = 0.2;
 
 export interface RectangleShape extends BaseShape {
   kind: "rectangle";
@@ -55,7 +60,18 @@ export interface Stock {
   origin: StockOrigin;
 }
 
+export type MaterialId = "mdf" | "plywood" | "pine" | "aluminum" | "custom";
+
+/** Cutting parameters that a material preset fills in (and the user may override). */
+export type CutParamKey = "feedRate" | "plungeRate" | "spindleSpeed" | "passDepth" | "stepover";
+
 export interface MachineSettings {
+  /** Selected material preset (see lib/materials). */
+  material: MaterialId;
+  /** Pocket stepover, mm (distance between scanlines). */
+  stepover: number;
+  /** Cutting parameters edited by hand — a material preset will not overwrite these. */
+  overrides: Partial<Record<CutParamKey, boolean>>;
   /** Machine preset id (see lib/machinePresets); "custom" when edited by hand. */
   machinePreset: string;
   workArea: WorkArea;
@@ -88,6 +104,9 @@ export const DEFAULT_STOCK: Stock = {
 };
 
 export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  material: "custom",
+  stepover: 1.8,
+  overrides: {},
   machinePreset: "6040",
   workArea: DEFAULT_WORK_AREA,
   stock: DEFAULT_STOCK,

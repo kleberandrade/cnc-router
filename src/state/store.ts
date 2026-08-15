@@ -4,13 +4,18 @@ import type { Shape, MachineSettings } from "../types";
 import { DEFAULT_MACHINE_SETTINGS } from "../types";
 import { generateShapeId } from "../lib/ids";
 import { presetIdForWorkArea } from "../lib/machinePresets";
-import type { WorkArea, Stock } from "../types";
+import { applyMaterial, applyToolDiameter } from "../lib/materials";
+import type { WorkArea, Stock, MaterialId, CutParamKey } from "../types";
+import { THROUGH_CUT_EXTRA } from "../types";
+
+/** Depth a through-cut shape should have for a given stock thickness. */
+export const throughCutDepth = (thickness: number) => Math.round((thickness + THROUGH_CUT_EXTRA) * 100) / 100;
 
 export { generateShapeId };
 
 /** localStorage key + schema version. Bump `PROJECT_SCHEMA_VERSION` and extend `migrateProject` on breaking changes. */
 export const PROJECT_STORAGE_KEY = "oficina-cnc:project";
-export const PROJECT_SCHEMA_VERSION = 2;
+export const PROJECT_SCHEMA_VERSION = 3;
 
 type PersistedProject = { shapes: Shape[]; settings: MachineSettings };
 
@@ -29,6 +34,12 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
   if (version < 2 && !raw.machinePreset) {
     settings.machinePreset = presetIdForWorkArea(settings.workArea);
   }
+  // v2 -> v3: material/stepover/overrides. Old projects keep their behaviour (stepover = 0.6 × Ø).
+  if (version < 3) {
+    if (raw.stepover === undefined) settings.stepover = Math.round(Math.max(settings.toolDiameter * 0.6, 0.1) * 100) / 100;
+    if (!raw.material) settings.material = "custom";
+    settings.overrides = { ...(raw.overrides ?? {}) };
+  }
   return { shapes, settings };
 }
 
@@ -45,6 +56,14 @@ interface ProjectState {
   /** Sets the work area and re-derives `machinePreset` ("custom" when it matches none). */
   setWorkArea: (patch: Partial<WorkArea>) => void;
   updateStock: (patch: Partial<Stock>) => void;
+  /** Select a material preset; `force` re-applies over manual overrides. */
+  setMaterial: (id: MaterialId, force?: boolean) => void;
+  /** Change the tool diameter and re-derive pass depth / stepover when not overridden. */
+  setToolDiameter: (d: number) => void;
+  /** Edit a cutting parameter by hand (marks it as overridden). */
+  setCutParam: (key: CutParamKey, value: number) => void;
+  /** Toggle "cut through" on a shape (depth follows stock thickness + extra). */
+  setCutThrough: (id: string, on: boolean) => void;
   clear: () => void;
   /** Clears shapes AND resets machine settings to defaults. */
   newProject: () => void;
@@ -88,7 +107,33 @@ export const useProjectStore = create<ProjectState>()(
     }),
 
   updateStock: (patch) =>
-    set((state) => ({ settings: { ...state.settings, stock: { ...state.settings.stock, ...patch } } })),
+    set((state) => {
+      const stock = { ...state.settings.stock, ...patch };
+      const shapes =
+        patch.thickness !== undefined
+          ? state.shapes.map((s) => (s.cutThrough ? { ...s, depth: throughCutDepth(stock.thickness) } : s))
+          : state.shapes;
+      return { settings: { ...state.settings, stock }, shapes };
+    }),
+
+  setMaterial: (id, force = false) =>
+    set((state) => ({ settings: applyMaterial(state.settings, id, force) })),
+
+  setToolDiameter: (d) => set((state) => ({ settings: applyToolDiameter(state.settings, d) })),
+
+  setCutParam: (key, value) =>
+    set((state) => ({
+      settings: { ...state.settings, [key]: value, overrides: { ...state.settings.overrides, [key]: true } },
+    })),
+
+  setCutThrough: (id, on) =>
+    set((state) => ({
+      shapes: state.shapes.map((s) =>
+        s.id === id
+          ? { ...s, cutThrough: on, depth: on ? throughCutDepth(state.settings.stock.thickness) : state.settings.stock.thickness }
+          : s
+      ),
+    })),
 
   clear: () => set({ shapes: [], selectedId: null }),
 

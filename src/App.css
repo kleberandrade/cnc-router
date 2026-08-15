@@ -401,3 +401,59 @@
   font-family: var(--font-mono);
   margin: 0;
 }
+
+.hint {
+  margin: -4px 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.hint-warn {
+  color: var(--warn);
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(181, 96, 31, 0.12);
+  color: var(--warn);
+}
+
+.toolbar-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar button.link {
+  width: auto;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.toolbar-section label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-section label.checkbox input {
+  width: auto;
+}

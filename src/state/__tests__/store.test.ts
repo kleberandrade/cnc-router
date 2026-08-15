@@ -64,6 +64,53 @@ describe("work area / stock actions", () => {
   });
 });
 
+describe("migrateProject v2 → v3", () => {
+  it("derives stepover from tool diameter and defaults material to custom", () => {
+    const out = migrateProject({ shapes: [], settings: { toolDiameter: 5 } }, 2);
+    expect(out.settings.stepover).toBe(3);
+    expect(out.settings.material).toBe("custom");
+    expect(out.settings.overrides).toEqual({});
+  });
+});
+
+describe("material / tool / cut-through actions", () => {
+  beforeEach(() => useProjectStore.getState().newProject());
+
+  it("setMaterial applies presets, setCutParam marks overrides, force restores", () => {
+    const S = useProjectStore.getState;
+    S().setMaterial("mdf");
+    expect(S().settings.feedRate).toBe(1500);
+    S().setCutParam("feedRate", 700);
+    expect(S().settings.overrides.feedRate).toBe(true);
+    S().setMaterial("pine");
+    expect(S().settings.feedRate).toBe(700);
+    expect(S().settings.plungeRate).toBe(600);
+    S().setMaterial("pine", true);
+    expect(S().settings.feedRate).toBe(1800);
+    expect(S().settings.overrides).toEqual({});
+  });
+
+  it("setToolDiameter re-derives passDepth/stepover for a preset", () => {
+    const S = useProjectStore.getState;
+    S().setMaterial("mdf");
+    S().setToolDiameter(6);
+    expect(S().settings.passDepth).toBe(3);
+    expect(S().settings.stepover).toBe(3);
+  });
+
+  it("cutThrough follows the stock thickness", () => {
+    const S = useProjectStore.getState;
+    S().addShape(makeCircle("c1"));
+    S().setCutThrough("c1", true);
+    expect(S().shapes[0].depth).toBe(18.2);
+    S().updateStock({ thickness: 12 });
+    expect(S().shapes[0].depth).toBe(12.2);
+    S().setCutThrough("c1", false);
+    expect(S().shapes[0].depth).toBe(12);
+    expect(S().shapes[0].cutThrough).toBe(false);
+  });
+});
+
 describe("persistence", () => {
   it("writes shapes and settings to localStorage", () => {
     useProjectStore.getState().clear();

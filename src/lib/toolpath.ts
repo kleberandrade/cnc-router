@@ -71,7 +71,7 @@ function outline(b: PathBuilder, shape: Shape, points: Point[], settings: Machin
 
 function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: MachineSettings) {
   const box = boundingBox(points);
-  const stepover = Math.max(settings.toolDiameter * 0.6, 0.1);
+  const stepover = Math.max(settings.stepover, 0.1);
   const rows = scanlines(box.minY, box.maxY, stepover);
   const passes = buildPassDepths(shape.depth, settings.passDepth);
   const safe = settings.safeHeight;

@@ -6,7 +6,7 @@ Planejamento derivado da auditoria (`docs/auditoria.md`). Cada sprint é um arqu
 |---|---|---|---|
 | [00](sprint-00-fundacao.md) ✅ | Fundação: CI, robustez de inputs, persistência, higiene | — | P |
 | [01](sprint-01-mesa-e-base.md) ✅ | Mesa (área útil), chapa/base, origem, validação | 00 | M |
-| [02](sprint-02-materiais-e-ferramenta.md) | Materiais (MDF, compensado, pinus, alumínio) e ferramenta | 01 | M |
+| [02](sprint-02-materiais-e-ferramenta.md) ✅ | Materiais (MDF, compensado, pinus, alumínio) e ferramenta | 01 | M |
 | [03](sprint-03-motor-de-percurso-e-tempo.md) ✅ | Motor único de percurso + estimativa de tempo | 01 | M |
 | [04](sprint-04-simulador.md) ✅ | Simulador: tempo real, step/step, barra de tempo, mesa/chapa em 3D | 03 | G |
 | [05](sprint-05-toolbar.md) | Toolbar reorganizada, atalhos, undo/redo, status | 01, 02, 03 | M |
