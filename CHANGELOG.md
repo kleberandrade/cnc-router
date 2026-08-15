@@ -2,6 +2,21 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 14 — Hélice, furação, tempo com aceleração, pós-processadores] — 2026-08-15
+
+### Adicionado
+- **Hélice de entrada** nos rebaixos (Corte → "Hélice de entrada", passo por volta): descida em hélice linearizada (G1) + volta plana no fundo, por passe; cai para mergulho vertical com aviso se o rebaixo for estreito.
+- **Furação** (Peça → Operação, só círculos): mergulho no centro com **bicadas** (`peckDepth`) e retração à altura segura; aviso quando o furo é maior que a fresa.
+- **Tempo com aceleração** (Corte → "Aceleração dos eixos", mm/s², padrão 200; 0 = modelo antigo): planner trapezoidal com velocidade de junção estilo GRBL — rodapé, simulador e cabeçalho do G-code.
+- **Pós-processadores** (nova seção **Exportação**): GRBL, Marlin (modo CNC) e LinuxCNC/Mach3 (`.ngc`, comentários entre parênteses, `G64`, `(MSG,…)`, `M30`); **G20 (polegadas)** convertendo coordenadas e avanços.
+- Persistência v7; amostras `docs/samples/sprint14-*`.
+
+### Corrigido
+- Rebaixos: linhas que terminavam exatamente na parede provocavam retração + G0 + mergulho a cada duas linhas; agora avançam direto pela parede (menos tempo, sem marcas de mergulho).
+
+### Testes
+- `timing` v2 (valores conferidos à mão), `post.test.ts` (3 pós + G20), furação e hélice em `toolpath.test.ts`; e2e `post-and-drill.spec.ts`. Total: 246 unitários, 63 e2e.
+
 ## [Sprint 13 — Pockets com ilhas e texto → contorno] — 2026-08-15
 
 ### Adicionado
@@ -16,8 +31,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ### Adicionado
 - **Marca Oficina CNC**: SVG inline na TopBar e no Sobre (`BrandMark`); favicon e ícones PWA (192/512/maskable/180) na paleta blueprint, no lugar do raio roxo do Vite.
-- **SEO**: Open Graph, Twitter Card, canonical, JSON-LD (`WebApplication`), `robots.txt` e `sitemap.xml` apontando para `https://cnc-router.vercel.app/`; imagem social `og-image.png`.
+- **SEO**: Open Graph, Twitter Card, canonical, JSON-LD (`WebApplication`), `robots.txt` e `sitemap.xml` apontando para `https://oficina-cnc.vercel.app/`; imagem social `og-image.png`.
 - Título da aba acompanha a vista (`Desenhar` / `Simular — Oficina CNC`).
+- **Speed Insights** (`@vercel/speed-insights`) e **Web Analytics** (`@vercel/analytics`): Web Vitals e visitas no dashboard da Vercel.
 
 ## [Sprint 11 — Navegador, fresas por peça, tema escuro, DXF] — 2026-08-15
 

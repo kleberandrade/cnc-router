@@ -25,7 +25,7 @@ Avaliação do feedback e plano completo em [`fase-2.md`](fase-2.md).
 | [09](sprint-09-formas-e-edicao-no-canvas.md) ✅ | Cantos de retângulo, handles, medidas inline, snap, novas formas | 07 | M/G |
 | [10](sprint-10-simulador-realista.md) ✅ | Remoção de material, fresa 3D realista, ViewCube/gizmo | 07 | G |
 | [11](sprint-11-navegador-e-produtividade.md) ✅ | Navegador de peças, ferramentas por peça, tema escuro, DXF | 07, 09 | M |
-| [12](sprint-12-backlog.md) ✅ | Backlog priorizado → convertido na Fase 3 | — | — |
+| [12](sprint-12-backlog.md) ✅ | Backlog priorizado → plano da Fase 3 | 07–11 | P |
 
 Ordem executada: 07 → 08 → 10 → 09 → 11 — **Fase 2 concluída em 2026-08-15**. Próximos candidatos: [`sprint-12-backlog.md`](sprint-12-backlog.md).
 
@@ -58,7 +58,7 @@ Plano em [`fase-3.md`](fase-3.md) (backlog da Sprint 12 convertido).
 | Sprint | Tema | Depende de | Esforço |
 |---|---|---|---|
 | [13](sprint-13-ilhas-e-texto.md) ✅ | Pockets com ilhas e texto → contorno | — | G |
-| [14](sprint-14-entrada-furacao-tempo-pos.md) | Hélice, furação, tempo com aceleração, G20 + pós-processadores | — | M |
+| [14](sprint-14-entrada-furacao-tempo-pos.md) ✅ | Hélice, furação, tempo com aceleração, G20 + pós-processadores | — | M |
 | [15](sprint-15-nesting-e-booleanas.md) | Nesting e booleanas | 13 | G |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
 | [17](sprint-17-web-serial-sender.md) | Enviar para a máquina (Web Serial/GRBL) | 14 | G |

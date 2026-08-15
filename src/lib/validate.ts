@@ -15,7 +15,9 @@ export interface Issue {
     | "safe-height-exceeds-z"
     | "stock-outside-table"
     | "invalid-setting"
-    | "shape-narrower-than-tool";
+    | "shape-narrower-than-tool"
+  | "drill-not-circle"
+  | "drill-larger-than-tool";
   message: string;
   shapeId?: string;
 }
@@ -88,7 +90,20 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
       });
     }
 
-    if (shape.operation === "pocket" || shape.side === "inside") {
+    if (shape.operation === "drill") {
+      if (shape.kind !== "circle") {
+        issues.push({ level: "error", code: "drill-not-circle", message: `${label}: furação só se aplica a círculos.`, shapeId: shape.id });
+      } else if (shape.radius * 2 > settings.toolDiameter + 1e-6) {
+        issues.push({
+          level: "warning",
+          code: "drill-larger-than-tool",
+          message: `${label}: furo Ø${round2(shape.radius * 2)} mm maior que a fresa Ø${settings.toolDiameter} mm — a furação usa o Ø da fresa; para o tamanho exato use contorno "por dentro".`,
+          shapeId: shape.id,
+        });
+      }
+    }
+
+    if (shape.operation === "pocket" || (shape.operation === "outline" && shape.side === "inside")) {
       const parts = expandShape(shape);
       const anyTooNarrow = parts.some((part) => {
         const pp = shapeToPoints(part);
@@ -139,3 +154,5 @@ export function shapeIssueLevel(issues: Issue[], shapeId: string): IssueLevel | 
   }
   return level;
 }
+
+const round2 = (n: number) => Math.round(n * 100) / 100;

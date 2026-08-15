@@ -4,6 +4,7 @@ import { useUiStore } from "../state/uiStore";
 import { parseSvg } from "../lib/svgImport";
 import { parseDxf } from "../lib/dxfImport";
 import { tryGenerateGCode } from "../lib/gcode";
+import { findPost } from "../lib/post";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
 
@@ -145,7 +146,7 @@ export function useProjectActions() {
       return;
     }
     setNotice(null);
-    downloadTextFile("projeto.gcode", result.gcode);
+    downloadTextFile(`projeto.${findPost(settings.post).extension}`, result.gcode);
   };
 
   const handleNewProject = () => {

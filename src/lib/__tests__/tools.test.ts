@@ -47,7 +47,7 @@ describe("tools", () => {
     expect(aFeed?.feed).toBe(600);
     const g = generateGCode(shapes, settings);
     expect(g).toContain("M0 ; TROCA DE FERRAMENTA: Fresa 3mm (Ø3 mm)");
-    expect(g).toContain("; ferramentas: Padrão Ø6 Ø6 | Fresa 3mm Ø3 — trocas com M0");
+    expect(g).toContain("; ferramentas: Padrão Ø6 Ø6 | Fresa 3mm Ø3 — trocas com pausa");
   });
 
   it("hidden shapes are excluded from the toolpath", () => {

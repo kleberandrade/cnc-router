@@ -14,6 +14,7 @@ interface Props {
 const OP_LABEL: Record<Segment["op"], string> = {
   outline: "contorno",
   pocket: "rebaixo",
+  drill: "furação",
   travel: "deslocamento",
 };
 

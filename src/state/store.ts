@@ -26,7 +26,7 @@ export { generateShapeId };
 
 /** localStorage key + schema version. Bump `PROJECT_SCHEMA_VERSION` and extend `migrateProject` on breaking changes. */
 export const PROJECT_STORAGE_KEY = "oficina-cnc:project";
-export const PROJECT_SCHEMA_VERSION = 6;
+export const PROJECT_SCHEMA_VERSION = 7;
 
 type PersistedProject = { shapes: Shape[]; settings: MachineSettings };
 
@@ -63,6 +63,15 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
   }
   // v5 -> v6: tool library.
   if (version < 6 && !Array.isArray(raw.tools)) settings.tools = [];
+  // v6 -> v7: post-processor, export units, acceleration, helix, peck (defaults keep old G-code identical; time estimate now includes acceleration).
+  if (version < 7) {
+    if (!raw.post) settings.post = "grbl";
+    if (!raw.exportUnits) settings.exportUnits = "mm";
+    if (raw.accel === undefined) settings.accel = DEFAULT_MACHINE_SETTINGS.accel;
+    if (raw.helixEntry === undefined) settings.helixEntry = false;
+    if (raw.helixPitch === undefined) settings.helixPitch = 1;
+    if (raw.peckDepth === undefined) settings.peckDepth = 0;
+  }
   return { shapes, settings };
 }
 

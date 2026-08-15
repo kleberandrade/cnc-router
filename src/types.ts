@@ -6,7 +6,8 @@ export interface BaseShape {
   /** Cut depth in millimeters (positive number, e.g. 5 = 5mm deep). */
   depth: number;
   /** Whether the toolpath follows the outline (outline) or removes the interior (pocket). */
-  operation: "outline" | "pocket";
+  /** outline = contorno, pocket = rebaixo, drill = furação (círculos: mergulho no centro, ciclo pecking). */
+  operation: "outline" | "pocket" | "drill";
   /** When true, depth follows the stock thickness + THROUGH_CUT_EXTRA (kept in sync when the stock changes). */
   cutThrough?: boolean;
   /**
@@ -164,7 +165,22 @@ export interface Tool {
   spindleSpeed?: number;
 }
 
+export type PostId = "grbl" | "marlin" | "linuxcnc";
+export type ExportUnits = "mm" | "inch";
+
 export interface MachineSettings {
+  /** Post-processor (G-code dialect) used on export. */
+  post: PostId;
+  /** Units of the exported program (G21 mm / G20 inch — coordinates and feeds converted). Editing is always mm. */
+  exportUnits: ExportUnits;
+  /** Axis acceleration, mm/s² (GRBL $120/$121). 0 = ignore acceleration in time estimates. */
+  accel: number;
+  /** Helical entry for pockets (instead of a vertical plunge). */
+  helixEntry: boolean;
+  /** Helix pitch, mm per revolution. */
+  helixPitch: number;
+  /** Peck drilling: depth per peck, mm (0 = one plunge to full depth). Retracts to safe height between pecks. */
+  peckDepth: number;
   /** Extra tools (the project default tool is toolDiameter/toolType/vbitAngle). */
   tools: Tool[];
   /** Tool tip geometry (visual + material removal). */
@@ -213,6 +229,12 @@ export const DEFAULT_STOCK: Stock = {
 };
 
 export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  post: "grbl",
+  exportUnits: "mm",
+  accel: 200,
+  helixEntry: false,
+  helixPitch: 1,
+  peckDepth: 0,
   tools: [],
   toolType: "flat",
   vbitAngle: 90,

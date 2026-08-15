@@ -11,6 +11,8 @@ import { Notice } from "./components/Notice";
 import { useUiStore } from "./state/uiStore";
 import { useLayout } from "./hooks/useMediaQuery";
 import { useTheme } from "./hooks/useTheme";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 
 function App() {
@@ -53,6 +55,8 @@ function App() {
         </main>
       )}
       <StatusBar />
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }

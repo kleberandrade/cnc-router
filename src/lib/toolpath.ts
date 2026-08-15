@@ -7,7 +7,7 @@ import { expandShapes } from "./expand";
 
 export type Vec3 = [number, number, number];
 export type MoveType = "rapid" | "plunge" | "feed" | "retract" | "toolchange";
-export type OperationKind = "outline" | "pocket" | "travel";
+export type OperationKind = "outline" | "pocket" | "drill" | "travel";
 
 /** One straight tool move. Coordinates are in *work* space (mm, G54), Z negative = below surface. */
 export interface Segment {
@@ -90,6 +90,15 @@ function insidePolys(polys: Polygon[], [px, py]: Point): boolean {
     }
   }
   return inside;
+}
+
+/** Inside test tolerant to points lying exactly on the boundary (e.g. row ends on the offset wall). */
+function insideOrOn(polys: Polygon[], [px, py]: Point, eps = 1e-6): boolean {
+  return (
+    insidePolys(polys, [px, py]) ||
+    insidePolys(polys, [px + eps, py]) || insidePolys(polys, [px - eps, py]) ||
+    insidePolys(polys, [px, py + eps]) || insidePolys(polys, [px, py - eps])
+  );
 }
 
 /**
@@ -249,6 +258,78 @@ function outline(b: PathBuilder, shape: Shape, points: Point[], settings: Machin
   });
 }
 
+/** Diameter of the helical entry circle (centre path) for a tool of diameter `d`: hole = 1.6 × Ø. */
+export function helixDiameter(toolDiameter: number): number {
+  return toolDiameter * 0.6;
+}
+
+/**
+ * Helical entry: descend from `zTop` to `z` circling around `center` with radius `radius` and
+ * `pitch` mm per revolution (linearised G1 moves), then one full flat circle at `z` to clear the
+ * bottom, ending at the point of the circle closest to `exitTo` (or the start angle).
+ * Returns false when there is nothing to do.
+ */
+function helixDown(b: PathBuilder, center: Point, radius: number, zTop: number, z: number, pitch: number, settings: MachineSettings, meta: Meta): boolean {
+  const drop = zTop - z;
+  if (drop <= 1e-9 || radius <= 0) return false;
+  const stepsPerRev = 24;
+  const revs = Math.max(drop / Math.max(pitch, 0.05), 1e-6);
+  const steps = Math.max(Math.ceil(revs * stepsPerRev), 1);
+  const at = (k: number, zz: number): Vec3 => {
+    const ang = (2 * Math.PI * k) / stepsPerRev;
+    return [center[0] + radius * Math.cos(ang), center[1] + radius * Math.sin(ang), zz];
+  };
+  const start = at(0, zTop);
+  const cur = b.position;
+  if (Math.abs(cur[0] - start[0]) > 1e-9 || Math.abs(cur[1] - start[1]) > 1e-9) {
+    b.move([start[0], start[1], settings.safeHeight], "rapid", 0, { ...meta, pass: 0 });
+    b.move(start, "plunge", settings.plungeRate, meta);
+  } else if (Math.abs(cur[2] - zTop) > 1e-9) {
+    b.move(start, "plunge", settings.plungeRate, meta);
+  }
+  for (let k = 1; k <= steps; k++) {
+    const zz = zTop - (drop * k) / steps;
+    b.move(at(k, Math.max(zz, z)), "feed", settings.feedRate, meta);
+  }
+  // flat clearing circle at the bottom
+  const k0 = steps;
+  for (let k = 1; k <= stepsPerRev; k++) b.move(at(k0 + k, z), "feed", settings.feedRate, meta);
+  return true;
+}
+
+function circleFits(center: Point, radius: number, region: Polygon[]): boolean {
+  for (let k = 0; k < 16; k++) {
+    const ang = (2 * Math.PI * k) / 16;
+    if (!insidePolys(region, [center[0] + radius * Math.cos(ang), center[1] + radius * Math.sin(ang)])) return false;
+  }
+  return insidePolys(region, center);
+}
+
+/** Drilling: plunge at the circle centre (peck cycle when `peckDepth` > 0), for circles ≤ tool Ø or any circle when explicitly chosen. */
+function drill(b: PathBuilder, shape: Shape, points: Point[], settings: MachineSettings, warnings: ToolpathWarning[]) {
+  const safe = settings.safeHeight;
+  const box = boundingBox(points);
+  const cx = (box.minX + box.maxX) / 2;
+  const cy = (box.minY + box.maxY) / 2;
+  const holeD = Math.max(box.maxX - box.minX, box.maxY - box.minY);
+  if (holeD > settings.toolDiameter + 1e-6) {
+    warnings.push({ shapeId: shape.id, message: `Furação: furo Ø${Math.round(holeD * 100) / 100} mm maior que a fresa Ø${settings.toolDiameter} mm — será furado com o Ø da fresa (use contorno por dentro para o tamanho exato).` });
+  }
+  const meta0: Meta = { shapeId: shape.id, pass: 0, op: "drill" };
+  const pecks = buildPassDepths(shape.depth, settings.peckDepth > 0 ? settings.peckDepth : shape.depth);
+  b.move([cx, cy, safe], "rapid", 0, meta0, `Drill Ø${settings.toolDiameter} at (${Math.round(cx * 100) / 100}, ${Math.round(cy * 100) / 100}) depth ${shape.depth}mm${pecks.length > 1 ? `, peck ${settings.peckDepth}` : ""}`);
+  pecks.forEach((z, i) => {
+    const meta: Meta = { shapeId: shape.id, pass: i + 1, op: "drill" };
+    if (i > 0) {
+      // rapid back down to just above the previous bottom
+      const zPrev = -pecks[i - 1];
+      b.move([cx, cy, Math.min(zPrev + 0.5, safe)], "rapid", 0, meta0);
+    }
+    b.move([cx, cy, -z], "plunge", settings.plungeRate, meta);
+    b.move([cx, cy, safe], "retract", 0, meta0);
+  });
+}
+
 function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: MachineSettings, warnings: ToolpathWarning[]) {
   const safe = settings.safeHeight;
   const r = settings.toolDiameter / 2;
@@ -278,6 +359,18 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
 
   const first = rowSpans[0]?.spans[0] ?? [inner[0][0][0], inner[0][0][0]];
   const firstY = rowSpans[0]?.y ?? inner[0][0][1];
+  // Helical entry: circle of radius helixR around a centre inside the pocket (entry point or middle of the first row).
+  const helixR = helixDiameter(settings.toolDiameter) / 2;
+  let helixCenter: Point | null = null;
+  if (settings.helixEntry) {
+    const candidates: Point[] = [[first[0], firstY]];
+    const span0 = rowSpans[0]?.spans[0];
+    if (span0) candidates.push([(span0[0] + span0[1]) / 2, firstY]);
+    const midRow = rowSpans[Math.floor(rowSpans.length / 2)];
+    if (midRow) candidates.push([(midRow.spans[0][0] + midRow.spans[0][1]) / 2, midRow.y]);
+    helixCenter = candidates.find((c) => circleFits(c, helixR, inner)) ?? null;
+    if (!helixCenter) warnings.push({ shapeId: shape.id, message: "Rebaixo estreito demais para a hélice de entrada — usando mergulho vertical." });
+  }
   b.move([first[0], firstY, safe], "rapid", 0, meta0, `Pocket clear, target depth ${shape.depth}mm (tool Ø${settings.toolDiameter}, stepover ${stepover})`);
 
   passes.forEach((z, i) => {
@@ -288,7 +381,14 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
       if (cur[2] < safe) b.move([cur[0], cur[1], safe], "retract", 0, meta0);
       b.move([first[0], firstY, safe], "rapid", 0, meta0);
     }
-    b.move([first[0], firstY, -z], "plunge", settings.plungeRate, meta);
+    if (helixCenter) {
+      const zTop = i === 0 ? 0 : -passes[i - 1];
+      helixDown(b, helixCenter, helixR, zTop, -z, settings.helixPitch, settings, meta);
+      const p = b.position;
+      if (p[0] !== first[0] || p[1] !== firstY) b.move([first[0], firstY, -z], "feed", settings.feedRate, meta);
+    } else {
+      b.move([first[0], firstY, -z], "plunge", settings.plungeRate, meta);
+    }
 
     rowSpans.forEach((row, ri) => {
       const ltr = ri % 2 === 0;
@@ -299,7 +399,7 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
         const p = b.position;
         // connect: feed if the straight move stays inside, else hop at safe height
         const mid: Point = [(p[0] + xStart) / 2, (p[1] + row.y) / 2];
-        const direct = insidePolys(inner, mid) && insidePolys(inner, [xStart, row.y]);
+        const direct = insideOrOn(inner, mid) && insideOrOn(inner, [xStart, row.y]);
         if (p[0] !== xStart || p[1] !== row.y) {
           if (direct || p[2] === -z && Math.hypot(xStart - p[0], row.y - p[1]) < 1e-9) {
             b.move([xStart, row.y, -z], "feed", settings.feedRate, meta);
@@ -325,7 +425,7 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
       });
       const rotated = ccw([...loop.slice(best), ...loop.slice(0, best)]);
       const mid: Point = [(p[0] + rotated[0][0]) / 2, (p[1] + rotated[0][1]) / 2];
-      if (insidePolys(inner, mid) || bestD < 1e-9) {
+      if (insideOrOn(inner, mid) || bestD < 1e-9) {
         b.move([rotated[0][0], rotated[0][1], -z], "feed", settings.feedRate, meta);
       } else {
         b.move([p[0], p[1], safe], "retract", 0, meta0);
@@ -344,7 +444,7 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
 export function orderShapes(shapes: Shape[], settings: MachineSettings, from: Point = [0, 0]): Shape[] {
   if (settings.orderMode !== "auto") return shapes;
   const [ox, oy] = workOriginOffset(settings);
-  const groupOf = (s: Shape) => (s.operation === "pocket" ? 0 : (s.side ?? "on") === "inside" ? 1 : 2);
+  const groupOf = (s: Shape) => (s.operation === "drill" ? 0 : s.operation === "pocket" ? 0 : (s.side ?? "on") === "inside" ? 1 : 2);
   const startOf = (s: Shape): Point => {
     const pts = shapeToPoints(s);
     return pts.length ? [pts[0][0] - ox, pts[0][1] - oy] : [0, 0];
@@ -408,6 +508,7 @@ export function buildToolpath(shapes: Shape[], settings: MachineSettings): Toolp
       const cur = b.position;
       b.move([cur[0], cur[1], safe], "retract", 0, travel);
       if (shape.operation === "pocket") pocket(b, shape, points, toolSettings, warnings);
+      else if (shape.operation === "drill") drill(b, shape, points, toolSettings, warnings);
       else outline(b, shape, points, toolSettings, warnings);
       if (b.segments.length > before + 1) shapeCount += 1;
       else b.segments.pop();

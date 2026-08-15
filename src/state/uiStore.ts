@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { NoticeData } from "../components/Notice";
 
-export type PanelSection = "machine" | "stock" | "material" | "cut" | "shape" | "navigator" | "tools";
+export type PanelSection = "machine" | "stock" | "material" | "cut" | "shape" | "navigator" | "tools" | "post";
 export type Theme = "light" | "dark" | "system";
 export type MousePreset = "standard" | "fusion";
 export type View = "editor" | "simulator";

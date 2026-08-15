@@ -9,7 +9,9 @@ import { NumberField } from "./NumberField";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign } from "../types";
+import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits } from "../types";
+import { helixDiameter } from "../lib/toolpath";
+import { POSTS } from "../lib/post";
 import { FONTS } from "../lib/text";
 import { DEFAULT_TABS } from "../types";
 
@@ -311,11 +313,12 @@ export function SidePanel() {
               Operação
               <select
                 value={selectedShape.operation}
-                onChange={(e) => updateShape(selectedShape.id, { operation: e.target.value as "outline" | "pocket" })}
+                onChange={(e) => updateShape(selectedShape.id, { operation: e.target.value as Shape["operation"] })}
                 data-testid="shape-operation"
               >
                 <option value="outline">Contorno</option>
                 <option value="pocket">Rebaixo (pocket)</option>
+                {selectedShape.kind === "circle" && <option value="drill">Furação (mergulho no centro)</option>}
               </select>
             </label>
             {selectedShape.operation === "outline" && (
@@ -442,7 +445,7 @@ export function SidePanel() {
         <ToolLibrary />
       </Section>
 
-      <Section id="cut" title="Corte (GRBL)" summary={`F${settings.feedRate} · S${settings.spindleSpeed} · ${settings.passDepth}mm/passe`}>
+      <Section id="cut" title="Corte" summary={`F${settings.feedRate} · S${settings.spindleSpeed} · ${settings.passDepth}mm/passe`}>
         {material && hasOverrides && (
           <button
             type="button"
@@ -475,6 +478,14 @@ export function SidePanel() {
           />
         ))}
         <NumberField label="Rampa de entrada (0 = mergulho vertical)" unit="°" min={0} max={45} step={1} value={settings.rampAngle} testId="ramp-angle" onChange={(v) => updateSettings({ rampAngle: v })} />
+        <label className="checkbox">
+          <input type="checkbox" checked={settings.helixEntry} onChange={(e) => updateSettings({ helixEntry: e.target.checked })} data-testid="helix-entry" />
+          Hélice de entrada nos rebaixos (Ø {round(helixDiameter(settings.toolDiameter) + settings.toolDiameter)} mm)
+        </label>
+        {settings.helixEntry && (
+          <NumberField label="Passo da hélice (por volta)" unit="mm" min={0.1} step={0.1} value={settings.helixPitch} testId="helix-pitch" onChange={(v) => updateSettings({ helixPitch: v })} />
+        )}
+        <NumberField label="Furação: profundidade por bicada (0 = direto)" unit="mm" min={0} step={0.5} value={settings.peckDepth} testId="peck-depth" onChange={(v) => updateSettings({ peckDepth: v })} />
         <label>
           Ordem de usinagem
           <select value={settings.orderMode} onChange={(e) => updateSettings({ orderMode: e.target.value as OrderMode })} data-testid="order-mode">
@@ -483,7 +494,27 @@ export function SidePanel() {
           </select>
         </label>
         <NumberField label="Deslocamento rápido G0" unit="mm/min" min={1} step={100} value={settings.rapidRate} testId="rapid-rate" onChange={(v) => updateSettings({ rapidRate: v })} />
+        <NumberField label="Aceleração dos eixos (0 = ignorar no tempo)" unit="mm/s²" min={0} step={10} value={settings.accel} testId="accel" onChange={(v) => updateSettings({ accel: v })} />
         <NumberField label="Altura segura" unit="mm" min={0} step={1} value={settings.safeHeight} testId="safe-height" onChange={(v) => updateSettings({ safeHeight: v })} />
+      </Section>
+
+      <Section id="post" title="Exportação" summary={`${POSTS.find((p) => p.id === settings.post)?.label ?? settings.post} · ${settings.exportUnits === "inch" ? "G20 pol" : "G21 mm"}`}>
+        <label>
+          Pós-processador (controlador)
+          <select value={settings.post} onChange={(e) => updateSettings({ post: e.target.value as PostId })} data-testid="post">
+            {POSTS.map((p) => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </select>
+        </label>
+        <p className="hint">{POSTS.find((p) => p.id === settings.post)?.description}</p>
+        <label>
+          Unidades do G-code
+          <select value={settings.exportUnits} onChange={(e) => updateSettings({ exportUnits: e.target.value as ExportUnits })} data-testid="export-units">
+            <option value="mm">Milímetros (G21)</option>
+            <option value="inch">Polegadas (G20) — coordenadas e avanços convertidos</option>
+          </select>
+        </label>
       </Section>
     </aside>
   );

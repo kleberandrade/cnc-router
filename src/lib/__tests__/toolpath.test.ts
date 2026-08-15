@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildToolpath, segmentLength, workOriginOffset, orderShapes } from "../toolpath";
 import { generateGCode } from "../gcode";
 import { DEFAULT_MACHINE_SETTINGS } from "../../types";
-import type { RectangleShape, CircleShape, PathShape } from "../../types";
+import type { RectangleShape, CircleShape, PathShape, Shape } from "../../types";
 
 const rect: RectangleShape = {
   id: "r1", kind: "rectangle", x: 0, y: 0, width: 10, height: 10, rotation: 0, depth: 4, operation: "outline",
@@ -142,5 +142,84 @@ describe("tool compensation, tabs, ramp, ordering (sprint 06)", () => {
     const ordered = orderShapes([a, b, c, d], DEFAULT_MACHINE_SETTINGS).map((s) => s.id);
     expect(ordered).toEqual(["pocket", "hole", "outer-near", "outer-far"]);
     expect(orderShapes([a, b, c, d], { ...DEFAULT_MACHINE_SETTINGS, orderMode: "manual" }).map((s) => s.id)).toEqual(["outer-far", "outer-near", "hole", "pocket"]);
+  });
+});
+
+describe("furação (drill)", () => {
+  const settings = { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 3, safeHeight: 5 };
+  it("mergulha no centro do círculo até a profundidade, sem movimento XY em corte", () => {
+    const tp = buildToolpath([{ id: "h", kind: "circle", x: 50, y: 40, radius: 1.5, depth: 6, operation: "drill" }], settings);
+    const drill = tp.segments.filter((s) => s.op === "drill");
+    expect(drill.length).toBeGreaterThan(0);
+    for (const s of drill.filter((s) => s.type === "plunge" || s.type === "feed")) {
+      expect(s.from[0]).toBeCloseTo(50); expect(s.to[0]).toBeCloseTo(50);
+      expect(s.from[1]).toBeCloseTo(40); expect(s.to[1]).toBeCloseTo(40);
+    }
+    const bottom = Math.min(...drill.map((s) => s.to[2]));
+    expect(bottom).toBeCloseTo(-6);
+    expect(tp.warnings).toEqual([]);
+    expect(drill.filter((s) => s.type === "plunge")).toHaveLength(1);
+  });
+  it("peck: uma bicada por peckDepth com retração à altura segura entre elas", () => {
+    const tp = buildToolpath([{ id: "h", kind: "circle", x: 50, y: 40, radius: 1.5, depth: 6, operation: "drill" }], { ...settings, peckDepth: 2 });
+    const plunges = tp.segments.filter((s) => s.op === "drill" && s.type === "plunge");
+    expect(plunges.map((s) => s.to[2])).toEqual([-2, -4, -6]);
+    const retracts = tp.segments.filter((s) => s.op === "drill" && s.type === "retract");
+    expect(retracts.length).toBe(3);
+    expect(retracts.every((s) => s.to[2] === 5)).toBe(true);
+  });
+  it("furo maior que a fresa gera aviso e ainda fura no centro", () => {
+    const tp = buildToolpath([{ id: "h", kind: "circle", x: 50, y: 40, radius: 4, depth: 6, operation: "drill" }], settings);
+    expect(tp.warnings.some((w) => w.message.includes("maior que a fresa"))).toBe(true);
+    expect(tp.segments.some((s) => s.op === "drill" && s.type === "plunge")).toBe(true);
+  });
+  it("G-code de furação: G1 Z no centro e nada de G81 (compatível com todos os pós)", () => {
+    const g = generateGCode([{ id: "h", kind: "circle", x: 50, y: 40, radius: 1.5, depth: 6, operation: "drill" }], settings);
+    expect(g).toContain("G0 X50 Y40");
+    expect(g).toContain("G1 Z-6 F200");
+    expect(g).not.toContain("G81");
+  });
+});
+
+describe("hélice de entrada", () => {
+  const settings = { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 6, stepover: 3, passDepth: 3, helixEntry: true, helixPitch: 1 };
+  const pocket: Shape = { id: "p", kind: "rectangle", x: 20, y: 20, width: 60, height: 40, rotation: 0, depth: 6, operation: "pocket" };
+  it("não há mergulho vertical em material: o primeiro movimento de corte desce em hélice", () => {
+    const tp = buildToolpath([pocket], settings);
+    const cut = tp.segments.filter((s) => s.op === "pocket");
+    // vertical plunges below the surface (into material) must not exist
+    // (a plunge down to the floor of the previous pass is through air and allowed)
+    const verticalIntoMaterial = cut.filter((s) => s.type === "plunge" && s.to[2] < -(s.pass - 1) * 3 - 1e-9 && s.from[0] === s.to[0] && s.from[1] === s.to[1]);
+    expect(verticalIntoMaterial).toHaveLength(0);
+    // helix moves: XY and Z change together
+    const helix = cut.filter((s) => s.type === "feed" && s.from[2] !== s.to[2]);
+    expect(helix.length).toBeGreaterThan(24);
+    // helix radius = 0.6·Ø/2 = 1.8 mm around a centre inside the pocket
+    const first = helix[0];
+    const last = helix[helix.length - 1];
+    expect(Math.hypot(first.to[0] - last.to[0], first.to[1] - last.to[1])).toBeLessThan(2 * 1.8 + 1e-6);
+    // second pass also enters by helix from the previous floor
+    const passStarts = cut.filter((s) => s.type === "feed" && s.from[2] !== s.to[2] && Math.abs(s.from[2] - -3) < 1e-9);
+    expect(passStarts.length).toBeGreaterThan(0);
+    expect(tp.warnings).toEqual([]);
+  });
+  it("pitch respeitado: com 1 mm/volta e 3 mm de passe há ~3 voltas + 1 volta de fundo", () => {
+    const tp = buildToolpath([pocket], settings);
+    const cut = tp.segments.filter((s) => s.op === "pocket" && s.pass === 1);
+    const helix = cut.filter((s) => s.type === "feed" && s.from[2] !== s.to[2]);
+    expect(helix.length).toBe(72); // 3 revs × 24 steps
+  });
+  it("rebaixo estreito demais para a hélice cai para mergulho vertical com aviso", () => {
+    const narrow: Shape = { id: "n", kind: "rectangle", x: 20, y: 20, width: 60, height: 7, rotation: 0, depth: 3, operation: "pocket" };
+    const tp = buildToolpath([narrow], settings);
+    expect(tp.warnings.some((w) => w.message.includes("hélice"))).toBe(true);
+    expect(tp.segments.some((s) => s.op === "pocket" && s.type === "plunge" && s.to[2] < 0)).toBe(true);
+  });
+  it("G-code da hélice não começa com G1 Z vertical", () => {
+    const g = generateGCode([pocket], settings);
+    const lines = g.split("\n");
+    const i = lines.findIndex((l) => l.startsWith("; Pocket clear"));
+    const firstCut = lines.slice(i + 1).find((l) => /^G1 .*Z-/.test(l));
+    expect(firstCut).toMatch(/^G1 X[\d.-]+ Y[\d.-]+ Z-/);
   });
 });

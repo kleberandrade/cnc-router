@@ -85,7 +85,7 @@ export function Simulator() {
   const fontsVersion = useUiStore((s) => s.fontsVersion);
   const { segments, timing, gcodeLines } = useMemo(() => {
     const tp = shapes.length ? buildToolpath(shapes, settings) : { segments: [] as Segment[], shapeCount: 0, warnings: [] };
-    const timing: Timing = estimateTime(tp.segments, { rapidRate: settings.rapidRate });
+    const timing: Timing = estimateTime(tp.segments, { rapidRate: settings.rapidRate, accel: settings.accel });
     const gcodeLines = tp.segments.map((s) => segmentsToGCode([{ ...s, comment: undefined }])[0] ?? "");
     return { segments: tp.segments, timing, gcodeLines };
     // eslint-disable-next-line react-hooks/exhaustive-deps

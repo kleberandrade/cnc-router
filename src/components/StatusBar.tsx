@@ -18,7 +18,7 @@ export function StatusBar() {
   const estimatedTime = useMemo(() => {
     if (shapes.length === 0) return 0;
     try {
-      return estimateTime(buildToolpath(shapes, settings).segments, { rapidRate: settings.rapidRate }).total;
+      return estimateTime(buildToolpath(shapes, settings).segments, { rapidRate: settings.rapidRate, accel: settings.accel }).total;
     } catch {
       return 0;
     }
