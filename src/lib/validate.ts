@@ -65,7 +65,8 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
   }
 
   shapes.forEach((shape, i) => {
-    const label = `Forma ${i + 1}`;
+    if (shape.hidden) return;
+    const label = shape.name ? `"${shape.name}"` : `Forma ${i + 1}`;
     const pts = shapeToPoints(shape);
     if (pts.length === 0) return;
     const b = boundingBox(pts);

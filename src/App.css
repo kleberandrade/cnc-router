@@ -1493,3 +1493,100 @@
 .corner-btn.tr { border-top-right-radius: 10px; }
 .corner-btn.bl { border-bottom-left-radius: 10px; }
 .corner-btn.br { border-bottom-right-radius: 10px; }
+
+
+/* ---------- Dark theme adjustments (Sprint 11) ---------- */
+[data-theme="dark"] .side-panel select,
+[data-theme="dark"] .toolbar-section input,
+[data-theme="dark"] .toolbar-section select,
+[data-theme="dark"] .number-field-input,
+[data-theme="dark"] .side-panel .number-field-input input,
+[data-theme="dark"] .rb-select select,
+[data-theme="dark"] .inline-dim input,
+[data-theme="dark"] .legend-mouse select {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+[data-theme="dark"] .toolbar button,
+[data-theme="dark"] .simulator-controls button,
+[data-theme="dark"] .dialog-close,
+[data-theme="dark"] .pwa-action:not(.primary) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+[data-theme="dark"] .rb.primary,
+[data-theme="dark"] .tab.active,
+[data-theme="dark"] .rb.active,
+[data-theme="dark"] .bb-btn.primary,
+[data-theme="dark"] .bb-btn.active {
+  background: var(--accent);
+  color: #0f1720;
+  border-color: var(--accent);
+}
+[data-theme="dark"] .editor-canvas { background: var(--surface); }
+[data-theme="dark"] .inline-dims { background: rgba(22, 32, 43, 0.96); }
+[data-theme="dark"] .notice { background: var(--surface-2); }
+[data-theme="dark"] .status-issues[open] .issue-list,
+[data-theme="dark"] .menu,
+[data-theme="dark"] .dialog,
+[data-theme="dark"] .sheet { background: var(--surface); color: var(--text); }
+[data-theme="dark"] .viewcube-face { background: rgba(29, 41, 54, 0.9); color: var(--text); border-color: rgba(255,255,255,0.2); }
+[data-theme="dark"] .viewcube-buttons .icon-button { background: rgba(29, 41, 54, 0.9); color: var(--text); }
+[data-theme="dark"] .corner-btn { background: var(--surface-2); }
+[data-theme="dark"] .corner-btn.on { background: var(--accent); }
+[data-theme="dark"] .toolbar button.danger { background: transparent; }
+
+/* Navigator */
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: 2px var(--s1);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+}
+.nav-item:hover { background: var(--surface-2); }
+.nav-item.selected { border-color: var(--accent); background: rgba(47, 109, 143, 0.08); }
+.nav-item.hidden .nav-name { opacity: 0.5; text-decoration: line-through; }
+.nav-item.dragover { border-top: 2px solid var(--accent); }
+.toolbar .nav-item .icon-button { width: 26px; min-width: 26px; height: 26px; min-height: 26px; padding: 0; border: none; background: transparent; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.toolbar .nav-item .icon-button svg { width: 15px; height: 15px; }
+.toolbar .nav-item .icon-button:disabled { opacity: 0.3; }
+.nav-item .icon-button.on { color: var(--accent); }
+.nav-kind { display: inline-flex; color: var(--text-muted); }
+.nav-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-name-input { flex: 1; min-width: 0; height: 24px; font-size: 13px; }
+.nav-search { display: flex; align-items: center; gap: var(--s1); }
+.nav-search input { flex: 1; height: 30px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 var(--s2); background: var(--surface); color: var(--text); }
+.toolbar .tool-row .icon-button { width: 26px; min-width: 26px; height: 26px; min-height: 26px; padding: 0; flex: none; }
+.tool-row .tool-name { height: 28px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 var(--s2); background: var(--surface); color: var(--text); }
+.nav-tool { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+.tool-row { display: flex; align-items: center; gap: var(--s1); font-size: 12px; }
+.tool-row .tool-name { flex: 1; }
+
+.pref-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: 13px;
+  margin-bottom: var(--s3);
+}
+.pref-row select {
+  height: var(--control-h);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--s2);
+  background: var(--surface);
+  color: var(--text);
+}

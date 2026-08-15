@@ -4,6 +4,7 @@ import { buildToolpath, workOriginOffset, type Segment } from "./toolpath";
 import { buildPassDepths } from "./passes";
 import { estimateTime, formatDuration } from "./timing";
 import { findMaterial } from "./materials";
+import { toolsInUse } from "./tools";
 
 const materialLabel = (id: MachineSettings["material"]) => findMaterial(id)?.label ?? "personalizado";
 
@@ -94,6 +95,11 @@ export function segmentsToGCode(segments: Segment[]): string[] {
       case "retract":
         lines.push(`G0 Z${fmt(tz)}`);
         break;
+      case "toolchange":
+        lines.push("M5 ; spindle off for tool change");
+        lines.push(`M0 ; TROCA DE FERRAMENTA: ${seg.tool?.name ?? ""} (Ø${fmt(seg.tool?.diameter ?? 0)} mm) — monte a fresa e retome`);
+        lines.push(`M3 S${fmt(seg.tool?.spindleSpeed ?? 0)} ; spindle on`);
+        break;
       case "plunge":
         lines.push(`G1 Z${fmt(tz)} F${fmt(seg.feed)}`);
         break;
@@ -133,6 +139,10 @@ export function generateGCode(
   lines.push(
     `; material ${materialLabel(settings.material)} | tool Ø${fmt(settings.toolDiameter)}mm | stepover ${fmt(settings.stepover)}mm | pass ${fmt(settings.passDepth)}mm`
   );
+  const usedTools = toolsInUse(shapes, settings);
+  if (usedTools.length > 1) {
+    lines.push(`; ferramentas: ${usedTools.map((t) => `${t.name} Ø${fmt(t.diameter)}`).join(" | ")} — trocas com M0`);
+  }
   lines.push(`; tempo estimado: ${formatDuration(timing.total)} (rapid ${fmt(settings.rapidRate)} mm/min)`);
   for (const w of issues.filter((i) => i.level === "warning")) {
     lines.push(`; WARNING: ${w.message}`);
@@ -146,7 +156,7 @@ export function generateGCode(
   // First segment is the initial retract to safe height; spindle on comes right after it.
   const body = segmentsToGCode(toolpath.segments);
   lines.push(body[0]);
-  lines.push(`M3 S${fmt(settings.spindleSpeed)} ; spindle on`);
+  lines.push(`M3 S${fmt(usedTools[0]?.spindleSpeed ?? settings.spindleSpeed)} ; spindle on`);
   // Last two segments are the final retract + return to origin; spindle off goes before them.
   const middle = body.slice(1, body.length - 2);
   lines.push(...middle);

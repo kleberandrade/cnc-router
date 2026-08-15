@@ -2,9 +2,10 @@ import type { Shape, MachineSettings } from "../types";
 import { shapeToPoints, boundingBox, scanlines, type Point } from "./geometry";
 import { buildPassDepths } from "./passes";
 import { offsetPolygon, scanlineSpans, perimeter, pointAlong, ccw, type Polygon } from "./offset";
+import { toolsInUse, toolForShape, settingsForTool, type EffectiveTool } from "./tools";
 
 export type Vec3 = [number, number, number];
-export type MoveType = "rapid" | "plunge" | "feed" | "retract";
+export type MoveType = "rapid" | "plunge" | "feed" | "retract" | "toolchange";
 export type OperationKind = "outline" | "pocket" | "travel";
 
 /** One straight tool move. Coordinates are in *work* space (mm, G54), Z negative = below surface. */
@@ -20,6 +21,10 @@ export interface Segment {
   op: OperationKind;
   /** Optional comment emitted before this segment in G-code. */
   comment?: string;
+  /** Tool used for this segment (undefined = project default tool). */
+  toolId?: string;
+  /** For toolchange segments: the tool to mount. */
+  tool?: EffectiveTool;
 }
 
 export interface ToolpathWarning {
@@ -49,6 +54,7 @@ type Meta = Pick<Segment, "shapeId" | "pass" | "op">;
 class PathBuilder {
   readonly segments: Segment[] = [];
   private pos: Vec3;
+  toolId: string | undefined = undefined;
   constructor(start: Vec3) {
     this.pos = start;
   }
@@ -58,6 +64,7 @@ class PathBuilder {
   move(to: Vec3, type: MoveType, feed: number, meta: Meta, comment?: string) {
     const seg: Segment = { from: this.pos, to, type, feed, ...meta };
     if (comment) seg.comment = comment;
+    if (this.toolId !== undefined) seg.toolId = this.toolId;
     this.segments.push(seg);
     this.pos = to;
   }
@@ -363,17 +370,36 @@ export function buildToolpath(shapes: Shape[], settings: MachineSettings): Toolp
 
   b.move([0, 0, safe], "retract", 0, travel);
 
-  for (const shape of orderShapes(shapes, settings)) {
-    const points = shapeToPoints(shape).map(([x, y]) => [x - ox, y - oy] as Point);
-    if (points.length === 0) continue;
-    const before = b.segments.length;
-    const cur = b.position;
-    b.move([cur[0], cur[1], safe], "retract", 0, travel);
-    if (shape.operation === "pocket") pocket(b, shape, points, settings, warnings);
-    else outline(b, shape, points, settings, warnings);
-    if (b.segments.length > before + 1) shapeCount += 1;
-    else b.segments.pop(); // shape produced nothing → drop the extra retract
-  }
+  const visible = shapes.filter((s) => !s.hidden);
+  const tools = toolsInUse(visible, settings);
+  tools.forEach((tool, ti) => {
+    const group = visible.filter((s) => toolForShape(s, settings).id === tool.id);
+    if (group.length === 0) return;
+    const toolSettings = settingsForTool(settings, tool);
+    if (ti > 0) {
+      // tool change: park at the work origin, pause
+      const cur = b.position;
+      b.move([cur[0], cur[1], safe], "retract", 0, travel);
+      b.move([0, 0, safe], "rapid", 0, travel);
+      b.toolId = tool.id;
+      const seg: Segment = { from: b.position, to: b.position, type: "toolchange", feed: 0, ...travel, tool, comment: `TROCA DE FERRAMENTA: ${tool.name} (Ø${tool.diameter} mm)` };
+      if (tool.id !== undefined) seg.toolId = tool.id;
+      b.segments.push(seg);
+    } else {
+      b.toolId = tool.id;
+    }
+    for (const shape of orderShapes(group, toolSettings)) {
+      const points = shapeToPoints(shape).map(([x, y]) => [x - ox, y - oy] as Point);
+      if (points.length === 0) continue;
+      const before = b.segments.length;
+      const cur = b.position;
+      b.move([cur[0], cur[1], safe], "retract", 0, travel);
+      if (shape.operation === "pocket") pocket(b, shape, points, toolSettings, warnings);
+      else outline(b, shape, points, toolSettings, warnings);
+      if (b.segments.length > before + 1) shapeCount += 1;
+      else b.segments.pop();
+    }
+  });
 
   const end = b.position;
   b.move([end[0], end[1], safe], "retract", 0, travel);

@@ -40,6 +40,28 @@
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
 }
 
+[data-theme="dark"] {
+  --ink: #e6ebf1;
+  --paper: #0f1720;
+  --panel: #16202b;
+  --border: #2a3644;
+  --border-strong: #3a4858;
+  --blueprint: #4f88b8;
+  --blueprint-line: #7fb0d8;
+  --accent: #6fa8d6;
+  --accent-strong: #8fc0e6;
+  --warn: #e0a05a;
+  --muted: #94a3b8;
+  --bg: #0f1720;
+  --surface: #16202b;
+  --surface-2: #1d2936;
+  --text: #e6ebf1;
+  --text-muted: #94a3b8;
+  --danger: #ef6b6b;
+  --success: #6ccf7a;
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }

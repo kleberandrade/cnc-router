@@ -6,6 +6,8 @@ import { MATERIAL_PRESETS, CUSTOM_MATERIAL_ID, findMaterial } from "../lib/mater
 import { boundingBox, shapeToPoints } from "../lib/geometry";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { NumberField } from "./NumberField";
+import { Navigator } from "./Navigator";
+import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
 import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId } from "../types";
 import { DEFAULT_TABS } from "../types";
@@ -90,6 +92,10 @@ export function SidePanel() {
   return (
     <aside className="toolbar side-panel" aria-label="Configurações">
       <Notice notice={notice} onDismiss={() => setNotice(null)} />
+
+      <Section id="navigator" title="Navegador" summary={`${shapes.length} peça(s)${shapes.some((s) => s.hidden) ? " · ocultas" : ""}`}>
+        <Navigator />
+      </Section>
 
       <Section id="shape" title="Peça selecionada" summary={selectedShape ? shapeSummary(selectedShape) : selectedIds.length > 1 ? `${selectedIds.length} formas` : "nenhuma"}>
         {!selectedShape && selectedIds.length < 2 && <p className="hint">Clique numa forma no desenho, ou adicione uma pela barra de ações. Shift+clique ou arraste no fundo para selecionar várias.</p>}
@@ -244,6 +250,27 @@ export function SidePanel() {
               Cortar através (espessura + 0,2 mm)
             </label>
             <label>
+              Nome
+              <input
+                type="text"
+                value={selectedShape.name ?? ""}
+                placeholder="(automático)"
+                onChange={(e) => updateShape(selectedShape.id, { name: e.target.value || undefined })}
+                data-testid="shape-name"
+              />
+            </label>
+            {settings.tools.length > 0 && (
+              <label>
+                Fresa
+                <select value={selectedShape.toolId ?? ""} onChange={(e) => updateShape(selectedShape.id, { toolId: e.target.value || undefined })} data-testid="shape-tool">
+                  <option value="">Padrão (Ø{settings.toolDiameter} mm)</option>
+                  {settings.tools.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name} (Ø{t.diameter} mm)</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label>
               Operação
               <select
                 value={selectedShape.operation}
@@ -372,6 +399,10 @@ export function SidePanel() {
         {settings.toolType === "vbit" && (
           <NumberField label="Ângulo da fresa V" unit="°" min={10} max={170} step={5} value={settings.vbitAngle} testId="vbit-angle" onChange={(v) => updateSettings({ vbitAngle: v })} />
         )}
+      </Section>
+
+      <Section id="tools" title="Fresas" summary={`${settings.tools.length + 1} fresa(s)`}>
+        <ToolLibrary />
       </Section>
 
       <Section id="cut" title="Corte (GRBL)" summary={`F${settings.feedRate} · S${settings.spindleSpeed} · ${settings.passDepth}mm/passe`}>

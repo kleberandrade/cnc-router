@@ -10,6 +10,7 @@ import { PwaBanner } from "./components/PwaBanner";
 import { Notice } from "./components/Notice";
 import { useUiStore } from "./state/uiStore";
 import { useLayout } from "./hooks/useMediaQuery";
+import { useTheme } from "./hooks/useTheme";
 import "./App.css";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
   const notice = useUiStore((s) => s.notice);
   const setNotice = useUiStore((s) => s.setNotice);
   const layout = useLayout();
+  useTheme();
 
   // Tablet: the side panel becomes an overlay drawer, closed by default.
   useEffect(() => {

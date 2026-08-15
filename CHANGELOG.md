@@ -2,6 +2,19 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 11 — Navegador, fresas por peça, tema escuro, DXF] — 2026-08-15
+
+### Adicionado
+- **Navegador** (seção do painel): lista de peças = ordem manual de usinagem, com ícone do tipo, nome (renomear por duplo clique / campo Nome), **olho** (peça oculta não é usinada, simulada nem exportada — fica tracejada no canvas), **cadeado** (não move nem redimensiona), subir/descer e arrastar para reordenar, busca; clique seleciona, Shift+clique acumula.
+- **Biblioteca de fresas** (seção Fresas): fresas extras com Ø, tipo (reta/esférica/V), avanço/mergulho/RPM opcionais; cada peça escolhe a fresa (Peça → Fresa). O percurso agrupa por fresa (padrão primeiro), o G-code emite `M5 / M0 ; TROCA DE FERRAMENTA … / M3` e lista as fresas no cabeçalho; o simulador troca o modelo 3D e o perfil de remoção de material na hora certa; compensação/pocket/stepover usam o Ø da fresa da peça.
+- **Tema escuro** (Preferências → Tema: sistema/claro/escuro): tokens semânticos, canvas do editor com paleta própria, `data-theme` no `<html>`, `theme-color` do PWA, persistido.
+- **Preferências** no menu do projeto (tema, preset de mouse do 3D — também no rodapé do simulador).
+- **Importar DXF** (`lib/dxfImport.ts` com `dxf-parser`): LINE, LWPOLYLINE/POLYLINE com bulges (arcos), CIRCLE, ARC, ELLIPSE, SPLINE (De Boor), INSERT de blocos com escala/rotação, `$INSUNITS` (mm/in/cm/m), avisos do que foi ignorado (texto, cotas, hachuras). Botão "Importar" aceita SVG e DXF.
+- Store: `moveShape`, `addTool/updateTool/removeTool`; `Shape.name/hidden/locked/toolId`; `MachineSettings.tools`; persistência v6.
+
+### Testes
+- `tools.test.ts` (resolução, agrupamento, M0, ocultas), `dxfImport.test.ts` (fixture com bulge/bloco/inch, ARC/ELLIPSE/SPLINE), Navigator/ToolLibrary, useTheme/useMediaQuery, uiStore; e2e `navigator.spec.ts` (ocultar some do G-code, reordenar, renomear, troca de fresa gera M0, tema escuro persiste, DXF importa). Total: 220 unitários, 57 e2e.
+
 ## [Sprint 09 — Formas: cantos, handles, medidas inline, snap] — 2026-08-15
 
 ### Adicionado

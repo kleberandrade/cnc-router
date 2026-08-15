@@ -7,7 +7,7 @@ import { DEFAULT_MACHINE_SETTINGS } from "../types";
 import { generateShapeId } from "../lib/ids";
 import { presetIdForWorkArea } from "../lib/machinePresets";
 import { applyMaterial, applyToolDiameter } from "../lib/materials";
-import type { WorkArea, Stock, MaterialId, CutParamKey } from "../types";
+import type { WorkArea, Stock, MaterialId, CutParamKey, Tool } from "../types";
 import { THROUGH_CUT_EXTRA } from "../types";
 import { boundingBox, shapeToPoints } from "../lib/geometry";
 
@@ -26,7 +26,7 @@ export { generateShapeId };
 
 /** localStorage key + schema version. Bump `PROJECT_SCHEMA_VERSION` and extend `migrateProject` on breaking changes. */
 export const PROJECT_STORAGE_KEY = "oficina-cnc:project";
-export const PROJECT_SCHEMA_VERSION = 5;
+export const PROJECT_SCHEMA_VERSION = 6;
 
 type PersistedProject = { shapes: Shape[]; settings: MachineSettings };
 
@@ -61,6 +61,8 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
     if (!raw.toolType) settings.toolType = "flat";
     if (raw.vbitAngle === undefined) settings.vbitAngle = 90;
   }
+  // v5 -> v6: tool library.
+  if (version < 6 && !Array.isArray(raw.tools)) settings.tools = [];
   return { shapes, settings };
 }
 
@@ -105,6 +107,12 @@ interface ProjectState {
   duplicateShape: (id: string) => void;
   /** Move a shape by (dx, dy) mm. */
   nudgeShape: (id: string, dx: number, dy: number) => void;
+  /** Move a shape to a new index (navigator reorder = manual machining order). */
+  moveShape: (id: string, toIndex: number) => void;
+  /** Tool library. */
+  addTool: (tool: Tool) => void;
+  updateTool: (id: string, patch: Partial<Tool>) => void;
+  removeTool: (id: string) => void;
   /** Replace the whole project (used by "open .json"). */
   loadProject: (project: { shapes: Shape[]; settings: MachineSettings }) => void;
 }
@@ -253,6 +261,25 @@ export const useProjectStore = create<ProjectState>()(
 
   nudgeShape: (id, dx, dy) =>
     set((state) => ({ shapes: state.shapes.map((s) => (s.id === id ? translateShape(s, dx, dy) : s)) })),
+
+  moveShape: (id, toIndex) =>
+    set((state) => {
+      const from = state.shapes.findIndex((s) => s.id === id);
+      if (from < 0) return {};
+      const arr = [...state.shapes];
+      const [item] = arr.splice(from, 1);
+      arr.splice(Math.max(0, Math.min(toIndex, arr.length)), 0, item);
+      return { shapes: arr };
+    }),
+
+  addTool: (tool) => set((state) => ({ settings: { ...state.settings, tools: [...state.settings.tools, tool] } })),
+  updateTool: (id, patch) =>
+    set((state) => ({ settings: { ...state.settings, tools: state.settings.tools.map((t) => (t.id === id ? { ...t, ...patch } : t)) } })),
+  removeTool: (id) =>
+    set((state) => ({
+      settings: { ...state.settings, tools: state.settings.tools.filter((t) => t.id !== id) },
+      shapes: state.shapes.map((s) => (s.toolId === id ? { ...s, toolId: undefined } : s)),
+    })),
 
   loadProject: (project) =>
     set({ shapes: project.shapes, settings: project.settings, selectedId: null, selectedIds: [] }),

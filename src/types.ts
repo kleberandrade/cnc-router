@@ -17,6 +17,14 @@ export interface BaseShape {
   side?: CutSide;
   /** Holding tabs left on the last passes of an outline (through-cuts). */
   tabs?: TabSettings;
+  /** Display name in the navigator (defaults to kind + index). */
+  name?: string;
+  /** Hidden shapes are not machined, simulated or exported (still saved). */
+  hidden?: boolean;
+  /** Locked shapes cannot be moved/resized on the canvas. */
+  locked?: boolean;
+  /** Tool from the tool library; undefined = project default tool. */
+  toolId?: string;
 }
 
 export type CutSide = "on" | "outside" | "inside";
@@ -122,7 +130,22 @@ export type OrderMode = "auto" | "manual";
 
 export type ToolType = "flat" | "ball" | "vbit";
 
+/** A tool in the project's tool library. */
+export interface Tool {
+  id: string;
+  name: string;
+  type: ToolType;
+  diameter: number;
+  vbitAngle: number;
+  /** Optional overrides; undefined = use the project cutting parameters (scaled by diameter for pass/stepover). */
+  feedRate?: number;
+  plungeRate?: number;
+  spindleSpeed?: number;
+}
+
 export interface MachineSettings {
+  /** Extra tools (the project default tool is toolDiameter/toolType/vbitAngle). */
+  tools: Tool[];
   /** Tool tip geometry (visual + material removal). */
   toolType: ToolType;
   /** Included angle for V-bits, degrees (e.g. 60, 90). */
@@ -169,6 +192,7 @@ export const DEFAULT_STOCK: Stock = {
 };
 
 export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  tools: [],
   toolType: "flat",
   vbitAngle: 90,
   rampAngle: 0,

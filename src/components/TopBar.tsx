@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Grid2x2, Hexagon, RectangleHorizontal, Magnet,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Grid2x2, Hexagon, RectangleHorizontal, Magnet, Settings2,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceAround, AlignVerticalSpaceAround,
 } from "lucide-react";
@@ -53,7 +53,7 @@ function RibbonGroup({ title, children }: { title: string; children: ReactNode }
 
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
-  const [dialog, setDialog] = useState<null | "shortcuts" | "about">(null);
+  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs">(null);
   const ref = useRef<HTMLDivElement>(null);
   const installAction = useInstallAction();
   useEffect(() => {
@@ -83,11 +83,12 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<FilePlus size={16} />, "Novo projeto", actions.newProject, "menu-new")}
           {item(<FolderOpen size={16} />, "Abrir projeto (.json)…", actions.openProject, "menu-open")}
           {item(<Save size={16} />, "Salvar projeto (.json)", actions.saveProject, "menu-save", "Ctrl+S")}
-          {item(<Upload size={16} />, "Importar SVG…", actions.importSvg, "menu-import")}
+          {item(<Upload size={16} />, "Importar SVG / DXF…", actions.importSvg, "menu-import")}
           <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
           <div className="menu-sep" />
           {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
+          {item(<Settings2 size={16} />, "Preferências (tema, mouse)", () => setDialog("prefs"), "menu-prefs")}
           {item(<Keyboard size={16} />, "Atalhos de teclado", () => setDialog("shortcuts"), "menu-shortcuts", "?")}
           {item(<Info size={16} />, "Sobre", () => setDialog("about"), "menu-about")}
         </div>
@@ -95,7 +96,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
       {dialog && (
         <div className="dialog-backdrop" onClick={() => setDialog(null)} role="presentation">
           <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="dialog">
-            {dialog === "shortcuts" ? <Shortcuts /> : <About />}
+            {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : <About />}
             <button type="button" className="dialog-close" onClick={() => setDialog(null)}>Fechar</button>
           </div>
         </div>
@@ -127,6 +128,34 @@ function Shortcuts() {
           ))}
         </tbody>
       </table>
+    </>
+  );
+}
+
+function Preferences() {
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
+  const mouse = useUiStore((s) => s.mousePreset);
+  const setMouse = useUiStore((s) => s.setMousePreset);
+  return (
+    <>
+      <h2>Preferências</h2>
+      <label className="pref-row">
+        Tema
+        <select value={theme} onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")} data-testid="pref-theme">
+          <option value="system">Seguir o sistema</option>
+          <option value="light">Claro</option>
+          <option value="dark">Escuro</option>
+        </select>
+      </label>
+      <label className="pref-row">
+        Mouse no 3D
+        <select value={mouse} onChange={(e) => setMouse(e.target.value as "standard" | "fusion")} data-testid="pref-mouse">
+          <option value="standard">Padrão — esquerdo orbita, direito move, roda zoom</option>
+          <option value="fusion">Fusion — botão do meio move, esquerdo orbita</option>
+        </select>
+      </label>
+      <p className="hint">Unidades: milímetros. Snap e ordem de usinagem ficam no projeto.</p>
     </>
   );
 }
@@ -199,7 +228,7 @@ export function TopBar() {
               <RibbonButton icon={<FilePlus size={ICON} />} label="Novo" onClick={actions.newProject} testId="new-project" />
               <RibbonButton icon={<FolderOpen size={ICON} />} label="Abrir" onClick={actions.openProject} testId="open-project" title="Abrir projeto (.json)" />
               <RibbonButton icon={<Save size={ICON} />} label="Salvar" onClick={actions.saveProject} testId="save-project" title="Salvar projeto (.json) — Ctrl+S" />
-              <RibbonButton icon={<Upload size={ICON} />} label="SVG" onClick={actions.importSvg} testId="import-svg" title="Importar SVG" />
+              <RibbonButton icon={<Upload size={ICON} />} label="Importar" onClick={actions.importSvg} testId="import-svg" title="Importar SVG ou DXF" />
             </RibbonGroup>
             <RibbonGroup title="Criar">
               <RibbonButton icon={<Square size={ICON} />} label="Retângulo" onClick={actions.addRectangle} testId="add-rectangle" title="Retângulo (R)" />

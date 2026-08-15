@@ -1,12 +1,18 @@
 import { create } from "zustand";
 import type { NoticeData } from "../components/Notice";
 
-export type PanelSection = "machine" | "stock" | "material" | "cut" | "shape";
+export type PanelSection = "machine" | "stock" | "material" | "cut" | "shape" | "navigator" | "tools";
+export type Theme = "light" | "dark" | "system";
+export type MousePreset = "standard" | "fusion";
 export type View = "editor" | "simulator";
 export interface SimCameraActions { fit: () => void; top: () => void; iso: () => void }
 export type EditorTool = "select" | "polygon";
 
 interface UiState {
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  mousePreset: MousePreset;
+  setMousePreset: (m: MousePreset) => void;
   view: View;
   setView: (v: View) => void;
   /** Camera actions registered by the Simulator while mounted. */
@@ -49,7 +55,36 @@ export const ZOOM_MIN = 0.25;
 export const ZOOM_MAX = 8;
 const clampZoom = (z: number) => Math.min(Math.max(z, ZOOM_MIN), ZOOM_MAX);
 
+const readTheme = (): Theme => {
+  try {
+    const v = localStorage.getItem("oficina-cnc:theme");
+    return v === "dark" || v === "light" || v === "system" ? v : "system";
+  } catch {
+    return "system";
+  }
+};
+
+/** Resolve "system" to the actual scheme. */
+export function resolveTheme(theme: Theme): "light" | "dark" {
+  if (theme !== "system") return theme;
+  return typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+const readMouse = (): MousePreset => {
+  try { return localStorage.getItem("oficina-cnc:mouse") === "fusion" ? "fusion" : "standard"; } catch { return "standard"; }
+};
+
 export const useUiStore = create<UiState>((set) => ({
+  mousePreset: readMouse(),
+  setMousePreset: (mousePreset) => {
+    try { localStorage.setItem("oficina-cnc:mouse", mousePreset); } catch { /* ignore */ }
+    set({ mousePreset });
+  },
+  theme: readTheme(),
+  setTheme: (theme) => {
+    try { localStorage.setItem("oficina-cnc:theme", theme); } catch { /* ignore */ }
+    set({ theme });
+  },
   view: "editor",
   setView: (view) => set({ view }),
   simCamera: null,

@@ -28,7 +28,6 @@ const COLORS = {
   rapid: 0x8aa4bd,
 };
 
-export type MousePreset = "standard" | "fusion";
 
 interface SceneRefs {
   renderer: THREE.WebGLRenderer;
@@ -66,13 +65,6 @@ function frameTarget(settings: ReturnType<typeof useProjectStore.getState>["sett
   return { cx: stock.offsetX - ox + stock.width / 2, cy: stock.offsetY - oy + stock.height / 2, size: Math.max(stock.width, stock.height, 50) * 1.2 };
 }
 
-function readMousePreset(): MousePreset {
-  try {
-    return (localStorage.getItem("oficina-cnc:mouse") as MousePreset) || "standard";
-  } catch {
-    return "standard";
-  }
-}
 
 export function Simulator() {
   const shapes = useProjectStore((s) => s.shapes);
@@ -86,7 +78,8 @@ export function Simulator() {
   const mountRef = useRef<HTMLDivElement>(null);
   const refs = useRef<SceneRefs | null>(null);
   const [ortho, setOrtho] = useState(false);
-  const [mousePreset, setMousePreset] = useState<MousePreset>(readMousePreset);
+  const mousePreset = useUiStore((s) => s.mousePreset);
+  const setMousePreset = useUiStore((s) => s.setMousePreset);
   const [carveMs, setCarveMs] = useState(0);
 
   const { segments, timing, gcodeLines } = useMemo(() => {
@@ -104,6 +97,13 @@ export function Simulator() {
     () => ({ type: settings.toolType, radius: settings.toolDiameter / 2, angle: settings.vbitAngle }),
     [settings.toolType, settings.toolDiameter, settings.vbitAngle]
   );
+  const profileFor = useMemo(() => {
+    const cache = new Map<string | undefined, ToolProfile>();
+    cache.set(undefined, toolProfile);
+    for (const t of settings.tools) cache.set(t.id, { type: t.type, radius: t.diameter / 2, angle: t.vbitAngle });
+    return (seg: Segment) => cache.get(seg.toolId) ?? toolProfile;
+  }, [settings.tools, toolProfile]);
+  const currentToolId = useRef<string | undefined | null>(null);
 
   const frameSubs = useRef(new Set<(camera: THREE.Camera) => void>());
   const subscribeFrame = useCallback((fn: (camera: THREE.Camera) => void) => {
@@ -222,7 +222,6 @@ export function Simulator() {
     } else {
       r.controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
     }
-    try { localStorage.setItem("oficina-cnc:mouse", mousePreset); } catch { /* ignore */ }
   }, [mousePreset]);
 
   // ---------- projection toggle ----------
@@ -310,10 +309,11 @@ export function Simulator() {
     stockGroup.add(surface);
     r.surface = surface; r.surfaceColors = colors; r.hm = hm;
 
-    // tool
+    // tool (default; swapped per segment while playing)
     const tool = buildToolModel({ type: settings.toolType, diameter: settings.toolDiameter, vbitAngle: settings.vbitAngle });
     scene.add(tool);
     r.tool = tool;
+    currentToolId.current = undefined;
 
     // path lines
     const cutPos: number[] = [], rapidPos: number[] = [];
@@ -375,7 +375,7 @@ export function Simulator() {
     // material removal
     if (r.hm && r.surface && r.surfaceColors) {
       const t0 = performance.now();
-      const changed = carveUpTo(r.hm, segments, timing, t, toolProfile);
+      const changed = carveUpTo(r.hm, segments, timing, t, profileFor);
       const now = performance.now();
       const shouldFlush = r.hm.dirty && (changed || r.lastMeshUpdate === 0) && (!playing || now - r.lastMeshUpdate > 40);
       if (shouldFlush) {
@@ -384,7 +384,20 @@ export function Simulator() {
         setCarveMs(Math.round(now - t0));
       }
     }
-  }, [t, segments, timing, toolProfile, playing]);
+    // swap the 3D tool model when the active tool changes
+    const idx = segments.length ? segmentIndexAt(timing, t) : -1;
+    const activeToolId = idx >= 0 ? segments[idx].toolId : undefined;
+    if (r.tool && currentToolId.current !== activeToolId) {
+      currentToolId.current = activeToolId;
+      const lib = activeToolId ? settings.tools.find((x) => x.id === activeToolId) : undefined;
+      const spec = lib ? { type: lib.type, diameter: lib.diameter, vbitAngle: lib.vbitAngle } : { type: settings.toolType, diameter: settings.toolDiameter, vbitAngle: settings.vbitAngle };
+      r.scene.remove(r.tool);
+      (r.tool.userData.dispose as () => void)?.();
+      r.tool = buildToolModel(spec);
+      r.tool.position.set(x, y, z);
+      r.scene.add(r.tool);
+    }
+  }, [t, segments, timing, toolProfile, profileFor, playing, settings]);
 
   // register camera actions for the ribbon
   useEffect(() => {
@@ -421,7 +434,7 @@ export function Simulator() {
         <span className="legend-swatch legend-rapid" aria-hidden="true" /> deslocamento rápido
         <label className="legend-mouse">
           Mouse
-          <select value={mousePreset} onChange={(e) => setMousePreset(e.target.value as MousePreset)} data-testid="mouse-preset">
+          <select value={mousePreset} onChange={(e) => setMousePreset(e.target.value as "standard" | "fusion")} data-testid="mouse-preset">
             <option value="standard">Padrão (esq. orbita, dir. move)</option>
             <option value="fusion">Fusion (meio move, esq. orbita)</option>
           </select>

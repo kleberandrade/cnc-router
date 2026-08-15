@@ -107,7 +107,7 @@ export function stamp(hm: Heightmap, x: number, y: number, z: number, tool: Tool
 
 /** Carve the part of `seg` between fractions `f0` and `f1` (0..1). */
 export function carveSegment(hm: Heightmap, seg: Segment, tool: ToolProfile, f0 = 0, f1 = 1): void {
-  if (seg.type === "rapid" || seg.type === "retract") return;
+  if (seg.type === "rapid" || seg.type === "retract" || seg.type === "toolchange") return;
   const [x0, y0, z0] = seg.from;
   const [x1, y1, z1] = seg.to;
   if (z0 >= 0 && z1 >= 0) return;
@@ -124,7 +124,8 @@ export function carveSegment(hm: Heightmap, seg: Segment, tool: ToolProfile, f0 
  * Advance the carve state to time `t`. Forward moves are incremental; moving backwards resets and recomputes.
  * Returns true when anything changed.
  */
-export function carveUpTo(hm: Heightmap, segments: Segment[], timing: Timing, t: number, tool: ToolProfile): boolean {
+export function carveUpTo(hm: Heightmap, segments: Segment[], timing: Timing, t: number, toolOrResolver: ToolProfile | ((seg: Segment) => ToolProfile)): boolean {
+  const tool = (seg: Segment) => (typeof toolOrResolver === "function" ? toolOrResolver(seg) : toolOrResolver);
   if (segments.length === 0) return false;
   const target = locate(timing, t);
   const cur = hm.cursor;
@@ -137,13 +138,13 @@ export function carveUpTo(hm: Heightmap, segments: Segment[], timing: Timing, t:
   // partial remainder of the current segment
   if (start.index < segments.length) {
     const endFrac = target.index > start.index ? 1 : target.frac;
-    if (endFrac > start.frac) carveSegment(hm, segments[start.index], tool, start.frac, endFrac);
+    if (endFrac > start.frac) carveSegment(hm, segments[start.index], tool(segments[start.index]), start.frac, endFrac);
   }
   for (let i = start.index + 1; i < target.index && i < segments.length; i++) {
-    carveSegment(hm, segments[i], tool, 0, 1);
+    carveSegment(hm, segments[i], tool(segments[i]), 0, 1);
   }
   if (target.index > start.index && target.index < segments.length && target.frac > 0) {
-    carveSegment(hm, segments[target.index], tool, 0, target.frac);
+    carveSegment(hm, segments[target.index], tool(segments[target.index]), 0, target.frac);
   }
   hm.cursor = { index: Math.min(target.index, segments.length), frac: target.index >= segments.length ? 0 : target.frac };
   return true;

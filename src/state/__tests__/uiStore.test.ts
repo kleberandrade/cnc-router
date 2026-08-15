@@ -43,3 +43,14 @@ describe("uiStore", () => {
     expect(S().simCamera).toBe(cam);
   });
 });
+
+describe("uiStore theme & mouse", () => {
+  it("persists theme and mouse preset", () => {
+    S().setTheme("dark");
+    expect(S().theme).toBe("dark");
+    expect(localStorage.getItem("oficina-cnc:theme")).toBe("dark");
+    S().setMousePreset("fusion");
+    expect(localStorage.getItem("oficina-cnc:mouse")).toBe("fusion");
+    S().setTheme("system");
+  });
+});

@@ -24,10 +24,10 @@ Avaliação do feedback e plano completo em [`fase-2.md`](fase-2.md).
 | [08](sprint-08-responsivo-e-pwa.md) ✅ | Responsivo (celular/tablet, toque) + PWA instalável/offline | 07 | M |
 | [09](sprint-09-formas-e-edicao-no-canvas.md) ✅ | Cantos de retângulo, handles, medidas inline, snap, novas formas | 07 | M/G |
 | [10](sprint-10-simulador-realista.md) ✅ | Remoção de material, fresa 3D realista, ViewCube/gizmo | 07 | G |
-| [11](sprint-11-navegador-e-produtividade.md) | Navegador de peças, ferramentas por peça, tema escuro, DXF | 07, 09 | M |
+| [11](sprint-11-navegador-e-produtividade.md) ✅ | Navegador de peças, ferramentas por peça, tema escuro, DXF | 07, 09 | M |
 | [12](sprint-12-backlog.md) | Backlog priorizado (Fase 3) | — | — |
 
-Ordem recomendada: 07 → 08 → 10 → 09 → 11.
+Ordem executada: 07 → 08 → 10 → 09 → 11 — **Fase 2 concluída em 2026-08-15**. Próximos candidatos: [`sprint-12-backlog.md`](sprint-12-backlog.md).
 
 ## Definition of Done (global — vale para toda sprint)
 

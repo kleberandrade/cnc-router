@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useProjectStore, generateShapeId, undo, redo, useTemporalStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
 import { parseSvg } from "../lib/svgImport";
+import { parseDxf } from "../lib/dxfImport";
 import { tryGenerateGCode } from "../lib/gcode";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape } from "../types";
@@ -87,17 +88,19 @@ export function useProjectActions() {
   const handleSvgFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const isDxf = /\.dxf$/i.test(file.name);
     try {
-      const { shapes: imported, warnings } = parseSvg(await file.text(), { depth: stock.thickness });
+      const text = await file.text();
+      const { shapes: imported, warnings } = isDxf ? parseDxf(text, { depth: stock.thickness }) : parseSvg(text, { depth: stock.thickness });
       addShapes(imported.map((sh) => ({ ...sh, side: "outside" as const })));
       const details = warnings.filter((w) => !w.startsWith("Nenhuma forma"));
       setNotice({
         kind: imported.length > 0 ? (details.length ? "warning" : "info") : "warning",
-        title: imported.length > 0 ? `${imported.length} forma(s) importada(s).` : "Nenhuma forma reconhecida nesse SVG.",
+        title: imported.length > 0 ? `${imported.length} forma(s) importada(s) de ${isDxf ? "DXF" : "SVG"}.` : `Nenhuma forma reconhecida nesse ${isDxf ? "DXF" : "SVG"}.`,
         details: details.length ? details : undefined,
       });
     } catch {
-      setNotice({ kind: "error", title: "Não foi possível importar esse arquivo SVG." });
+      setNotice({ kind: "error", title: `Não foi possível importar esse arquivo ${isDxf ? "DXF" : "SVG"}.` });
     } finally {
       e.target.value = "";
     }
@@ -208,7 +211,7 @@ export function useProjectActions() {
 
   const inputs = (
     <>
-      <input ref={svgInputRef} type="file" accept=".svg,image/svg+xml" style={{ display: "none" }} onChange={handleSvgFile} data-testid="svg-file-input" />
+      <input ref={svgInputRef} type="file" accept=".svg,image/svg+xml,.dxf,application/dxf,image/vnd.dxf" style={{ display: "none" }} onChange={handleSvgFile} data-testid="svg-file-input" />
       <input ref={jsonInputRef} type="file" accept=".json,application/json" style={{ display: "none" }} onChange={handleJsonFile} data-testid="json-file-input" />
     </>
   );

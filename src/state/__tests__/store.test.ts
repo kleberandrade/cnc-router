@@ -183,3 +183,22 @@ describe("useProjectStore", () => {
     expect(useProjectStore.getState().selectedId).toBeNull();
   });
 });
+
+describe("navigator & tool library (sprint 11)", () => {
+  it("moveShape reorders; tools can be added/updated/removed (clearing toolId)", () => {
+    const S = useProjectStore.getState;
+    S().newProject();
+    S().addShapes([makeCircle("a"), makeCircle("b"), makeCircle("c")]);
+    S().moveShape("c", 0);
+    expect(S().shapes.map((s) => s.id)).toEqual(["c", "a", "b"]);
+    S().moveShape("c", 99);
+    expect(S().shapes.map((s) => s.id)).toEqual(["a", "b", "c"]);
+    S().addTool({ id: "t", name: "T", type: "flat", diameter: 3, vbitAngle: 90 });
+    S().updateTool("t", { diameter: 4 });
+    expect(S().settings.tools[0].diameter).toBe(4);
+    S().updateShape("a", { toolId: "t" });
+    S().removeTool("t");
+    expect(S().settings.tools).toEqual([]);
+    expect(S().shapes[0].toolId).toBeUndefined();
+  });
+});

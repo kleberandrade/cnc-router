@@ -7,10 +7,11 @@ import { validateProject, shapeIssueLevel } from "../lib/validate";
 import { boundingBox, shapeToPoints, rotatePoint } from "../lib/geometry";
 import { gridStepFor, fitScale, RULER, PADDING, snapBox, buildSnapTargets } from "../lib/editorMath";
 import { InlineDimensions } from "./InlineDimensions";
+import { useTheme } from "../hooks/useTheme";
 import type { Shape } from "../types";
 import type { Point } from "../lib/geometry";
 
-const COLORS = {
+const LIGHT = {
   table: "#ffffff",
   tableBorder: "#16202b",
   gridMinor: "#eeeeeb",
@@ -25,6 +26,22 @@ const COLORS = {
   fill: "rgba(47,109,143,0.08)",
   guide: "#e0479a",
   marquee: "rgba(47,109,143,0.12)",
+  ruler: "#6b7280",
+};
+const DARK = {
+  ...LIGHT,
+  table: "#1d2936",
+  tableBorder: "#7fb0d8",
+  gridMinor: "#233140",
+  gridMajor: "#2f4052",
+  stock: "rgba(214, 178, 128, 0.22)",
+  stockBorder: "#d6b280",
+  origin: "#e0a05a",
+  shape: "#e6ebf1",
+  selected: "#8fc0e6",
+  fill: "rgba(143,192,230,0.12)",
+  marquee: "rgba(143,192,230,0.15)",
+  ruler: "#94a3b8",
 };
 
 /** Centre (mm) used as the Konva node position for a shape. */
@@ -75,6 +92,7 @@ export function Editor() {
   const snap = useUiStore((s) => s.snap);
 
   const { workArea, stock } = settings;
+  const COLORS = useTheme() === "dark" ? DARK : LIGHT;
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState({ w: 800, h: 560 });
   const [hover, setHover] = useState<[number, number] | null>(null);
@@ -143,7 +161,8 @@ export function Editor() {
   useEffect(() => {
     const tr = trRef.current;
     if (!tr) return;
-    const node = selectedIds.length === 1 ? nodeRefs.current.get(selectedIds[0]) : undefined;
+    const sel = selectedIds.length === 1 ? shapes.find((x) => x.id === selectedIds[0]) : undefined;
+    const node = sel && !sel.locked ? nodeRefs.current.get(sel.id) : undefined;
     tr.nodes(node ? [node] : []);
     tr.getLayer()?.batchDraw();
   }, [selectedIds, shapes, scale, pan]);
@@ -163,13 +182,13 @@ export function Editor() {
     const isMajor = Math.round(x) % grid.major === 0;
     const [px] = toPx(x, 0);
     gridLines.push(<Line key={`gx-${x}`} points={[px, oy, px, oy + tablePxH]} stroke={isMajor ? COLORS.gridMajor : COLORS.gridMinor} strokeWidth={1} listening={false} />);
-    if (isMajor) gridLines.push(<Text key={`tx-${x}`} x={px - 14} y={oy + tablePxH + 4} width={28} align="center" text={String(x)} fontSize={9} fill="#6b7280" listening={false} />);
+    if (isMajor) gridLines.push(<Text key={`tx-${x}`} x={px - 14} y={oy + tablePxH + 4} width={28} align="center" text={String(x)} fontSize={9} fill={COLORS.ruler} listening={false} />);
   }
   for (let y = 0; y <= workArea.height + 1e-9; y += grid.minor) {
     const isMajor = Math.round(y) % grid.major === 0;
     const [, py] = toPx(0, y);
     gridLines.push(<Line key={`gy-${y}`} points={[ox, py, ox + workArea.width * scale, py]} stroke={isMajor ? COLORS.gridMajor : COLORS.gridMinor} strokeWidth={1} listening={false} />);
-    if (isMajor) gridLines.push(<Text key={`ty-${y}`} x={0} y={py - 5} width={RULER + PADDING - 4} align="right" text={String(y)} fontSize={9} fill="#6b7280" listening={false} />);
+    if (isMajor) gridLines.push(<Text key={`ty-${y}`} x={0} y={py - 5} width={RULER + PADDING - 4} align="right" text={String(y)} fontSize={9} fill={COLORS.ruler} listening={false} />);
   }
 
   const [stockPxX, stockPxY] = toPx(stock.offsetX, stock.offsetY + stock.height);
@@ -351,7 +370,7 @@ export function Editor() {
             const strokeWidth = isSelected ? 2.5 : 1.5;
             const [cx, cy] = shapeCenter(shape);
             const [px, py] = toPx(cx, cy);
-            const draggable = !spaceDown && tool === "select";
+            const draggable = !spaceDown && tool === "select" && !shape.locked;
             const common = {
               x: px,
               y: py,
@@ -359,6 +378,8 @@ export function Editor() {
               fill: COLORS.fill,
               stroke,
               strokeWidth,
+              opacity: shape.hidden ? 0.3 : 1,
+              dash: shape.hidden ? [4, 4] : undefined,
               draggable,
               dragBoundFunc: dragBound(shape),
               onClick: (e: Konva.KonvaEventObject<MouseEvent>) => clickShape(shape, e),
