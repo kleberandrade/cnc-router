@@ -1,112 +1,142 @@
 import type { Shape, MachineSettings } from "../types";
-import { shapeToPoints, boundingBox, scanlines, type Point } from "./geometry";
+import { validateProject, hasErrors } from "./validate";
+import { buildToolpath, workOriginOffset, type Segment } from "./toolpath";
+import { buildPassDepths } from "./passes";
+import { estimateTime, formatDuration } from "./timing";
+
+export { buildPassDepths, workOriginOffset };
+
+/** Thrown by `generateGCode` when settings would produce an invalid program. */
+export class GCodeError extends Error {
+  readonly problems: string[];
+  constructor(problems: string[]) {
+    super(problems.join("; "));
+    this.name = "GCodeError";
+    this.problems = problems;
+  }
+}
+
+/** Human-readable (pt-BR) list of reasons why G-code cannot be generated; empty when OK. */
+export function validateSettings(settings: MachineSettings): string[] {
+  const problems: string[] = [];
+  type NumericKey = "feedRate" | "plungeRate" | "spindleSpeed" | "passDepth" | "toolDiameter";
+  const positive: [NumericKey, string][] = [
+    ["feedRate", "Avanço de corte"],
+    ["plungeRate", "Avanço de mergulho"],
+    ["spindleSpeed", "Rotação do spindle"],
+    ["passDepth", "Profundidade por passe"],
+    ["toolDiameter", "Diâmetro da fresa"],
+  ];
+  for (const [key, label] of positive) {
+    const v = settings[key];
+    if (!Number.isFinite(v) || v <= 0) problems.push(`${label} deve ser maior que zero.`);
+  }
+  if (!Number.isFinite(settings.safeHeight) || settings.safeHeight < 0) {
+    problems.push("Altura segura não pode ser negativa.");
+  }
+  return problems;
+}
+
+/** Same as `validateSettings`, for the shapes list. */
+export function validateShapes(shapes: Shape[]): string[] {
+  const problems: string[] = [];
+  shapes.forEach((s, i) => {
+    if (!Number.isFinite(s.depth) || s.depth <= 0) {
+      problems.push(`Forma ${i + 1}: profundidade de corte deve ser maior que zero.`);
+    }
+  });
+  return problems;
+}
+
+export type GCodeResult =
+  | { ok: true; gcode: string }
+  | { ok: false; problems: string[] };
+
+/** Non-throwing wrapper around `generateGCode`, for UI use. */
+export function tryGenerateGCode(
+  shapes: Shape[],
+  settings: MachineSettings
+): GCodeResult {
+  const problems = [...validateSettings(settings), ...validateShapes(shapes)];
+  const issues = validateProject(shapes, settings);
+  if (hasErrors(issues)) {
+    problems.push(...issues.filter((i) => i.level === "error").map((i) => i.message));
+  }
+  if (problems.length > 0) return { ok: false, problems };
+  try {
+    return { ok: true, gcode: generateGCode(shapes, settings) };
+  } catch (err) {
+    if (err instanceof GCodeError) return { ok: false, problems: err.problems };
+    return { ok: false, problems: [(err as Error).message] };
+  }
+}
 
 const fmt = (n: number): string => {
   // GRBL is happy with up to 3 decimals; trim trailing zeros for readability.
   return n.toFixed(3).replace(/\.?0+$/, "");
 };
 
-/**
- * Build the sequence of cut depths (positive numbers, mm below surface) for a shape,
- * stepping down by at most `passDepth` per pass until `totalDepth` is reached.
- */
-export function buildPassDepths(
-  totalDepth: number,
-  passDepth: number
-): number[] {
-  if (totalDepth <= 0) throw new Error("totalDepth must be > 0");
-  if (passDepth <= 0) throw new Error("passDepth must be > 0");
-  const passes: number[] = [];
-  let depth = passDepth;
-  while (depth < totalDepth) {
-    passes.push(depth);
-    depth += passDepth;
-  }
-  passes.push(totalDepth);
-  return passes;
-}
-
-function outlineToolpath(
-  points: Point[],
-  depth: number,
-  settings: MachineSettings,
-  lines: string[]
-): void {
-  if (points.length === 0) return;
-  const passes = buildPassDepths(depth, settings.passDepth);
-  const [startX, startY] = points[0];
-
-  lines.push(`; Outline pass, target depth ${fmt(depth)}mm`);
-  lines.push(`G0 X${fmt(startX)} Y${fmt(startY)}`);
-
-  for (const passZ of passes) {
-    lines.push(`G1 Z${fmt(-passZ)} F${fmt(settings.plungeRate)}`);
-    for (const [x, y] of points.slice(1)) {
-      lines.push(`G1 X${fmt(x)} Y${fmt(y)} F${fmt(settings.feedRate)}`);
+/** Serialize toolpath segments as GRBL G-code lines (no header/footer). */
+export function segmentsToGCode(segments: Segment[]): string[] {
+  const lines: string[] = [];
+  for (const seg of segments) {
+    if (seg.comment) lines.push(`; ${seg.comment}`);
+    const [tx, ty, tz] = seg.to;
+    switch (seg.type) {
+      case "rapid":
+        // Rapids are planar moves at safe height (emitted even when zero-length, e.g. return to origin).
+        lines.push(`G0 X${fmt(tx)} Y${fmt(ty)}`);
+        break;
+      case "retract":
+        lines.push(`G0 Z${fmt(tz)}`);
+        break;
+      case "plunge":
+        lines.push(`G1 Z${fmt(tz)} F${fmt(seg.feed)}`);
+        break;
+      case "feed":
+        lines.push(`G1 X${fmt(tx)} Y${fmt(ty)} F${fmt(seg.feed)}`);
+        break;
     }
-    // Return to start of loop for the next, deeper pass.
-    lines.push(`G1 X${fmt(startX)} Y${fmt(startY)} F${fmt(settings.feedRate)}`);
   }
-  lines.push(`G0 Z${fmt(settings.safeHeight)}`);
-}
-
-function pocketToolpath(
-  points: Point[],
-  depth: number,
-  settings: MachineSettings,
-  lines: string[]
-): void {
-  if (points.length === 0) return;
-  const box = boundingBox(points);
-  const stepover = Math.max(settings.toolDiameter * 0.6, 0.1);
-  const rows = scanlines(box.minY, box.maxY, stepover);
-  const passes = buildPassDepths(depth, settings.passDepth);
-
-  lines.push(`; Pocket clear, target depth ${fmt(depth)}mm`);
-  lines.push(`G0 X${fmt(box.minX)} Y${fmt(rows[0])}`);
-
-  for (const passZ of passes) {
-    lines.push(`G1 Z${fmt(-passZ)} F${fmt(settings.plungeRate)}`);
-    rows.forEach((y, i) => {
-      const goLeftToRight = i % 2 === 0;
-      const xStart = goLeftToRight ? box.minX : box.maxX;
-      const xEnd = goLeftToRight ? box.maxX : box.minX;
-      lines.push(`G1 X${fmt(xStart)} Y${fmt(y)} F${fmt(settings.feedRate)}`);
-      lines.push(`G1 X${fmt(xEnd)} Y${fmt(y)} F${fmt(settings.feedRate)}`);
-    });
-  }
-  lines.push(`G0 Z${fmt(settings.safeHeight)}`);
+  return lines;
 }
 
 /**
  * Generate a full GRBL-flavoured G-code program for a list of shapes.
- * Units are millimeters (G21). Origin is machine/work origin (G54, X0 Y0 at material corner).
+ * Units are millimeters (G21). Work origin (G54) is set by the stock origin.
  */
 export function generateGCode(
   shapes: Shape[],
   settings: MachineSettings
 ): string {
+  const problems = validateSettings(settings);
+  if (problems.length > 0) throw new GCodeError(problems);
+  const { workArea, stock } = settings;
+  const issues = validateProject(shapes, settings);
+  const toolpath = buildToolpath(shapes, settings);
+  const timing = estimateTime(toolpath.segments, { rapidRate: settings.rapidRate });
+
   const lines: string[] = [];
   lines.push("; Generated by CNC Router Web App");
+  lines.push(
+    `; machine ${fmt(workArea.width)}x${fmt(workArea.height)}x${fmt(workArea.zTravel)}mm | stock ${fmt(stock.width)}x${fmt(stock.height)}x${fmt(stock.thickness)}mm @ (${fmt(stock.offsetX)},${fmt(stock.offsetY)}) origin ${stock.origin}`
+  );
+  lines.push(`; tempo estimado: ${formatDuration(timing.total)} (rapid ${fmt(settings.rapidRate)} mm/min)`);
+  for (const w of issues.filter((i) => i.level === "warning")) {
+    lines.push(`; WARNING: ${w.message}`);
+  }
   lines.push("G21 ; millimeters");
   lines.push("G90 ; absolute positioning");
-  lines.push(`G0 Z${fmt(settings.safeHeight)}`);
+
+  // First segment is the initial retract to safe height; spindle on comes right after it.
+  const body = segmentsToGCode(toolpath.segments);
+  lines.push(body[0]);
   lines.push(`M3 S${fmt(settings.spindleSpeed)} ; spindle on`);
-
-  for (const shape of shapes) {
-    const points = shapeToPoints(shape);
-    if (points.length === 0) continue;
-    lines.push(`G0 Z${fmt(settings.safeHeight)}`);
-    if (shape.operation === "pocket") {
-      pocketToolpath(points, shape.depth, settings, lines);
-    } else {
-      outlineToolpath(points, shape.depth, settings, lines);
-    }
-  }
-
+  // Last two segments are the final retract + return to origin; spindle off goes before them.
+  const middle = body.slice(1, body.length - 2);
+  lines.push(...middle);
   lines.push("M5 ; spindle off");
-  lines.push(`G0 Z${fmt(settings.safeHeight)}`);
-  lines.push("G0 X0 Y0");
+  lines.push(...body.slice(body.length - 2));
   lines.push("M2 ; program end");
 
   return lines.join("\n") + "\n";

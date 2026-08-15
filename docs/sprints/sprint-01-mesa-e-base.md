@@ -1,6 +1,6 @@
 # Sprint 01 — Mesa, base (chapa) e origem
 
-**Status:** planejada
+**Status:** concluída — 2026-08-15
 **Esforço:** M (3–5 dias)
 **Depende de:** 00
 
@@ -21,17 +21,17 @@ export interface MachineSettings { /* existentes */ workArea: WorkArea; stock: S
 Presets em `src/lib/machinePresets.ts`: 3018 (300×180×45), 3040 (300×400×80), 6040 (600×400×80), 6090 (600×900×100), 1010 (1000×1000×120), 1325 (1300×2500×150), Personalizada.
 
 ## Tarefas
-- [ ] Tipos + defaults + `migrate` da persistência (v1 → v2).
-- [ ] `lib/machinePresets.ts` com testes.
-- [ ] `lib/validate.ts`: `validateProject(shapes, settings): Issue[]` — `Issue { level:"error"|"warning", code, message, shapeId? }`. Regras: forma fora da mesa (erro), forma fora da chapa (aviso), `depth > stock.thickness` (aviso "corte passante"/erro se > zTravel), `passDepth<=0`, `safeHeight > zTravel`.
-- [ ] Editor: canvas = mesa; escala `fit` ao viewport (com `ResizeObserver`), grade 10 mm com linhas fortes a cada 50/100 mm, réguas em mm, chapa desenhada (retângulo bege) sobre a mesa, origem marcada (cruz + "0,0").
-- [ ] Editor: `dragBoundFunc` limitando ao `workArea`; formas com issue ganham stroke âmbar (aviso) / vermelho (erro).
-- [ ] Editor: `Line` de path com `draggable` + `onDragEnd` aplicando delta aos pontos.
-- [ ] Toolbar (mínimo, sem redesenhar): seção "Máquina" com preset + largura/altura/Z; seção "Chapa/base" com largura/altura/espessura/offset/origem. (Layout final é sprint 05.)
-- [ ] `generateGCode`: cabeçalho com `; machine 600x400x80 | stock 300x200x18 @ (10,10) origin front-left`; recusa exportar com issues `error` (retorna `{ok:false}` e UI mostra lista); coordenadas transformadas pela origem escolhida.
-- [ ] Novas formas nascem dentro da chapa (canto + 10 mm), com `depth` padrão = espessura da chapa (recorte passante).
-- [ ] Testes: `validate.test.ts`, `machinePresets.test.ts`, gcode header/origem, store migrate.
-- [ ] E2E: trocar preset muda o tamanho do canvas; arrastar forma para fora fica bloqueado; exportar com forma fora da mesa mostra erro.
+- [x] Tipos + defaults + `migrate` da persistência (v1 → v2).
+- [x] `lib/machinePresets.ts` com testes.
+- [x] `lib/validate.ts`: `validateProject(shapes, settings): Issue[]` — `Issue { level:"error"|"warning", code, message, shapeId? }`. Regras: forma fora da mesa (erro), forma fora da chapa (aviso), `depth > stock.thickness` (aviso "corte passante"/erro se > zTravel), `passDepth<=0`, `safeHeight > zTravel`.
+- [x] Editor: canvas = mesa; escala `fit` ao viewport (com `ResizeObserver`), grade 10 mm com linhas fortes a cada 50/100 mm, réguas em mm, chapa desenhada (retângulo bege) sobre a mesa, origem marcada (cruz + "0,0").
+- [x] Editor: `dragBoundFunc` limitando ao `workArea`; formas com issue ganham stroke âmbar (aviso) / vermelho (erro).
+- [x] Editor: `Line` de path com `draggable` + `onDragEnd` aplicando delta aos pontos.
+- [x] Toolbar (mínimo, sem redesenhar): seção "Máquina" com preset + largura/altura/Z; seção "Chapa/base" com largura/altura/espessura/offset/origem. (Layout final é sprint 05.)
+- [x] `generateGCode`: cabeçalho com `; machine 600x400x80 | stock 300x200x18 @ (10,10) origin front-left`; recusa exportar com issues `error` (retorna `{ok:false}` e UI mostra lista); coordenadas transformadas pela origem escolhida.
+- [x] Novas formas nascem dentro da chapa (canto + 10 mm), com `depth` padrão = espessura da chapa (recorte passante).
+- [x] Testes: `validate.test.ts`, `machinePresets.test.ts`, gcode header/origem, store migrate.
+- [x] E2E: trocar preset muda o tamanho do canvas; arrastar forma para fora fica bloqueado; exportar com forma fora da mesa mostra erro.
 
 ## DoD específica
 - Trocar de 3018 para 1325 redimensiona a mesa no editor sem perder as formas.
@@ -42,3 +42,9 @@ Presets em `src/lib/machinePresets.ts`: 3018 (300×180×45), 3040 (300×400×80)
 
 ## Fora de escopo
 Materiais (02), redesign da toolbar (05), simulador 3D da mesa (04).
+
+## Notas de fechamento
+- Trocar preset **não** redimensiona a chapa automaticamente; se ela não couber (ex.: chapa 300×200 numa 3018), aparece o aviso "chapa parcialmente fora da área útil".
+- Eixo Y do editor passou a apontar para o fundo (CAM). SVG importado não é espelhado ainda (Sprint 06).
+- Rotação de retângulos continua não exposta na UI (Sprint 05).
+- Testes: 103 unitários (91 % linhas / 85 % branches), 11 e2e passando.

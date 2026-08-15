@@ -1,0 +1,52 @@
+# Changelog
+
+Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
+
+## [Sprint 03 — Motor único de percurso e estimativa de tempo] — 2026-08-15
+
+### Adicionado
+- `lib/toolpath.ts` — `buildToolpath(shapes, settings)` gera `Segment[]` (from/to/tipo/feed/shapeId/passe/operação) em coordenadas de trabalho; é a única fonte de percurso para o G-code **e** o simulador (corrige o achado A2 da auditoria).
+- `lib/timing.ts` — `estimateTime` (v1: comprimento/avanço por segmento; rapids a `rapidRate`), `formatDuration`, `formatClock`.
+- `MachineSettings.rapidRate` (padrão 3000 mm/min) com campo na toolbar; migração preenche projetos antigos.
+- Tempo estimado exibido na toolbar, no simulador e no cabeçalho do G-code (`; tempo estimado: 2m21s`).
+- `lib/passes.ts` (`buildPassDepths` movido; re-exportado por `gcode.ts`).
+
+### Alterado
+- `generateGCode` passou a serializar segmentos (`segmentsToGCode`); paridade com `docs/samples/baseline-v0.gcode` verificada (diff vazio fora do cabeçalho).
+- `Simulator` consome `buildToolpath` (multi-passe, pocket e alturas seguras agora aparecem na simulação). `buildSimulationPath` removido.
+
+### Testes
+- `toolpath.test.ts`, `timing.test.ts`; e2e do tempo estimado. Total: 111 unitários, 12 e2e.
+
+## [Sprint 01 — Mesa, base e origem] — 2026-08-15
+
+### Adicionado
+- `WorkArea` (área útil X/Y/Z), `Stock` (chapa: dimensões, espessura, posição, origem) e `machinePreset` em `MachineSettings`; presets 3018/3040/6040/6090/1010/1325 + Personalizada (`lib/machinePresets.ts`).
+- `lib/validate.ts` — `validateProject` gera avisos/erros: forma fora da mesa (erro), fora da chapa (aviso), profundidade > espessura (aviso "corte passante"), > curso Z (erro), chapa fora da mesa, altura segura > Z.
+- Editor: canvas passa a ser a mesa em mm, com escala ajustada ao viewport (`fitScale`), grade adaptativa (`gridStepFor`) com réguas, chapa desenhada, marcador da origem (0,0), arrasto limitado à mesa (`clampShapeToTable`), formas com aviso/erro coloridas em âmbar/vermelho; paths SVG agora são arrastáveis. Eixo Y aponta para o fundo da máquina (convenção CAM).
+- Toolbar: seções **Máquina** (preset + X/Y/Z) e **Chapa / base** (largura, altura, espessura, posição, origem) e lista de **Avisos**.
+- G-code: cabeçalho `; machine … | stock … origin …`, avisos como comentários, coordenadas transformadas pela origem escolhida (`workOriginOffset`), exportação bloqueada por erros de validação.
+- Novas formas nascem dentro da chapa com profundidade = espessura da chapa.
+- Persistência v2 (`migrateProject` preenche `workArea`/`stock`/`machinePreset` em projetos antigos).
+- Testes: `validate`, `machinePresets`, `editorMath`, origem/cabeçalho do G-code, migração v1→v2, store; e2e `machine-and-stock.spec.ts` (preset, erro bloqueando export, aviso permitindo export, arrasto limitado). Total: 103 unitários, 11 e2e.
+
+## [Sprint 00 — Fundação] — 2026-08-15
+
+### Adicionado
+- CI (GitHub Actions): lint + testes unitários com cobertura, e job E2E com Playwright (`.github/workflows/ci.yml`).
+- Persistência do projeto (formas + configurações) em `localStorage` via `zustand/persist`, com `version`/`migrate` (`migrateProject`).
+- Botão **Novo projeto** na toolbar (limpa formas e restaura configurações padrão).
+- Componente `Notice` (aviso inline, `role="alert"`) substituindo `window.alert`.
+- `parseNumberInput` — campos numéricos mantêm o último valor válido quando ficam vazios/inválidos.
+- `validateSettings`/`validateShapes`/`tryGenerateGCode`/`GCodeError` em `lib/gcode.ts` — a exportação mostra os problemas em vez de lançar exceção.
+- `lib/ids.ts` — ids únicos com `crypto.randomUUID()` (fallback com contador), compartilhados por store e importador SVG.
+- `docs/auditoria.md`, `docs/sprints/` (planejamento com DoD), `docs/samples/baseline-v0.gcode` (baseline de regressão do G-code).
+- `playwright.config.ts` aceita `PW_CHROMIUM_PATH` para usar um Chromium pré-instalado.
+
+### Alterado
+- `@types/three` movido para `devDependencies`.
+- `Simulator`: `totalSteps` memoizado; `rebuiltCount` declarado antes do closure.
+- README: seção de sprints, CI e nota de e2e atualizada.
+
+### Testes
+- 80 testes unitários (antes 64); 7 e2e (antes 5) — todos passando.

@@ -3,20 +3,12 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Toolbar } from "../Toolbar";
 import { useProjectStore } from "../../state/store";
+import { DEFAULT_MACHINE_SETTINGS } from "../../types";
 
 describe("Toolbar", () => {
   beforeEach(() => {
     useProjectStore.getState().clear();
-    useProjectStore.setState({
-      settings: {
-        feedRate: 800,
-        plungeRate: 200,
-        spindleSpeed: 12000,
-        safeHeight: 5,
-        passDepth: 2,
-        toolDiameter: 3,
-      },
-    });
+    useProjectStore.setState({ settings: DEFAULT_MACHINE_SETTINGS });
   });
 
   afterEach(() => {
@@ -72,13 +64,67 @@ describe("Toolbar", () => {
     expect(useProjectStore.getState().settings.feedRate).toBe(1500);
   });
 
-  it("warns and does not export when there are no shapes", async () => {
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+  it("warns inline and does not export when there are no shapes", async () => {
     render(<Toolbar />);
     await userEvent.click(screen.getByTestId("export-gcode"));
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(screen.getByTestId("notice")).toHaveTextContent(
       "Adicione ao menos uma forma antes de exportar."
     );
+  });
+
+  it("shows validation problems instead of throwing when settings are invalid", async () => {
+    useProjectStore.getState().updateSettings({ passDepth: 0 });
+    render(<Toolbar />);
+    await userEvent.click(screen.getByTestId("add-rectangle"));
+    await userEvent.click(screen.getByTestId("export-gcode"));
+    expect(screen.getByTestId("notice")).toHaveTextContent(/Profundidade por passe/);
+  });
+
+  it("keeps the last valid value when a numeric field is cleared", async () => {
+    render(<Toolbar />);
+    const feedInput = screen.getByLabelText(/Avanço de corte/);
+    fireEvent.change(feedInput, { target: { value: "" } });
+    expect(useProjectStore.getState().settings.feedRate).toBe(800);
+    fireEvent.change(feedInput, { target: { value: "0" } });
+    expect(useProjectStore.getState().settings.feedRate).toBe(800);
+  });
+
+  it("changing the machine preset updates the work area", async () => {
+    render(<Toolbar />);
+    fireEvent.change(screen.getByTestId("machine-preset"), { target: { value: "3018" } });
+    expect(useProjectStore.getState().settings.workArea).toEqual({ width: 300, height: 180, zTravel: 45 });
+    fireEvent.change(screen.getByTestId("work-width"), { target: { value: "350" } });
+    expect(useProjectStore.getState().settings.machinePreset).toBe("custom");
+  });
+
+  it("new shapes spawn inside the stock with depth = stock thickness", async () => {
+    render(<Toolbar />);
+    fireEvent.change(screen.getByTestId("stock-thickness"), { target: { value: "12" } });
+    await userEvent.click(screen.getByTestId("add-rectangle"));
+    const shape = useProjectStore.getState().shapes[0];
+    expect(shape.depth).toBe(12);
+    if (shape.kind === "rectangle") expect(shape.x).toBeGreaterThanOrEqual(0);
+  });
+
+  it("lists validation issues and blocks export on errors", async () => {
+    render(<Toolbar />);
+    await userEvent.click(screen.getByTestId("add-rectangle"));
+    // Shrink the table so the shape ends up outside it.
+    fireEvent.change(screen.getByTestId("machine-preset"), { target: { value: "custom" } });
+    fireEvent.change(screen.getByTestId("work-width"), { target: { value: "20" } });
+    expect(screen.getByTestId("issues")).toHaveTextContent(/fora da área útil/);
+    await userEvent.click(screen.getByTestId("export-gcode"));
+    expect(screen.getByTestId("notice")).toHaveTextContent(/fora da área útil/);
+  });
+
+  it("starts a new project (shapes + default settings) after confirmation", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Toolbar />);
+    await userEvent.click(screen.getByTestId("add-rectangle"));
+    fireEvent.change(screen.getByLabelText(/Avanço de corte/), { target: { value: "1500" } });
+    await userEvent.click(screen.getByTestId("new-project"));
+    expect(useProjectStore.getState().shapes).toHaveLength(0);
+    expect(useProjectStore.getState().settings.feedRate).toBe(800);
   });
 
   it("triggers a download when exporting with at least one shape", async () => {
@@ -111,8 +157,7 @@ describe("Toolbar", () => {
     });
   });
 
-  it("shows an alert when importing an invalid SVG file", async () => {
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+  it("shows an inline error when importing an invalid SVG file", async () => {
     render(<Toolbar />);
     const file = new File(["<svg><rect></svg"], "ruim.svg", {
       type: "image/svg+xml",
@@ -122,7 +167,7 @@ describe("Toolbar", () => {
     await userEvent.upload(input, file);
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
+      expect(screen.getByTestId("notice")).toHaveTextContent(
         "Não foi possível importar esse arquivo SVG."
       );
     });

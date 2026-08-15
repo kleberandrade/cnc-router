@@ -34,9 +34,36 @@ export interface PathShape extends BaseShape {
 
 export type Shape = RectangleShape | CircleShape | PathShape;
 
+/** Usable travel of the machine (work envelope), in mm. */
+export interface WorkArea {
+  width: number;   // X
+  height: number;  // Y
+  zTravel: number; // Z
+}
+
+/** Where the G54 work origin (X0 Y0) sits relative to the stock. */
+export type StockOrigin = "front-left" | "center";
+
+/** Raw material (sheet/block) clamped on the table, in mm. */
+export interface Stock {
+  width: number;
+  height: number;
+  thickness: number;
+  /** Position of the stock's front-left corner on the table (from the machine's front-left). */
+  offsetX: number;
+  offsetY: number;
+  origin: StockOrigin;
+}
+
 export interface MachineSettings {
+  /** Machine preset id (see lib/machinePresets); "custom" when edited by hand. */
+  machinePreset: string;
+  workArea: WorkArea;
+  stock: Stock;
   /** Feed rate while cutting, mm/min */
   feedRate: number;
+  /** Rapid (G0) travel speed of the machine, mm/min — used only for time estimation. */
+  rapidRate: number;
   /** Feed rate while plunging into material, mm/min */
   plungeRate: number;
   /** Spindle speed in RPM */
@@ -49,8 +76,23 @@ export interface MachineSettings {
   toolDiameter: number;
 }
 
+export const DEFAULT_WORK_AREA: WorkArea = { width: 600, height: 400, zTravel: 80 };
+
+export const DEFAULT_STOCK: Stock = {
+  width: 300,
+  height: 200,
+  thickness: 18,
+  offsetX: 0,
+  offsetY: 0,
+  origin: "front-left",
+};
+
 export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  machinePreset: "6040",
+  workArea: DEFAULT_WORK_AREA,
+  stock: DEFAULT_STOCK,
   feedRate: 800,
+  rapidRate: 3000,
   plungeRate: 200,
   spindleSpeed: 12000,
   safeHeight: 5,

@@ -8,6 +8,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
+    // Optional: point at a pre-installed Chromium (e.g. sandboxes) instead of downloading one.
+    ...(process.env.PW_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }
+      : {}),
   },
   webServer: {
     command: 'npm run preview -- --port 4173',

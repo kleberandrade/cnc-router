@@ -1,26 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useProjectStore } from "../state/store";
-import { shapeToPoints } from "../lib/geometry";
+import { buildToolpath } from "../lib/toolpath";
+import { estimateTime, formatDuration } from "../lib/timing";
 
-/** Flattens all shapes into a single ordered list of [x, y, z] toolpath waypoints, for the simulator only. */
-export function buildSimulationPath(
+/** Waypoints (segment endpoints, work coords) for the index-based player. */
+function toolpathWaypoints(
   shapes: ReturnType<typeof useProjectStore.getState>["shapes"],
-  safeHeight: number
+  settings: ReturnType<typeof useProjectStore.getState>["settings"]
 ): [number, number, number][] {
-  const path: [number, number, number][] = [];
-  for (const shape of shapes) {
-    const points = shapeToPoints(shape);
-    if (points.length === 0) continue;
-    const [sx, sy] = points[0];
-    path.push([sx, sy, safeHeight]);
-    path.push([sx, sy, -shape.depth]);
-    for (const [x, y] of points) {
-      path.push([x, y, -shape.depth]);
-    }
-    path.push([sx, sy, safeHeight]);
-  }
-  return path;
+  const { segments } = buildToolpath(shapes, settings);
+  if (segments.length === 0) return [];
+  return [segments[0].from, ...segments.map((s) => s.to)];
 }
 
 export function Simulator() {
@@ -32,10 +23,17 @@ export function Simulator() {
   const toolMeshRef = useRef<THREE.Mesh | null>(null);
   const pathRef = useRef<[number, number, number][]>([]);
 
+  const waypoints = useMemo(() => (shapes.length ? toolpathWaypoints(shapes, settings) : []), [shapes, settings]);
+  const totalTime = useMemo(() => {
+    if (shapes.length === 0) return 0;
+    const { segments } = buildToolpath(shapes, settings);
+    return estimateTime(segments, { rapidRate: settings.rapidRate }).total;
+  }, [shapes, settings]);
+
   useEffect(() => {
-    pathRef.current = buildSimulationPath(shapes, settings.safeHeight);
+    pathRef.current = waypoints;
     stepRef.current = 0;
-  }, [shapes, settings.safeHeight]);
+  }, [waypoints]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -87,6 +85,7 @@ export function Simulator() {
     };
 
     let animationId: number;
+    let rebuiltCount = -1;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
@@ -104,7 +103,6 @@ export function Simulator() {
 
       renderer.render(scene, camera);
     };
-    let rebuiltCount = -1;
     animate();
 
     const resizeObserver = new ResizeObserver(() => {
@@ -134,7 +132,7 @@ export function Simulator() {
     return () => clearInterval(interval);
   }, [playing]);
 
-  const totalSteps = buildSimulationPath(shapes, settings.safeHeight).length;
+  const totalSteps = waypoints.length;
 
   return (
     <div className="simulator" data-testid="simulator">
@@ -158,6 +156,9 @@ export function Simulator() {
         >
           Reiniciar
         </button>
+        <span className="simulator-time" data-testid="estimated-time">
+          Tempo estimado: {formatDuration(totalTime)}
+        </span>
       </div>
     </div>
   );

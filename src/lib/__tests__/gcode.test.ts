@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildPassDepths, generateGCode } from "../gcode";
+import { buildPassDepths, generateGCode, tryGenerateGCode, validateSettings, GCodeError, workOriginOffset } from "../gcode";
 import { DEFAULT_MACHINE_SETTINGS } from "../../types";
 import type { RectangleShape, CircleShape, PathShape } from "../../types";
 
@@ -108,5 +108,70 @@ describe("generateGCode", () => {
   it("returns to X0 Y0 at the end for the next job", () => {
     const gcode = generateGCode([rect], DEFAULT_MACHINE_SETTINGS);
     expect(gcode.trim().split("\n").slice(-2)[0]).toBe("G0 X0 Y0");
+  });
+});
+
+describe("validation", () => {
+  const rect: RectangleShape = {
+    id: "r", kind: "rectangle", x: 0, y: 0, width: 10, height: 10, rotation: 0, depth: 4, operation: "outline",
+  };
+
+  it("validateSettings lists every non-positive cutting parameter", () => {
+    const problems = validateSettings({ ...DEFAULT_MACHINE_SETTINGS, passDepth: 0, feedRate: NaN });
+    expect(problems).toHaveLength(2);
+    expect(problems.join()).toMatch(/passe/);
+    expect(problems.join()).toMatch(/Avanço/);
+  });
+
+  it("generateGCode throws GCodeError for invalid settings", () => {
+    expect(() => generateGCode([rect], { ...DEFAULT_MACHINE_SETTINGS, passDepth: 0 })).toThrow(GCodeError);
+  });
+
+  it("tryGenerateGCode returns problems instead of throwing", () => {
+    const res = tryGenerateGCode([{ ...rect, depth: 0 }], DEFAULT_MACHINE_SETTINGS);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.problems[0]).toMatch(/Forma 1/);
+  });
+
+  it("tryGenerateGCode returns gcode when valid", () => {
+    const res = tryGenerateGCode([rect], DEFAULT_MACHINE_SETTINGS);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.gcode).toContain("M2");
+  });
+});
+
+describe("work origin & header", () => {
+  const rect: RectangleShape = {
+    id: "r", kind: "rectangle", x: 20, y: 20, width: 10, height: 10, rotation: 0, depth: 4, operation: "outline",
+  };
+  const base = {
+    ...DEFAULT_MACHINE_SETTINGS,
+    stock: { width: 100, height: 60, thickness: 10, offsetX: 20, offsetY: 20, origin: "front-left" as const },
+  };
+
+  it("front-left origin subtracts the stock offset", () => {
+    expect(workOriginOffset(base)).toEqual([20, 20]);
+    const g = generateGCode([rect], base);
+    expect(g).toContain("G0 X0 Y0\n; Outline".replace("\n; Outline", "")); // starts at work origin
+    expect(g).toContain("G1 X10 Y0 F800");
+  });
+
+  it("center origin yields negative coordinates for the front-left quadrant", () => {
+    const s = { ...base, stock: { ...base.stock, origin: "center" as const } };
+    expect(workOriginOffset(s)).toEqual([70, 50]);
+    const g = generateGCode([rect], s);
+    expect(g).toContain("G0 X-50 Y-30");
+  });
+
+  it("writes machine/stock header and warnings as comments", () => {
+    const g = generateGCode([{ ...rect, depth: 12 }], base);
+    expect(g).toContain("; machine 600x400x80mm | stock 100x60x10mm @ (20,20) origin front-left");
+    expect(g).toContain("; WARNING: Forma 1: profundidade (12 mm) maior que a espessura da chapa");
+  });
+
+  it("tryGenerateGCode refuses shapes outside the table", () => {
+    const res = tryGenerateGCode([{ ...rect, x: 595 }], base);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.problems.join()).toMatch(/fora da área útil/);
   });
 });

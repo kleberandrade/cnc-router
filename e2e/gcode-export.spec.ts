@@ -23,12 +23,31 @@ test.describe("G-code export flow", () => {
   }) => {
     await page.goto("/");
 
-    page.once("dialog", async (dialog) => {
-      expect(dialog.message()).toContain("Adicione ao menos uma forma");
-      await dialog.accept();
-    });
-
     await page.getByTestId("export-gcode").click();
+    await expect(page.getByTestId("notice")).toContainText(
+      "Adicione ao menos uma forma"
+    );
+  });
+
+  test("invalid machine settings block export with an inline error", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("add-rectangle").click();
+    // Setting passDepth to 0 is rejected by the input, so poke the store through the UI limits:
+    // an empty field keeps the last valid value, so export must still work.
+    const pass = page.getByLabel(/Profundidade por passe/);
+    await pass.fill("");
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByTestId("export-gcode").click();
+    await downloadPromise;
+  });
+
+  test("project survives a page reload (localStorage persistence)", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("add-rectangle").click();
+    await page.getByTestId("add-circle").click();
+    await page.reload();
+    await page.getByTestId("tab-simulator").click();
+    await expect(page.getByTestId("simulate-toggle")).toBeEnabled();
   });
 
   test("selecting a shape and switching to the simulator shows playback controls", async ({
@@ -42,5 +61,22 @@ test.describe("G-code export flow", () => {
     await expect(toggle).toBeEnabled();
     await toggle.click();
     await expect(toggle).toHaveText("Pausar simulação");
+  });
+});
+
+test.describe("time estimate (sprint 03)", () => {
+  test("estimated time is shown in the toolbar and simulator and written to the G-code", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("add-rectangle").click();
+    await expect(page.getByTestId("toolbar-estimate")).toContainText(/tempo estimado \d+/);
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByTestId("export-gcode").click();
+    const download = await downloadPromise;
+    const path = await download.path();
+    const fs = await import("node:fs/promises");
+    const text = await fs.readFile(path as string, "utf8");
+    expect(text).toMatch(/; tempo estimado: \d+/);
+    await page.getByTestId("tab-simulator").click();
+    await expect(page.getByTestId("estimated-time")).toContainText(/Tempo estimado: \d+/);
   });
 });

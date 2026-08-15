@@ -1,10 +1,6 @@
 import type { Shape } from "../types";
+import { generateShapeId } from "./ids";
 
-let idCounter = 0;
-function nextId(prefix: string): string {
-  idCounter += 1;
-  return `${prefix}-${idCounter}`;
-}
 
 /**
  * Parse a (trusted, locally-loaded) SVG document string into app Shapes.
@@ -29,7 +25,7 @@ export function parseSvgToShapes(svgText: string): Shape[] {
     const height = parseFloat(el.getAttribute("height") ?? "0");
     if (width <= 0 || height <= 0) return;
     shapes.push({
-      id: nextId("rect"),
+      id: generateShapeId("rect"),
       kind: "rectangle",
       x,
       y,
@@ -47,7 +43,7 @@ export function parseSvgToShapes(svgText: string): Shape[] {
     const r = parseFloat(el.getAttribute("r") ?? "0");
     if (r <= 0) return;
     shapes.push({
-      id: nextId("circle"),
+      id: generateShapeId("circle"),
       kind: "circle",
       x: cx,
       y: cy,
@@ -64,7 +60,7 @@ export function parseSvgToShapes(svgText: string): Shape[] {
     if (points.length < 2) return;
     const closed = /[Zz]\s*$/.test(d.trim());
     shapes.push({
-      id: nextId("path"),
+      id: generateShapeId("path"),
       kind: "path",
       points,
       closed,
