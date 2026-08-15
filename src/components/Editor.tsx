@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Stage, Layer, Rect, Circle, Line, Text, Group } from "react-konva";
 import type Konva from "konva";
-import { useProjectStore } from "../state/store";
+import { useProjectStore, generateShapeId } from "../state/store";
+import { useUiStore } from "../state/uiStore";
 import { validateProject, shapeIssueLevel } from "../lib/validate";
 import { boundingBox } from "../lib/geometry";
 import { gridStepFor, fitScale, clampShapeToTable, RULER, PADDING } from "../lib/editorMath";
@@ -30,9 +31,23 @@ export function Editor() {
   const select = useProjectStore((s) => s.select);
   const updateShape = useProjectStore((s) => s.updateShape);
 
+  const addShape = useProjectStore((s) => s.addShape);
+  const zoom = useUiStore((s) => s.zoom);
+  const setZoom = useUiStore((s) => s.setZoom);
+  const pan = useUiStore((s) => s.pan);
+  const setPan = useUiStore((s) => s.setPan);
+  const tool = useUiStore((s) => s.tool);
+  const setTool = useUiStore((s) => s.setTool);
+  const draft = useUiStore((s) => s.draft);
+  const setDraft = useUiStore((s) => s.setDraft);
+  const setSection = useUiStore((s) => s.setSection);
+
   const { workArea, stock } = settings;
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState({ w: 800, h: 560 });
+  const [hover, setHover] = useState<[number, number] | null>(null);
+  const [spaceDown, setSpaceDown] = useState(false);
+  const panStart = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -44,12 +59,49 @@ export function Editor() {
     return () => ro.disconnect();
   }, []);
 
-  const scale = fitScale(viewport.w, viewport.h, workArea.width, workArea.height);
-  const stageW = Math.round(workArea.width * scale + RULER + PADDING * 2);
-  const stageH = Math.round(workArea.height * scale + RULER + PADDING * 2);
-  const ox = RULER + PADDING; // px origin of the table (left)
-  const oy = PADDING; // px origin of the table (top)
+  const scale = fitScale(viewport.w, viewport.h, workArea.width, workArea.height) * zoom;
+  const stageW = viewport.w;
+  const stageH = viewport.h;
+  const ox = RULER + PADDING + pan.x; // px origin of the table (left)
+  const oy = PADDING + pan.y; // px origin of the table (top)
   const tablePxH = workArea.height * scale;
+
+  // Space held → pan mode (drag the canvas)
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLSelectElement)) setSpaceDown(true);
+    };
+    const up = (e: KeyboardEvent) => { if (e.code === "Space") setSpaceDown(false); };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
+  }, []);
+
+  // Enter closes the polygon being drawn
+  useEffect(() => {
+    if (tool !== "polygon") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") { e.preventDefault(); finishPolygon(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool, draft, stock.thickness]);
+
+  const finishPolygon = () => {
+    if (draft.length >= 3) {
+      addShape({
+        id: generateShapeId("poly"),
+        kind: "path",
+        points: draft,
+        closed: true,
+        depth: stock.thickness,
+        operation: "outline",
+      });
+      setSection("shape");
+    }
+    setTool("select");
+  };
 
   // Table coordinates: X to the right, Y "forward" (towards the back of the machine) — drawn as screen-up.
   const toPx = (x: number, y: number): [number, number] => [ox + x * scale, oy + tablePxH - y * scale];
@@ -132,10 +184,10 @@ export function Editor() {
   const dragBound = (shape: Shape) => (pos: { x: number; y: number }) => {
     // pos is the Konva node position in px (anchor: rect top-left corner in *screen* space or circle center)
     if (shape.kind === "rectangle") {
-      const [mmX, mmYtop] = fromPx(pos.x, pos.y);
-      const mmY = mmYtop - shape.height; // rect anchor is its bottom-left in table coords
-      const [cx, cy] = clampShapeToTable(shape, mmX, mmY, workArea.width, workArea.height);
-      const [px, py] = toPx(cx, cy + shape.height);
+      // Konva node position is the rectangle centre (offset = half size) so rotation is about the centre.
+      const [mmCx, mmCy] = fromPx(pos.x, pos.y);
+      const [cx, cy] = clampShapeToTable(shape, mmCx - shape.width / 2, mmCy - shape.height / 2, workArea.width, workArea.height);
+      const [px, py] = toPx(cx + shape.width / 2, cy + shape.height / 2);
       return { x: px, y: py };
     }
     if (shape.kind === "circle") {
@@ -158,9 +210,42 @@ export function Editor() {
       <Stage
         width={stageW}
         height={stageH}
-        onMouseDown={(e) => {
-          if (e.target === e.target.getStage() || e.target.name() === "table") select(null);
+        style={{ cursor: spaceDown ? "grab" : tool === "polygon" ? "crosshair" : "default" }}
+        onWheel={(e) => {
+          e.evt.preventDefault();
+          const factor = e.evt.deltaY < 0 ? 1.1 : 1 / 1.1;
+          setZoom(zoom * factor);
         }}
+        onMouseDown={(e) => {
+          const stage = e.target.getStage();
+          const pos = stage?.getPointerPosition();
+          if (spaceDown || e.evt.button === 1) {
+            if (pos) panStart.current = { x: pan.x, y: pan.y, px: pos.x, py: pos.y };
+            return;
+          }
+          const onBackground = e.target === stage || e.target.name() === "table";
+          if (tool === "polygon" && pos) {
+            if (e.evt.detail >= 2) { finishPolygon(); return; }
+            const [mx, my] = fromPx(pos.x, pos.y);
+            const clampedX = Math.min(Math.max(mx, 0), workArea.width);
+            const clampedY = Math.min(Math.max(my, 0), workArea.height);
+            setDraft([...draft, [Math.round(clampedX * 10) / 10, Math.round(clampedY * 10) / 10]]);
+            return;
+          }
+          if (onBackground) select(null);
+        }}
+        onMouseMove={(e) => {
+          const pos = e.target.getStage()?.getPointerPosition();
+          if (!pos) return;
+          if (panStart.current) {
+            const p = panStart.current;
+            setPan({ x: p.x + (pos.x - p.px), y: p.y + (pos.y - p.py) });
+            return;
+          }
+          if (tool === "polygon") setHover(fromPx(pos.x, pos.y));
+        }}
+        onMouseUp={() => { panStart.current = null; }}
+        onMouseLeave={() => { panStart.current = null; setHover(null); }}
       >
         <Layer>
           {/* table */}
@@ -204,26 +289,28 @@ export function Editor() {
 
             if (shape.kind === "rectangle") {
               const r = shape as RectangleShape;
-              const [px, py] = toPx(r.x, r.y + r.height);
+              const [px, py] = toPx(r.x + r.width / 2, r.y + r.height / 2);
               return (
                 <Rect
                   key={r.id}
                   x={px}
                   y={py}
+                  offsetX={(r.width * scale) / 2}
+                  offsetY={(r.height * scale) / 2}
                   width={r.width * scale}
                   height={r.height * scale}
                   rotation={-r.rotation}
                   fill={COLORS.fill}
                   stroke={stroke}
                   strokeWidth={strokeWidth}
-                  draggable
+                  draggable={!spaceDown && tool === "select"}
                   dragBoundFunc={dragBound(r)}
                   onClick={() => select(r.id)}
                   onTap={() => select(r.id)}
                   onDragStart={() => select(r.id)}
                   onDragEnd={(e: Konva.KonvaEventObject<DragEvent>) => {
-                    const [mx, myTop] = fromPx(e.target.x(), e.target.y());
-                    updateShape(r.id, { x: mx, y: myTop - r.height });
+                    const [mcx, mcy] = fromPx(e.target.x(), e.target.y());
+                    updateShape(r.id, { x: mcx - r.width / 2, y: mcy - r.height / 2 });
                   }}
                 />
               );
@@ -241,7 +328,7 @@ export function Editor() {
                   fill={COLORS.fill}
                   stroke={stroke}
                   strokeWidth={strokeWidth}
-                  draggable
+                  draggable={!spaceDown && tool === "select"}
                   dragBoundFunc={dragBound(c)}
                   onClick={() => select(c.id)}
                   onTap={() => select(c.id)}
@@ -266,7 +353,7 @@ export function Editor() {
                 stroke={stroke}
                 strokeWidth={strokeWidth}
                 fill={p.closed ? COLORS.fill : undefined}
-                draggable
+                draggable={!spaceDown && tool === "select"}
                 dragBoundFunc={dragBound(p)}
                 onClick={() => select(p.id)}
                 onTap={() => select(p.id)}
@@ -282,11 +369,31 @@ export function Editor() {
               />
             );
           })}
+
+          {tool === "polygon" && draft.length > 0 && (
+            <Group listening={false}>
+              <Line
+                points={[...draft, ...(hover ? [hover] : [])].flatMap(([x, y]) => toPx(x, y))}
+                stroke={COLORS.selected}
+                strokeWidth={1.5}
+                dash={[6, 4]}
+              />
+              {draft.map(([x, y], i) => {
+                const [px, py] = toPx(x, y);
+                return <Circle key={i} x={px} y={py} radius={3.5} fill={i === 0 ? COLORS.origin : COLORS.selected} />;
+              })}
+            </Group>
+          )}
         </Layer>
       </Stage>
+      {tool === "polygon" && (
+        <div className="editor-hint" data-testid="polygon-hint">
+          Polígono: clique para adicionar vértices ({draft.length}) · Enter ou duplo clique fecha · Esc cancela
+        </div>
+      )}
       <div className="editor-caption">
         Mesa {workArea.width} × {workArea.height} mm · Chapa {stock.width} × {stock.height} × {stock.thickness} mm ·{" "}
-        {scale.toFixed(2)} px/mm
+        {scale.toFixed(2)} px/mm · zoom {Math.round(zoom * 100)}% · roda = zoom, espaço+arrastar = mover
       </div>
     </div>
   );

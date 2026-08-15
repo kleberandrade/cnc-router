@@ -9,7 +9,7 @@ Planejamento derivado da auditoria (`docs/auditoria.md`). Cada sprint é um arqu
 | [02](sprint-02-materiais-e-ferramenta.md) ✅ | Materiais (MDF, compensado, pinus, alumínio) e ferramenta | 01 | M |
 | [03](sprint-03-motor-de-percurso-e-tempo.md) ✅ | Motor único de percurso + estimativa de tempo | 01 | M |
 | [04](sprint-04-simulador.md) ✅ | Simulador: tempo real, step/step, barra de tempo, mesa/chapa em 3D | 03 | G |
-| [05](sprint-05-toolbar.md) | Toolbar reorganizada, atalhos, undo/redo, status | 01, 02, 03 | M |
+| [05](sprint-05-toolbar.md) ✅ | Toolbar reorganizada, atalhos, undo/redo, status | 01, 02, 03 | M |
 | [06](sprint-06-qualidade-de-usinagem.md) | Compensação de fresa, pocket real, ordem de operações, SVG melhor | 03 | G |
 
 Ordem recomendada: 00 → 01 → 03 → 04 → 02 → 05 → 06 (mesa + simulador crível primeiro; 02 e 05 podem ser paralelizadas após 01/03).

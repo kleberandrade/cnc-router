@@ -2,6 +2,25 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 05 — Toolbar reorganizada] — 2026-08-15
+
+### Adicionado
+- **ActionBar** (topo, ícones próprios em `public/icons.svg`): Novo · Abrir/Salvar projeto `.json` · Importar SVG · Desfazer/Refazer · Retângulo · Círculo · **Polígono** (cliques no canvas, Enter/duplo clique fecha) · Duplicar · Excluir · Zoom −/%/+ · Exportar G-code. Rótulos escondidos abaixo de 1400 px (tooltips permanecem).
+- **SidePanel** em acordeão (uma seção aberta por vez, resumo na seção fechada): Peça selecionada (X, Y, largura/altura ou raio, **rotação**, profundidade, cortar através, operação), Máquina, Chapa/base, Material & ferramenta, Corte (GRBL). Colapsável pelo botão ☰ do cabeçalho.
+- **StatusBar** (rodapé): mesa/chapa, nº de formas, tempo estimado, avisos/erros clicáveis (selecionam a forma e abrem a seção Peça).
+- `NumberField`: unidade sufixada, min/max/step, setas ± (Shift ×10), Enter confirma, nunca envia valor inválido ao store.
+- **Undo/redo** (`zundo`, 100 estados, só formas+configurações) — botões e Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z.
+- **Salvar/abrir projeto** `.json` versionado (`lib/projectFile.ts`, mesmo `migrateProject` da persistência) — Ctrl+S salva.
+- Editor: **zoom** (roda, +/−/0, botões) e **pan** (espaço + arrastar ou botão do meio); polígono com pré-visualização; retângulos rotacionam em torno do centro (coerente com o G-code).
+- Atalhos: R/C/P (formas/polígono), Del, Ctrl+D, setas movem 1 mm (Shift = 10 mm), Esc desseleciona/cancela, +/−/0 zoom.
+- `state/uiStore.ts` (aviso, seção aberta, zoom/pan, ferramenta ativa, painel), ações `duplicateShape`, `nudgeShape`, `loadProject`, `translateShape` no store.
+
+### Alterado
+- `Toolbar.tsx` virou apenas um wrapper de `ActionBar + SidePanel + StatusBar` (o App posiciona cada parte); todos os `data-testid` anteriores foram mantidos.
+
+### Testes
+- Toolbar reescrito para a nova UI (undo/redo, atalhos, duplicar, salvar/abrir, polígono, status bar), `NumberField.test.tsx`, `projectFile.test.ts`; e2e `toolbar.spec.ts` (undo/redo, salvar→abrir, edição numérica ↔ canvas, polígono, zoom, atalhos, painel). Total: 154 unitários, 27 e2e.
+
 ## [Sprint 02 — Materiais e ferramenta] — 2026-08-15
 
 ### Adicionado

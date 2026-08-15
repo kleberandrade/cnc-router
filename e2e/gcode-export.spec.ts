@@ -9,7 +9,7 @@ test.describe("G-code export flow", () => {
     await page.getByTestId("add-rectangle").click();
 
     // Properties panel should appear once a shape is selected.
-    await expect(page.getByText("Propriedades")).toBeVisible();
+    await expect(page.getByTestId("shape-depth")).toBeVisible();
 
     const downloadPromise = page.waitForEvent("download");
     await page.getByTestId("export-gcode").click();
@@ -34,7 +34,8 @@ test.describe("G-code export flow", () => {
     await page.getByTestId("add-rectangle").click();
     // Setting passDepth to 0 is rejected by the input, so poke the store through the UI limits:
     // an empty field keeps the last valid value, so export must still work.
-    const pass = page.getByLabel(/Profundidade por passe/);
+    await page.getByTestId("section-toggle-cut").click();
+    const pass = page.getByTestId("cut-passDepth");
     await pass.fill("");
     const downloadPromise = page.waitForEvent("download");
     await page.getByTestId("export-gcode").click();

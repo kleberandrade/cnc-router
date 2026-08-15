@@ -7,14 +7,16 @@ test.describe("machine & stock (sprint 01)", () => {
     const caption = page.locator(".editor-caption");
     await expect(caption).toContainText("Mesa 600 × 400 mm");
 
+    await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("machine-preset").selectOption("1325");
     await expect(caption).toContainText("Mesa 1300 × 2500 mm");
-    await expect(page.getByText("Propriedades")).toBeVisible(); // shape still selected/present
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
   });
 
   test("a shape outside the table blocks export with an inline error", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
+    await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("machine-preset").selectOption("custom");
     await page.getByTestId("work-width").fill("20");
     await expect(page.getByTestId("issues")).toContainText("fora da área útil");
@@ -25,6 +27,7 @@ test.describe("machine & stock (sprint 01)", () => {
   test("a shape outside the stock only warns and export still works", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
+    await page.getByTestId("section-toggle-stock").click();
     await page.getByTestId("stock-width").fill("30"); // rect spans x 10..50 → outside stock but inside table
     await expect(page.getByTestId("issues")).toContainText("fora da chapa");
     const downloadPromise = page.waitForEvent("download");
@@ -34,6 +37,7 @@ test.describe("machine & stock (sprint 01)", () => {
 
   test("dragging a shape cannot leave the table", async ({ page }) => {
     await page.goto("/");
+    await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("machine-preset").selectOption("3018");
     await page.getByTestId("add-circle").click();
     const canvas = page.locator(".editor-canvas canvas").first();
@@ -49,7 +53,6 @@ test.describe("machine & stock (sprint 01)", () => {
     await page.mouse.move(startX + 2000, startY - 2000, { steps: 10 });
     await page.mouse.up();
     // The shape must have been clamped: no "shape outside table" error may appear.
-    await expect(page.locator(".issue-error")).toHaveCount(0);
-    await expect(page.getByTestId("issues")).not.toContainText("Forma 1 está fora da área útil");
+    await expect(page.locator(".status-bar .issue-error")).toHaveCount(0);
   });
 });

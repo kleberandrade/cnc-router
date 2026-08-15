@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { temporal, type TemporalState } from "zundo";
+import { useStore } from "zustand";
 import type { Shape, MachineSettings } from "../types";
 import { DEFAULT_MACHINE_SETTINGS } from "../types";
 import { generateShapeId } from "../lib/ids";
@@ -7,6 +9,14 @@ import { presetIdForWorkArea } from "../lib/machinePresets";
 import { applyMaterial, applyToolDiameter } from "../lib/materials";
 import type { WorkArea, Stock, MaterialId, CutParamKey } from "../types";
 import { THROUGH_CUT_EXTRA } from "../types";
+
+/** Translate any shape by (dx, dy) mm. */
+export function translateShape(shape: Shape, dx: number, dy: number): Shape {
+  if (shape.kind === "path") {
+    return { ...shape, points: shape.points.map(([x, y]) => [x + dx, y + dy] as [number, number]) };
+  }
+  return { ...shape, x: shape.x + dx, y: shape.y + dy };
+}
 
 /** Depth a through-cut shape should have for a given stock thickness. */
 export const throughCutDepth = (thickness: number) => Math.round((thickness + THROUGH_CUT_EXTRA) * 100) / 100;
@@ -67,9 +77,16 @@ interface ProjectState {
   clear: () => void;
   /** Clears shapes AND resets machine settings to defaults. */
   newProject: () => void;
+  /** Duplicate a shape (offset by 10 mm) and select the copy. */
+  duplicateShape: (id: string) => void;
+  /** Move a shape by (dx, dy) mm. */
+  nudgeShape: (id: string, dx: number, dy: number) => void;
+  /** Replace the whole project (used by "open .json"). */
+  loadProject: (project: { shapes: Shape[]; settings: MachineSettings }) => void;
 }
 
 export const useProjectStore = create<ProjectState>()(
+  temporal(
   persist(
     (set) => ({
   shapes: [],
@@ -139,6 +156,20 @@ export const useProjectStore = create<ProjectState>()(
 
   newProject: () =>
     set({ shapes: [], selectedId: null, settings: DEFAULT_MACHINE_SETTINGS }),
+
+  duplicateShape: (id) =>
+    set((state) => {
+      const src = state.shapes.find((s) => s.id === id);
+      if (!src) return {};
+      const copy = translateShape({ ...src, id: generateShapeId(src.kind) }, 10, 10);
+      return { shapes: [...state.shapes, copy], selectedId: copy.id };
+    }),
+
+  nudgeShape: (id, dx, dy) =>
+    set((state) => ({ shapes: state.shapes.map((s) => (s.id === id ? translateShape(s, dx, dy) : s)) })),
+
+  loadProject: (project) =>
+    set({ shapes: project.shapes, settings: project.settings, selectedId: null }),
     }),
     {
       name: PROJECT_STORAGE_KEY,
@@ -147,5 +178,18 @@ export const useProjectStore = create<ProjectState>()(
       partialize: (state) => ({ shapes: state.shapes, settings: state.settings }),
       migrate: migrateProject,
     }
+  ),
+  {
+    limit: 100,
+    // Undo/redo tracks project content only (not the selection).
+    partialize: (state) => ({ shapes: state.shapes, settings: state.settings }) as ProjectState,
+    equality: (a, b) => a.shapes === b.shapes && a.settings === b.settings,
+  }
   )
 );
+
+/** Undo/redo API (zundo temporal store), usable as a hook. */
+export const useTemporalStore = <T,>(selector: (state: TemporalState<ProjectState>) => T): T =>
+  useStore(useProjectStore.temporal, selector);
+export const undo = () => useProjectStore.temporal.getState().undo();
+export const redo = () => useProjectStore.temporal.getState().redo();

@@ -71,12 +71,18 @@ src/
 │  ├─ machinePresets.ts    # tamanhos comuns de router
 │  ├─ materials.ts         # presets de material (MDF, compensado, pinus, alumínio) e escala por Ø
 │  ├─ editorMath.ts        # escala/grade/clamp do editor (puro, testável)
+│  ├─ projectFile.ts       # salvar/abrir projeto .json versionado
 │  ├─ numberInput.ts       # parse defensivo de campos numéricos
 │  └─ ids.ts               # ids únicos de formas
 ├─ state/store.ts          # Zustand (+persist em localStorage): formas + configurações da máquina
 ├─ state/simStore.ts       # estado do player da simulação (tempo, velocidade, modo de passo)
+├─ state/uiStore.ts        # estado de UI (aviso, seção aberta, zoom/pan, ferramenta ativa)
 └─ components/
-   ├─ Toolbar.tsx           # projeto, formas, propriedades, máquina, chapa, avisos, corte, export G-code
+   ├─ ActionBar.tsx         # barra de ações (novo/abrir/salvar, formas, undo/redo, zoom, exportar) + atalhos
+   ├─ SidePanel.tsx         # painel em acordeão: peça, máquina, chapa, material, corte
+   ├─ StatusBar.tsx         # rodapé: mesa/chapa, nº formas, tempo estimado, avisos clicáveis
+   ├─ NumberField.tsx       # campo numérico com unidade/step/validação
+   ├─ Toolbar.tsx           # wrapper ActionBar+SidePanel+StatusBar (usado nos testes)
    ├─ Notice.tsx            # avisos inline (substitui alert)
    ├─ Editor.tsx             # canvas 2D (Konva) — mesa em mm, chapa, origem, arrastar/selecionar formas
    └─ Simulator.tsx           # visualização 3D (Three.js) do percurso da ferramenta
@@ -84,10 +90,9 @@ src/
 
 ## Extensões futuras sugeridas
 
-- Redimensionar formas por arraste (handles) no editor, além de mover
+- Redimensionar formas por arraste (handles) no editor (já é possível pelo painel numérico)
 - Texto → contorno (para gravação de nomes/logos)
 - Importar DXF além de SVG
-- Salvar/carregar projetos em arquivo `.json` (localStorage já implementado)
 - Nesting automático de peças na chapa
 
 ## Convenções de coordenadas
@@ -95,3 +100,7 @@ src/
 - Internamente tudo é em **mm**, no sistema da **mesa**: X para a direita, Y para o fundo da máquina, origem no canto frontal esquerdo da área útil.
 - A **origem de trabalho** (G54, X0 Y0 do G-code) é definida pela chapa: canto frontal esquerdo ou centro. O G-code exportado já sai transformado.
 - SVGs importados são lidos com Y "para baixo" (padrão SVG) e ainda não são espelhados — tratamento de unidades/eixos vem na Sprint 06.
+
+## Atalhos de teclado
+
+R retângulo · C círculo · P polígono (Enter/duplo clique fecha, Esc cancela) · Del excluir · Ctrl+D duplicar · Ctrl+Z / Ctrl+Y desfazer/refazer · Ctrl+S salvar projeto · setas movem 1 mm (Shift = 10 mm) · Esc desseleciona · roda do mouse zoom · +/−/0 zoom/ajustar · espaço + arrastar move a vista · no simulador: espaço play/pause, ←/→ passo, Home/End.
