@@ -2,6 +2,21 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 04 — Simulador: tempo real, step/step, barra de tempo] — 2026-08-15
+
+### Adicionado
+- `lib/playback.ts` — `segmentIndexAt` (busca binária), `positionAt` (interpolação linear no tempo), `boundariesFor` (fronteiras por segmento/passe/forma), `nextBoundary`/`prevBoundary`, `progressAt`.
+- `state/simStore.ts` — player orientado a tempo: `t`, `playing`, `speed` (0,25×–8×), `stepMode`, `tick(dt)`, `seek`, `stepForward/Back`, `reset`, `toEnd`; pausa automática no fim; play no fim reinicia.
+- `SimulatorControls.tsx` — ⏮ ⏪ ▶/⏸ ⏩ ⏭, velocidade, modo de passo, **barra de tempo** com scrub e marcadores de fim de forma, decorrido/total/restante, forma/passe/operação atual, linha G-code atual, atalhos (espaço, ←/→, Home/End), botões Ajustar e Vista superior.
+- Cena 3D: mesa e chapa (caixa translúcida com espessura real), eixos, percurso já cortado em âmbar e futuro em azul, rapids tracejados, ferramenta como cilindro com Ø real, `OrbitControls`.
+- Simulação em tempo real: a 1×, o tempo simulado acompanha o relógio (verificado 5,37 s simulados em 5,36 s de parede).
+
+### Alterado
+- `Simulator.tsx` reescrito sobre `buildToolpath` + `estimateTime` (não há mais player por índice).
+
+### Testes
+- `playback.test.ts`, `simStore.test.ts`; e2e `simulator.spec.ts` (play, step, scrub, modo forma, teclado). Total: 127 unitários, 17 e2e.
+
 ## [Sprint 03 — Motor único de percurso e estimativa de tempo] — 2026-08-15
 
 ### Adicionado

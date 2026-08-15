@@ -2,7 +2,7 @@
 
 Editor web para CNC router: desenhe peças (formas prontas ou SVG importado) sobre a mesa e a chapa da sua máquina, configure a máquina e exporte G-code (dialeto GRBL), com simulação 3D do percurso da fresa antes de rodar na máquina.
 
-Funcionalidades atuais: presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
+Funcionalidades atuais: simulador 3D em tempo real com passo a passo (segmento/passe/forma), barra de tempo e estimativa de tempo total; presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
 
 100% client-side — não precisa de servidor/backend para funcionar.
 
@@ -64,6 +64,7 @@ src/
 │  ├─ toolpath.ts          # formas → Segment[] (fonte única para G-code e simulador)
 │  ├─ timing.ts            # estimativa de tempo por segmento/total
 │  ├─ passes.ts            # profundidades por passe
+│  ├─ playback.ts          # posição no tempo, fronteiras de passo (segmento/passe/forma)
 │  ├─ gcode.ts             # Segment[] → G-code GRBL + validação/cabeçalho
 │  ├─ svgImport.ts         # SVG (rect/circle/path M-L-H-V-Z) → Shape[]
 │  ├─ validate.ts          # avisos/erros: limites da mesa, chapa, profundidade, Z
@@ -72,6 +73,7 @@ src/
 │  ├─ numberInput.ts       # parse defensivo de campos numéricos
 │  └─ ids.ts               # ids únicos de formas
 ├─ state/store.ts          # Zustand (+persist em localStorage): formas + configurações da máquina
+├─ state/simStore.ts       # estado do player da simulação (tempo, velocidade, modo de passo)
 └─ components/
    ├─ Toolbar.tsx           # projeto, formas, propriedades, máquina, chapa, avisos, corte, export G-code
    ├─ Notice.tsx            # avisos inline (substitui alert)

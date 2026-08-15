@@ -185,15 +185,17 @@
 
 .simulator {
   width: 100%;
-  max-width: 720px;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .simulator-canvas {
+  flex: 1;
+  min-height: 320px;
   width: 100%;
-  height: 480px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -201,22 +203,146 @@
 
 .simulator-controls {
   display: flex;
+  flex-direction: column;
   gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  outline: none;
+}
+
+.simulator-controls:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.sim-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .simulator-controls button {
   border: 1px solid var(--border);
-  background: var(--panel);
+  background: var(--paper);
   border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 6px 10px;
+  font-size: 13px;
   cursor: pointer;
+  min-width: 34px;
+}
+
+.simulator-controls button.primary {
+  background: var(--blueprint);
+  color: white;
+  border-color: var(--blueprint);
+  font-weight: 600;
+  min-width: 150px;
 }
 
 .simulator-controls button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.sim-select {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.sim-select select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+
+.sim-timeline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sim-clock {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  min-width: 46px;
+  text-align: center;
+}
+
+.sim-range-wrap {
+  position: relative;
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.sim-range-wrap input[type="range"] {
+  width: 100%;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  accent-color: var(--accent);
+}
+
+.sim-ticks {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 2px;
+  height: 20px;
+  pointer-events: none;
+}
+
+.sim-tick {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--warn);
+  opacity: 0.6;
+  transform: translateX(-1px);
+}
+
+.sim-status {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.sim-line {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 6px;
+  min-width: 140px;
+}
+
+.sim-muted {
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.simulator-legend {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.legend-cut { color: #f3b64c; }
+.legend-future { color: #4f88b8; }
+.legend-rapid { color: #8aa4bd; }
 
 /* Notice (substitui window.alert) */
 .notice {
@@ -268,13 +394,6 @@
   color: var(--muted);
 }
 
-.simulator-time {
-  margin-left: auto;
-  font-size: 13px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  align-self: center;
-}
 
 .toolbar-estimate {
   font-size: 12px;

@@ -77,6 +77,6 @@ test.describe("time estimate (sprint 03)", () => {
     const text = await fs.readFile(path as string, "utf8");
     expect(text).toMatch(/; tempo estimado: \d+/);
     await page.getByTestId("tab-simulator").click();
-    await expect(page.getByTestId("estimated-time")).toContainText(/Tempo estimado: \d+/);
+    await expect(page.getByTestId("sim-total")).not.toHaveText("00:00");
   });
 });
