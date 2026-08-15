@@ -34,6 +34,12 @@ interface UiState {
   /** Whether the side panel is collapsed (narrow screens). */
   panelOpen: boolean;
   togglePanel: () => void;
+  setPanelOpen: (open: boolean) => void;
+  /** Mobile bottom sheet (settings) open state and size. */
+  sheetOpen: boolean;
+  sheetExpanded: boolean;
+  setSheetOpen: (open: boolean) => void;
+  toggleSheetExpanded: () => void;
 }
 
 export const ZOOM_MIN = 0.25;
@@ -62,4 +68,9 @@ export const useUiStore = create<UiState>((set) => ({
   setDraft: (draft) => set({ draft }),
   panelOpen: true,
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
+  setPanelOpen: (panelOpen) => set({ panelOpen }),
+  sheetOpen: false,
+  sheetExpanded: false,
+  setSheetOpen: (sheetOpen) => set({ sheetOpen }),
+  toggleSheetExpanded: () => set((s) => ({ sheetExpanded: !s.sheetExpanded })),
 }));

@@ -108,6 +108,7 @@ test.describe("top bar (sprint 07)", () => {
     for (const width of [1280, 1024, 800]) {
       await page.setViewportSize({ width, height: 800 });
       await page.goto("/");
+      if ((await page.getByTestId("section-toggle-machine").count()) === 0) await page.getByTestId("panel-toggle").click();
       await page.getByTestId("section-toggle-machine").click();
       for (const id of ["work-width", "work-height", "work-z"]) {
         const el = page.getByTestId(id);

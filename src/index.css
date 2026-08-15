@@ -35,7 +35,7 @@
   --danger: #b3261e;
   --success: #3a7d44;
 
-  --font-display: "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
+  --font-display: "Fraunces Variable", "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
 }

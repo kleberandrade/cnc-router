@@ -2,6 +2,17 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 08 — Responsivo e PWA] — 2026-08-15
+
+### Adicionado
+- **Layouts por breakpoint** (`useLayout`): desktop ≥ 1200 px (painel fixo), tablet 768–1199 px (painel vira gaveta sobreposta, fechada por padrão), celular < 768 px (barra superior compacta, **barra inferior de ações** com formas/undo/redo/excluir ou transporte da simulação, **folha inferior** arrastável/expansível com todas as seções de ajustes, rodapé compacto).
+- **Toque**: pinça = zoom e dois dedos = mover no editor; toque adiciona vértices do polígono com botão "Fechar polígono"; alvos ≥ 44 px em ponteiros grosseiros; inputs com teclado numérico e 16 px (sem zoom do iOS); `touch-action: none` nos canvas; `safe-area-inset`.
+- **PWA**: `vite-plugin-pwa` (manifest pt-BR, ícones 192/512 + maskable + Apple touch, `display: standalone`, service worker com precache de build e fontes, `autoUpdate` com aviso "Nova versão disponível → Atualizar"), fontes **auto-hospedadas** via `@fontsource` (Inter, JetBrains Mono, Fraunces) — nada mais vem do Google Fonts; funciona offline após a primeira visita; entrada "Instalar aplicativo" no menu do projeto (Chrome/Edge/Android) e dica para iOS.
+- `BottomBar`, `BottomSheet`, `PwaBanner`, `lib/pwa.ts` (store: `needRefresh`, `canInstall`, `update`, `install`).
+
+### Testes
+- Playwright com projetos `chromium` (desktop), `mobile-chrome` (Pixel 7) e `tablet-chrome` (iPad, Chromium): fluxo completo por toque, sem scroll horizontal, alvos ≥ 40 px, pinça muda o zoom; `pwa.spec.ts`: manifest válido, SW ativo, sem Google Fonts, **abre e funciona offline**. Total: 173 unitários, 43 e2e (+1 skip condicional).
+
 ## [Sprint 07 — Interface unificada (ribbon), espaçamento, ícones] — 2026-08-15
 
 ### Adicionado

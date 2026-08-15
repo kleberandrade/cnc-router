@@ -8,6 +8,7 @@ import { useProjectActions } from "./useProjectActions";
 import { useUiStore, type View } from "../state/uiStore";
 import { useSimStore, SPEEDS, type Speed } from "../state/simStore";
 import type { StepMode } from "../lib/playback";
+import { useInstallAction } from "../hooks/useInstallAction";
 
 const ICON = 18;
 
@@ -52,6 +53,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<null | "shortcuts" | "about">(null);
   const ref = useRef<HTMLDivElement>(null);
+  const installAction = useInstallAction();
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
@@ -83,6 +85,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
           <div className="menu-sep" />
+          {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
           {item(<Keyboard size={16} />, "Atalhos de teclado", () => setDialog("shortcuts"), "menu-shortcuts", "?")}
           {item(<Info size={16} />, "Sobre", () => setDialog("about"), "menu-about")}
         </div>

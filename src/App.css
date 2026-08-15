@@ -1024,3 +1024,290 @@
 .workspace {
   padding: var(--s4);
 }
+
+/* ---------- Responsive layouts (Sprint 08) ---------- */
+.editor-canvas,
+.simulator-canvas {
+  touch-action: none;
+}
+
+.pwa-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s4);
+  background: rgba(47, 109, 143, 0.1);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.pwa-action {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: var(--s1) var(--s3);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Tablet: side panel as an overlay drawer */
+.app-body.tablet {
+  position: relative;
+  grid-template-columns: 1fr;
+}
+
+.app-body.tablet .side-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(360px, 90vw);
+  z-index: 30;
+  box-shadow: 0 10px 40px rgba(22, 32, 43, 0.25);
+}
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 32, 43, 0.25);
+  z-index: 25;
+}
+
+/* Mobile */
+.app-body.mobile {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+.app-body.mobile .workspace {
+  flex: 1;
+  padding: var(--s2);
+}
+
+.mobile-notice {
+  padding: var(--s2) var(--s2) 0;
+}
+
+.bottom-bar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 2px;
+  padding: var(--s1) var(--s2) calc(var(--s1) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bb-btn {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 48px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  padding: var(--s1) 2px;
+}
+
+.bb-btn:disabled {
+  opacity: 0.35;
+}
+
+.bb-btn.active {
+  background: var(--blueprint);
+  color: white;
+}
+
+.bb-btn.primary {
+  background: var(--blueprint);
+  color: white;
+}
+
+.bb-label {
+  font-size: 10px;
+  line-height: 11px;
+  white-space: nowrap;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 32, 43, 0.3);
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  height: 52vh;
+  max-height: calc(100vh - 80px);
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -10px 40px rgba(22, 32, 43, 0.25);
+  display: flex;
+  flex-direction: column;
+  transition: height 0.2s ease;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet.expanded {
+  height: 88vh;
+}
+
+.sheet-handle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s3) var(--s1) var(--s3);
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-handle {
+  flex: 1;
+  height: 32px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+.sheet-grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+}
+
+.sheet-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sheet-body .side-panel {
+  border-right: none;
+  height: auto;
+  min-height: 100%;
+}
+
+@media (max-width: 767px) {
+  .topbar {
+    padding: 0 var(--s2);
+    gap: var(--s2);
+    height: 56px;
+  }
+  .topbar .ribbon,
+  .topbar .panel-toggle,
+  .topbar [data-testid="panel-toggle"] {
+    display: none;
+  }
+  .topbar-right .rb.primary {
+    height: 40px;
+    padding: 0 var(--s3);
+  }
+  .topbar-right .rb-label {
+    display: none;
+  }
+  .brand-name {
+    display: none;
+  }
+  .status-bar {
+    gap: var(--s3);
+    padding: var(--s1) var(--s3);
+    font-size: 11px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .status-item {
+    flex: none;
+  }
+  .status-issues[open] .issue-list {
+    left: auto;
+    right: 0;
+    min-width: 260px;
+    max-width: 90vw;
+  }
+  .editor-caption {
+    display: none;
+  }
+  .simulator {
+    gap: var(--s2);
+  }
+  .simulator-canvas {
+    min-height: 220px;
+  }
+  .simulator-controls {
+    padding: var(--s2) var(--s3);
+  }
+  .sim-status {
+    gap: var(--s2);
+    font-size: 11px;
+  }
+  .sim-line {
+    min-width: 0;
+  }
+  .simulator-legend {
+    display: none;
+  }
+  .side-panel select,
+  .side-panel .number-field-input input {
+    height: 40px;
+    font-size: 16px; /* avoids iOS zoom on focus */
+  }
+  .side-panel label.checkbox input {
+    width: 20px;
+    height: 20px;
+  }
+  .panel-header {
+    min-height: 44px;
+  }
+  .toolbar button {
+    min-height: 44px;
+  }
+  .dialog {
+    min-width: 0;
+    width: calc(100vw - 32px);
+    padding: var(--s4);
+  }
+}
+
+/* Coarse pointers (touch): bigger targets in the ribbon and controls */
+@media (pointer: coarse) {
+  .rb {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .rgroup {
+    justify-content: center;
+  }
+  .rgroup-title {
+    display: none;
+  }
+  .icon-button,
+  .tab {
+    min-height: 40px;
+  }
+  .sim-range-wrap input[type="range"] {
+    height: 32px;
+  }
+}

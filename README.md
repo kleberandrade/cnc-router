@@ -4,7 +4,7 @@ Editor web para CNC router: desenhe peças (formas prontas ou SVG importado) sob
 
 Funcionalidades atuais: simulador 3D em tempo real com passo a passo (segmento/passe/forma), barra de tempo e estimativa de tempo total; presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), presets de material (MDF, compensado, pinus, alumínio) que preenchem avanço/mergulho/RPM/passe/stepover a partir do Ø da fresa (com override manual), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
 
-100% client-side — não precisa de servidor/backend para funcionar.
+100% client-side — não precisa de servidor/backend para funcionar. Instalável como **PWA** (funciona offline) e responsivo (desktop, tablet e celular com toque).
 
 ## Stack
 
@@ -32,7 +32,7 @@ npm run test:watch        # modo watch
 npm run test:coverage     # com relatório de cobertura (thresholds: 80% linhas/statements/funções, 75% branches)
 
 npx playwright install    # baixa os navegadores do Playwright (uma vez só)
-npm run test:e2e          # testes end-to-end + smoke (builda/serve e roda no Chromium)
+npm run test:e2e          # end-to-end: desktop (chromium), celular (Pixel 7) e tablet (iPad) — todos em Chromium
 npm run test:e2e:ui       # mesma coisa, com UI interativa do Playwright
 ```
 
@@ -73,6 +73,7 @@ src/
 │  ├─ materials.ts         # presets de material (MDF, compensado, pinus, alumínio) e escala por Ø
 │  ├─ editorMath.ts        # escala/grade/clamp do editor (puro, testável)
 │  ├─ projectFile.ts       # salvar/abrir projeto .json versionado
+│  ├─ pwa.ts               # registro do service worker, atualização e instalação
 │  ├─ numberInput.ts       # parse defensivo de campos numéricos
 │  └─ ids.ts               # ids únicos de formas
 ├─ state/store.ts          # Zustand (+persist em localStorage): formas + configurações da máquina
@@ -84,6 +85,9 @@ src/
    ├─ SidePanel.tsx         # painel em acordeão: peça, máquina, chapa, material, corte
    ├─ StatusBar.tsx         # rodapé: mesa/chapa, nº formas, tempo estimado, avisos clicáveis
    ├─ NumberField.tsx       # campo numérico com unidade/step/validação
+   ├─ BottomBar.tsx         # barra de ações do celular
+   ├─ BottomSheet.tsx       # folha inferior (ajustes) do celular
+   ├─ PwaBanner.tsx         # aviso de atualização / instalar app
    ├─ Toolbar.tsx           # wrapper TopBar+SidePanel+StatusBar (usado nos testes)
    ├─ Notice.tsx            # avisos inline (substitui alert)
    ├─ Editor.tsx             # canvas 2D (Konva) — mesa em mm, chapa, origem, arrastar/selecionar formas

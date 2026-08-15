@@ -48,6 +48,7 @@ export function Editor() {
   const [hover, setHover] = useState<[number, number] | null>(null);
   const [spaceDown, setSpaceDown] = useState(false);
   const panStart = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const pinch = useRef<{ dist: number; zoom: number; cx: number; cy: number; pan: { x: number; y: number } } | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -60,6 +61,7 @@ export function Editor() {
   }, []);
 
   const scale = fitScale(viewport.w, viewport.h, workArea.width, workArea.height) * zoom;
+  if (typeof window !== "undefined") (window as unknown as { __zoom?: number }).__zoom = zoom;
   const stageW = viewport.w;
   const stageH = viewport.h;
   const ox = RULER + PADDING + pan.x; // px origin of the table (left)
@@ -247,6 +249,41 @@ export function Editor() {
         }}
         onMouseUp={() => { panStart.current = null; }}
         onMouseLeave={() => { panStart.current = null; setHover(null); }}
+        onTouchStart={(e) => {
+          const t = e.evt.touches;
+          if (t.length === 2) {
+            e.evt.preventDefault();
+            const dx = t[0].clientX - t[1].clientX;
+            const dy = t[0].clientY - t[1].clientY;
+            pinch.current = { dist: Math.hypot(dx, dy), zoom, cx: (t[0].clientX + t[1].clientX) / 2, cy: (t[0].clientY + t[1].clientY) / 2, pan: { ...pan } };
+          } else if (tool === "polygon" && t.length === 1) {
+            const stage = e.target.getStage();
+            const pos = stage?.getPointerPosition();
+            const onBackground = e.target === stage || e.target.name() === "table";
+            if (pos && onBackground) {
+              const [mx, my] = fromPx(pos.x, pos.y);
+              const clampedX = Math.min(Math.max(mx, 0), workArea.width);
+              const clampedY = Math.min(Math.max(my, 0), workArea.height);
+              setDraft([...draft, [Math.round(clampedX * 10) / 10, Math.round(clampedY * 10) / 10]]);
+            }
+          }
+        }}
+        onTouchMove={(e) => {
+          const t = e.evt.touches;
+          if (t.length === 2 && pinch.current) {
+            e.evt.preventDefault();
+            const dx = t[0].clientX - t[1].clientX;
+            const dy = t[0].clientY - t[1].clientY;
+            const dist = Math.hypot(dx, dy);
+            const cx = (t[0].clientX + t[1].clientX) / 2;
+            const cy = (t[0].clientY + t[1].clientY) / 2;
+            const p = pinch.current;
+            const nextZoom = Math.min(Math.max(p.zoom * (dist / Math.max(p.dist, 1)), 0.25), 8);
+            setZoom(nextZoom);
+            setPan({ x: p.pan.x + (cx - p.cx), y: p.pan.y + (cy - p.cy) });
+          }
+        }}
+        onTouchEnd={(e) => { if (e.evt.touches.length < 2) pinch.current = null; }}
       >
         <Layer>
           {/* table */}
