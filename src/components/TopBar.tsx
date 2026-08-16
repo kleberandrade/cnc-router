@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, RectangleHorizontal, Magnet, Settings2, Type,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, BookOpen, Compass, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon,
 } from "lucide-react";
@@ -16,6 +16,8 @@ import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
 import { PRODUCT, AUTHOR, THIRD_PARTY } from "../content/about";
 import { FeedbackDialog } from "./FeedbackDialog";
+import { EXAMPLES } from "../content/examples";
+import { resetTour } from "./Tour";
 import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVersionSeen } from "../lib/version";
 
 function RibbonGroup({ title, children }: { title: string; children: ReactNode }) {
@@ -74,6 +76,10 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<Save size={16} />, "Salvar projeto", actions.saveProject, "menu-save", "Ctrl+S")}
           {item(<Upload size={16} />, "Importar SVG / DXF…", actions.importSvg, "menu-import")}
           <div className="menu-sep" />
+          <div className="menu-title"><BookOpen size={12} aria-hidden="true" /> Exemplos</div>
+          {EXAMPLES.map((ex) => item(<span className="menu-bullet" />, ex.title, () => actions.openExample(ex.id), `menu-example-${ex.id}`))}
+          {item(<Compass size={16} />, "Tour rápido", () => { resetTour(); useUiStore.getState().setTourOpen(true); }, "menu-tour")}
+          <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
           <div className="menu-sep" />
           {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
@@ -131,6 +137,10 @@ function Preferences() {
   const setTheme = useUiStore((s) => s.setTheme);
   const mouse = useUiStore((s) => s.mousePreset);
   const setMouse = useUiStore((s) => s.setMousePreset);
+  const density = useUiStore((s) => s.density);
+  const setDensity = useUiStore((s) => s.setDensity);
+  const textSize = useUiStore((s) => s.textSize);
+  const setTextSize = useUiStore((s) => s.setTextSize);
   return (
     <>
       <h2>Preferências</h2>
@@ -147,6 +157,21 @@ function Preferences() {
         <select value={mouse} onChange={(e) => setMouse(e.target.value as "standard" | "fusion")} data-testid="pref-mouse">
           <option value="standard">Padrão — esquerdo orbita, direito move, roda zoom</option>
           <option value="fusion">Fusion — botão do meio move, esquerdo orbita</option>
+        </select>
+      </label>
+      <label className="pref-row">
+        Densidade
+        <select value={density} onChange={(e) => setDensity(e.target.value as "compact" | "comfortable")} data-testid="pref-density">
+          <option value="compact">Compacta (padrão)</option>
+          <option value="comfortable">Confortável — mais espaço e alvos maiores</option>
+        </select>
+      </label>
+      <label className="pref-row">
+        Tamanho do texto
+        <select value={textSize} onChange={(e) => setTextSize(e.target.value as "small" | "normal" | "large")} data-testid="pref-text">
+          <option value="small">Pequeno</option>
+          <option value="normal">Normal</option>
+          <option value="large">Grande</option>
         </select>
       </label>
       <p className="hint">Tudo em milímetros. Snap e ordem de corte ficam no projeto.</p>

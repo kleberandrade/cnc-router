@@ -10,6 +10,9 @@ import { Notice } from "./components/Notice";
 import { useUiStore } from "./state/uiStore";
 import { useLayout } from "./hooks/useMediaQuery";
 import { useTheme } from "./hooks/useTheme";
+import { EmptyState } from "./components/EmptyState";
+import { Tour, tourDone } from "./components/Tour";
+import { useProjectStore } from "./state/store";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
@@ -24,6 +27,19 @@ function App() {
   const setNotice = useUiStore((s) => s.setNotice);
   const layout = useLayout();
   useTheme();
+  const shapeCount = useProjectStore((s) => s.shapes.length);
+  const tourOpen = useUiStore((s) => s.tourOpen);
+  const setTourOpen = useUiStore((s) => s.setTourOpen);
+  const emptyDismissed = useUiStore((s) => s.emptyDismissed);
+  const tool = useUiStore((s) => s.tool);
+  // First visit on a desktop-sized screen: offer the tour once (never on mobile).
+  useEffect(() => {
+    if (layout === "desktop" && shapeCount === 0 && !tourDone() && !tourOpen) {
+      const t = setTimeout(() => setTourOpen(true), 600);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layout]);
 
   // Tablet: the side panel becomes an overlay drawer, closed by default.
   useEffect(() => {
@@ -31,6 +47,7 @@ function App() {
     if (layout === "desktop") setPanelOpen(true);
   }, [layout, setPanelOpen]);
 
+  const showEmpty = view === "editor" && shapeCount === 0 && !emptyDismissed && layout !== "mobile" && tool === "select";
   const workspace = (
     <section className="workspace">
       {view === "editor" ? (
@@ -40,6 +57,7 @@ function App() {
           <Simulator />
         </Suspense>
       )}
+      {showEmpty && <EmptyState onTour={() => setTourOpen(true)} />}
     </section>
   );
 
@@ -47,6 +65,7 @@ function App() {
     <div className={`app layout-${layout}`} data-layout={layout}>
       <TopBar />
       <PwaBanner />
+      {tourOpen && layout !== "mobile" && <Tour onClose={() => setTourOpen(false)} />}
       {layout === "mobile" ? (
         <>
           <main className="app-body mobile">

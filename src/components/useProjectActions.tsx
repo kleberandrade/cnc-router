@@ -6,6 +6,7 @@ import { parseDxf } from "../lib/dxfImport";
 import { tryGenerateGCode } from "../lib/gcode";
 import { findPost } from "../lib/post";
 import type { BooleanOp } from "../lib/boolean";
+import { findExample } from "../content/examples";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
 
@@ -176,6 +177,18 @@ export function useProjectActions() {
     downloadTextFile(`projeto.${findPost(settings.post).extension}`, result.gcode);
   };
 
+  const handleOpenExample = (id: string) => {
+    const ex = findExample(id);
+    if (!ex) return;
+    if (shapes.length > 0 && !window.confirm(`Abrir o exemplo "${ex.title}"? As formas atuais serão substituídas.`)) return;
+    const { shapes: exShapes, settings: exSettings } = ex.build();
+    useProjectStore.getState().loadProject({ shapes: exShapes, settings: exSettings });
+    setSection("shape");
+    setNotice({ kind: "info", title: `Exemplo "${ex.title}" aberto.`, details: [ex.teaches] });
+    useUiStore.getState().setView("editor");
+    setTimeout(() => zoomFit(), 0);
+  };
+
   const handleNewProject = () => {
     if (shapes.length > 0 && !window.confirm("Começar do zero? As peças da mesa vão embora.")) return;
     newProject();
@@ -291,6 +304,7 @@ export function useProjectActions() {
     saveProject: handleSave,
     exportGcode: handleExport,
     newProject: handleNewProject,
+    openExample: handleOpenExample,
     duplicate: () => selectedId && duplicateShape(selectedId),
     remove: () => useProjectStore.getState().removeSelected(),
     undo,

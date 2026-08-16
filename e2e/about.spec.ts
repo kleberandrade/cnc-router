@@ -14,7 +14,7 @@ test.describe("sprint 19: versão, Sobre, Novidades", () => {
     await page.getByTestId("menu-news").click();
     await expect(page.getByTestId("news")).toBeVisible();
     await expect(page.locator(".news-entry")).toHaveCount(3);
-    await expect(page.locator(".news-entry").first()).toContainText(/Sprint 19|Sprint 18/);
+    await expect(page.locator(".news-entry").first()).toContainText(/Sprint \d+/);
   });
   test("exported G-code starts with product, version and author", async ({ page }) => {
     await page.goto("/");

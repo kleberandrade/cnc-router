@@ -46,14 +46,13 @@ export function Navigator() {
         <input type="search" placeholder="Buscar peça…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar peça" data-testid="nav-search" />
       </label>
       {shapes.length === 0 && <p className="hint">Ainda não tem peça.</p>}
-      <ul className="nav-list" role="listbox" aria-label="Peças (ordem de usinagem)">
+      <ul className="nav-list" aria-label="Peças (ordem de usinagem)">
         {rows.map(({ s, i, name }) => {
           const selected = selectedIds.includes(s.id);
           return (
             <li
               key={s.id}
-              role="option"
-              aria-selected={selected}
+              aria-current={selected ? "true" : undefined}
               className={`nav-item${selected ? " selected" : ""}${s.hidden ? " hidden" : ""}${overId === s.id ? " dragover" : ""}`}
               draggable
               onDragStart={() => setDragId(s.id)}

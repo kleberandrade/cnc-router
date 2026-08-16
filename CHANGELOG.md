@@ -9,6 +9,17 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
 
+## [0.21.0 — Sprint 21 — Primeiro uso, exemplos, acessibilidade, preferências] — 2026-08-16
+
+### Adicionado
+- **Comece por aqui**: card no editor vazio com 3 passos, atalhos (retângulo, importar, abrir, tour) e 3 **exemplos** prontos (placa com furos, porta-lápis com encaixes, letreiro gravado) — também no menu do projeto.
+- **Tour rápido** (5 balões) na primeira visita em desktop; reabrível pelo menu.
+- **Preferências**: densidade (compacta/confortável) e tamanho do texto (pequeno/normal/grande).
+- Acessibilidade: axe sem violações sérias/críticas nas 3 vistas (contraste do texto secundário, navegador de peças sem controles aninhados).
+
+### Planejado
+- Sprint 22: barra superior no estilo Fusion 360 (`docs/sprints/sprint-22-ribbon-fusion.md`).
+
 ## [0.20.0 — Sprint 20 — Sugestões e problemas] — 2026-08-16
 
 ### Adicionado

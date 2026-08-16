@@ -12,10 +12,11 @@ import './index.css'
 import App from './App.tsx'
 import { initPwa } from './lib/pwa'
 import { loadEmbeddedFonts, onFontsChanged } from './lib/text'
-import { useUiStore } from './state/uiStore'
+import { useUiStore, initUiPrefs } from './state/uiStore'
 import { installErrorCapture } from "./lib/feedback";
 
 installErrorCapture();
+initUiPrefs();
 
 initPwa()
 onFontsChanged(() => useUiStore.getState().bumpFonts())
