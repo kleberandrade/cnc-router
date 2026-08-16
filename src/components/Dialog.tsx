@@ -7,6 +7,8 @@ export function Dialog({ open, onClose, title, children, size = "md", testId = "
   open: boolean; onClose: () => void; title?: ReactNode; children: ReactNode; size?: "sm" | "md" | "lg"; testId?: string; closeLabel?: string; footer?: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -14,7 +16,7 @@ export function Dialog({ open, onClose, title, children, size = "md", testId = "
     const focusables = () => Array.from(el?.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') ?? []).filter((f) => !f.hasAttribute("disabled"));
     (focusables()[0] ?? el)?.focus();
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.stopPropagation(); onClose(); }
+      if (e.key === "Escape") { e.stopPropagation(); onCloseRef.current(); }
       if (e.key === "Tab") {
         const f = focusables();
         if (f.length === 0) return;
@@ -25,7 +27,7 @@ export function Dialog({ open, onClose, title, children, size = "md", testId = "
     };
     window.addEventListener("keydown", key, true);
     return () => { window.removeEventListener("keydown", key, true); prev?.focus?.(); };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="dialog-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }} role="presentation">

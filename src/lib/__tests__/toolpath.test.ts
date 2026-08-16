@@ -223,3 +223,19 @@ describe("hélice de entrada", () => {
     expect(firstCut).toMatch(/^G1 X[\d.-]+ Y[\d.-]+ Z-/);
   });
 });
+
+describe("rebaixo em anel (moldura): zigzag por região, sem hop a cada linha", () => {
+  it("anel 300×190 − 284×174 com fresa Ø6: ≤ 8 mergulhos e tempo < 60 % do zigzag ingênuo", async () => {
+    const { booleanShapes } = await import("../boolean");
+    const { estimateTime } = await import("../timing");
+    const S = { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 6, stepover: 3.6, passDepth: 4, stock: { ...DEFAULT_MACHINE_SETTINGS.stock, width: 420, height: 280, thickness: 30 } };
+    const outerR: Shape = { id: "o", kind: "rectangle", x: 30, y: 30, width: 300, height: 190, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 14 } };
+    const innerR: Shape = { id: "i", kind: "rectangle", x: 38, y: 38, width: 284, height: 174, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 8 } };
+    const groove = booleanShapes("difference", [outerR, innerR], () => "g")[0];
+    const tp = buildToolpath([groove], S);
+    const plunges = tp.segments.filter((s) => s.op === "pocket" && s.type === "plunge").length;
+    expect(plunges).toBeLessThanOrEqual(8);
+    const t = estimateTime(tp.segments, { rapidRate: 3000, accel: 200 }).total;
+    expect(t).toBeLessThan(6 * 60);
+  });
+});

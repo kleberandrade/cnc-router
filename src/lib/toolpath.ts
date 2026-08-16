@@ -416,27 +416,62 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
       b.move([first[0], firstY, -z], "plunge", settings.plungeRate, meta);
     }
 
-    rowSpans.forEach((row, ri) => {
-      const ltr = ri % 2 === 0;
-      const spans = ltr ? row.spans : [...row.spans].reverse();
-      spans.forEach((span) => {
-        const xStart = ltr ? span[0] : span[1];
-        const xEnd = ltr ? span[1] : span[0];
-        const p = b.position;
-        // connect: feed if the straight move stays inside, else hop at safe height
+    // Zigzag by connected region: follow spans that overlap the previous row's span (one continuous ribbon),
+    // then hop to the next unvisited span. Rings/U shapes get one hop instead of one per row.
+    const visited = rowSpans.map((row) => row.spans.map(() => false));
+    const overlap = (a: [number, number], c: [number, number]) => Math.min(a[1], c[1]) - Math.max(a[0], c[0]);
+    let dir = 1; // +1 left→right
+    const cutSpan = (ri: number, si: number) => {
+      const row = rowSpans[ri];
+      const span = row.spans[si];
+      visited[ri][si] = true;
+      const xStart = dir > 0 ? span[0] : span[1];
+      const xEnd = dir > 0 ? span[1] : span[0];
+      const p = b.position;
+      if (Math.abs(p[0] - xStart) > 1e-9 || Math.abs(p[1] - row.y) > 1e-9) {
         const direct = segmentInside(inner, [p[0], p[1]], [xStart, row.y], Math.max(r / 2, 0.25));
-        if (p[0] !== xStart || p[1] !== row.y) {
-          if (direct || p[2] === -z && Math.hypot(xStart - p[0], row.y - p[1]) < 1e-9) {
-            b.move([xStart, row.y, -z], "feed", settings.feedRate, meta);
-          } else {
-            b.move([p[0], p[1], safe], "retract", 0, meta0);
-            b.move([xStart, row.y, safe], "rapid", 0, meta0);
-            b.move([xStart, row.y, -z], "plunge", settings.plungeRate, meta);
-          }
+        if (direct && p[2] === -z) {
+          b.move([xStart, row.y, -z], "feed", settings.feedRate, meta);
+        } else if (direct && p[2] !== -z) {
+          b.move([xStart, row.y, -z], "feed", settings.feedRate, meta);
+        } else {
+          b.move([p[0], p[1], safe], "retract", 0, meta0);
+          b.move([xStart, row.y, safe], "rapid", 0, meta0);
+          b.move([xStart, row.y, -z], "plunge", settings.plungeRate, meta);
         }
-        b.move([xEnd, row.y, -z], "feed", settings.feedRate, meta);
-      });
-    });
+      }
+      b.move([xEnd, row.y, -z], "feed", settings.feedRate, meta);
+      dir = -dir;
+    };
+    for (;;) {
+      // next unvisited span: lowest row, then closest x to the current position
+      let start: [number, number] | null = null;
+      for (let ri = 0; ri < rowSpans.length && !start; ri++) {
+        const cands = rowSpans[ri].spans.map((sp, si) => ({ si, sp })).filter(({ si }) => !visited[ri][si]);
+        if (cands.length) {
+          const px = b.position[0];
+          cands.sort((a, c) => Math.abs((a.sp[0] + a.sp[1]) / 2 - px) - Math.abs((c.sp[0] + c.sp[1]) / 2 - px));
+          start = [ri, cands[0].si];
+        }
+      }
+      if (!start) break;
+      let [ri, si] = start;
+      // direction: start towards the far end so the first move is useful
+      const sp0 = rowSpans[ri].spans[si];
+      dir = Math.abs(b.position[0] - sp0[0]) <= Math.abs(b.position[0] - sp0[1]) ? 1 : -1;
+      cutSpan(ri, si);
+      // follow upwards through overlapping spans
+      for (;;) {
+        const nr = ri + 1;
+        if (nr >= rowSpans.length) break;
+        const cur = rowSpans[ri].spans[si];
+        let bestSi = -1, bestOv = 0;
+        rowSpans[nr].spans.forEach((sp, k) => { if (!visited[nr][k]) { const ov = overlap(cur, sp); if (ov > bestOv) { bestOv = ov; bestSi = k; } } });
+        if (bestSi < 0) break;
+        ri = nr; si = bestSi;
+        cutSpan(ri, si);
+      }
+    }
 
     // Finishing pass along each inner contour
     inner.forEach((loop) => {

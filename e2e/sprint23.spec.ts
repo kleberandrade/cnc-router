@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("sprint 23: diálogos próprios, origem visual, materiais, políticas, linha do tempo", () => {
+  test.slow(); // WebGL under software GL is slow in CI
   test("Novo projeto uses the in-app confirm; cancel keeps shapes, confirm clears", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("empty-close").click();

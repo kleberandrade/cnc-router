@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 
 test.describe("sprint 16: operações adicionais, verificação, link", () => {
+  test.slow(); // WebGL under software GL is slow in CI
   test("extra operation: pocket + through cut on the same rectangle → both in the G-code; verification lists the pocket", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("empty-close").click();
@@ -25,7 +26,8 @@ test.describe("sprint 16: operações adicionais, verificação, link", () => {
     await expect(page.getByTestId("verify-gouge")).toContainText(/Corte fora das peças: \d+ mm²/);
     // remove the extra op
     await page.locator(".dialog-close").click();
-    await page.getByTestId("tab-editor").click();
+    // the WebGL view can starve rAF in CI (software GL): don't wait for "stable"
+    await page.getByTestId("tab-editor").click({ force: true });
     await page.getByTestId("section-toggle-shape").click();
     await page.getByTestId("nav-item-0").click();
     await expect(page.getByTestId("extra-op-0")).toBeVisible();

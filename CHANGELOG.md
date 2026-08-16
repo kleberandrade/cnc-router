@@ -22,6 +22,16 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 - Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias e galeria, ilustrações nas opções, notice compacto — `docs/sprints/sprint-24-exemplos.md`.
 
+## [0.25.1] — 2026-08-16
+
+### Corrigido
+- **Rebaixo em anel/U subia e descia a fresa a cada linha** (tábua de carnes: 51 mergulhos): o zigzag agora segue a mesma faixa contínua e só pula quando a região acaba (6 mergulhos, tempo de 11,8 → 4,8 min).
+- Diálogo: o foco não fica mais "pingando" entre o diálogo e o botão de origem (travava a página em máquinas lentas).
+- Aviso compacto: só avisos informativos escondem os detalhes; alertas e erros mostram tudo.
+
+### Planejado
+- Sprint 25: importar imagem (PNG/JPG) como silhueta vetorizada ou relevo; contorno paralelo nos rebaixos — `docs/sprints/sprint-25-imagens.md`.
+
 ## [0.25.0 — Sprint 24 — Exemplos e ilustrações] — 2026-08-16
 
 ### Adicionado

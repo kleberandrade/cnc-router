@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", () => {
+  test.slow();
   test("submenu by category opens an SVG example; gallery lists ≥ 10 with thumbnails; example opens and simulates", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("empty-close").click();

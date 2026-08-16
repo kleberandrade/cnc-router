@@ -41,10 +41,10 @@ export function Notice({ notice, onDismiss, autoHideMs = 4000, compact = false }
       </span>
       <div className="notice-body">
         <strong>{notice.title}</strong>
-        {compact && notice.kind !== "error" && notice.details && notice.details.length > 0 && !open && (
+        {compact && notice.kind === "info" && notice.details && notice.details.length > 0 && !open && (
           <button type="button" className="link notice-more" onClick={() => setOpen(true)} data-testid="notice-more">detalhes ({notice.details.length})</button>
         )}
-        {notice.details && notice.details.length > 0 && (!compact || open || notice.kind === "error") && (
+        {notice.details && notice.details.length > 0 && (!compact || open || notice.kind !== "info") && (
           <ul>
             {notice.details.map((d) => (
               <li key={d}>{d}</li>
