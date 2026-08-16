@@ -22,10 +22,10 @@ describe("Sprint 24", () => {
     const onOpen = vi.fn();
     render(<ExamplesGallery onOpen={onOpen} />);
     expect(screen.getAllByRole("button").length).toBeGreaterThanOrEqual(EXAMPLES.length);
-    expect(screen.getByTestId("examples-gallery")).toHaveTextContent("Esportes");
-    fireEvent.click(screen.getByTestId("gallery-escudo-palmeiras"));
-    expect(onOpen).toHaveBeenCalledWith("escudo-palmeiras");
-    const { container } = render(<ExampleThumb example={findExample("placa-gato")!} />);
+    expect(screen.getByTestId("examples-gallery")).toHaveTextContent("Casa e oficina");
+    fireEvent.click(screen.getByTestId("gallery-relogio-parede"));
+    expect(onOpen).toHaveBeenCalledWith("relogio-parede");
+    const { container } = render(<ExampleThumb example={findExample("placa-pata")!} />);
     await waitFor(() => expect(container.querySelectorAll("path").length).toBeGreaterThan(0));
   });
   it("ChoiceIcons: every option has an icon; click changes value; disabled blocks", () => {

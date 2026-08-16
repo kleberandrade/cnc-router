@@ -14,6 +14,25 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
 
+## [0.27.0 — Sprint 26 — Exemplos de encaixe e uso diário] — 2026-08-16
+
+### Adicionado
+- Seis exemplos novos: **Suporte de celular** (encaixe em cruz com folga), **Caixa com encaixe de dedo** (5 peças, dentes por fórmula), **Dobradiça viva** (kerf bending), **Bandeja com divisórias** (rebaixo profundo, paredes finas), **Descanso de panela** (2 peças organizadas) e **Gabarito de furação sistema 32**. Nova categoria **Encaixes**.
+- Galeria: **filtro por assunto** (recorte, rebaixo, furação, texto, encaixe, booleanas, nesting, relevo, importação) com contagem, mais busca por texto.
+- Aviso de **folga de encaixe**: rasgo com a largura exata da chapa ganha um aviso sugerindo 0,1–0,3 mm de folga.
+- Exemplos com várias peças já abrem organizados na chapa.
+
+### Removido
+- Exemplos Porta-lápis, Letreiro e Placa de gato (cobertos por Bandeja, Número da casa e Pata/Raposa). Galeria fica com 14 exemplos em 6 categorias.
+
+## [0.26.1] — 2026-08-16
+
+### Planejado
+- Sprint 26: exemplos de encaixe e uso diário + filtro por "o que ensina" na galeria — `docs/sprints/sprint-26-exemplos-encaixe.md`.
+
+### Alterado
+- Exemplos: os três escudos de times saíram (a arte oficial é marca registrada e não vamos distribuí-la). No lugar entra a categoria **Casa e oficina**: **Placa de número da casa** (moldura por diferença, número com fresa V, furos, cantos arredondados), **Relógio de parede** (rebaixo + recorte na mesma peça, anel, 12 marcadores por ângulo, números, furo do mecanismo) e **Par de engrenagens** (dentes por fórmula, furos de alívio por booleana, eixos por dentro).
+
 ## [0.26.0 — Sprint 25 — Importar imagem e relevo] — 2026-08-16
 
 ### Adicionado

@@ -27,7 +27,7 @@ export function EmptyState({ onTour }: { onTour: () => void }) {
       </div>
       <h3>Ou abra um exemplo <button type="button" className="link" onClick={() => useUiStore.getState().setGalleryOpen(true)} data-testid="empty-gallery">ver todos ({EXAMPLES.length})</button></h3>
       <ul className="empty-examples">
-        {EXAMPLES.filter((ex) => ["placa-furos", "tabua-carnes", "placa-gato"].includes(ex.id)).map((ex) => (
+        {EXAMPLES.filter((ex) => ["placa-furos", "tabua-carnes", "suporte-celular"].includes(ex.id)).map((ex) => (
           <li key={ex.id}>
             <button type="button" onClick={() => actions.openExample(ex.id)} data-testid={`example-${ex.id}`}>
               <ExampleThumb example={ex} width={120} height={60} />

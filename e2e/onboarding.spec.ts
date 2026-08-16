@@ -27,9 +27,9 @@ test.describe("sprint 21: primeiro uso", () => {
     // examples also in the menu; confirm dialog when replacing
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
-    await page.getByTestId("gallery-letreiro").click();
+    await page.getByTestId("gallery-numero-casa").click();
     await page.getByTestId("ask-ok").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("6 forma(s)");
   });
 
   test("empty state can be closed and adding a rectangle from it works", async ({ page }) => {

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 110" width="120mm" height="110mm">
-  <!-- Oficina CNC — placa de gato (desenho próprio). Cabeça com orelhas; olhos e nariz são furos. -->
-  <path d="M10 60 C10 30 22 22 30 8 L44 34 C50 32 70 32 76 34 L90 8 C98 22 110 30 110 60 C110 90 88 105 60 105 C32 105 10 90 10 60 Z
-           M40 55 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0 Z
-           M66 55 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0 Z
-           M53 74 L67 74 L60 82 Z" fill="none" stroke="#000" stroke-width="0.5"/>
-  <circle cx="60" cy="14" r="2.5" fill="none" stroke="#000" stroke-width="0.5"/>
-</svg>

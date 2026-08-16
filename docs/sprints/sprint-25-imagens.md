@@ -44,6 +44,13 @@ lib/relief.ts: reliefToolpath(shape, settings, tool): Segment[]
 - [x] D — `pocketStrategy: "contour" | "zigzag"` (v8: projetos antigos com peças ficam em zigzag; novos usam contorno), `offsetRegion` (Clipper com furos), `pocketContour` (anéis de dentro para fora, 1 mergulho por passe), opção + ilustração no painel Corte, testes de mergulhos (círculo, moldura).
 - [x] Docs, CHANGELOG 0.26.0, sample `sprint25-contorno-relevo.gcode`, screenshots, a11y (diálogo usa `Dialog`).
 
+## Ajuste pós-sprint (v0.26.1)
+- Escudos de times removidos dos exemplos (marca registrada). Categoria **Casa e oficina** no lugar: número da casa, relógio de parede, par de engrenagens — cobrem os mesmos conceitos (níveis, extraOps, booleanas) com peças que qualquer um pode fazer.
+
+![Casa e oficina](img/sprint-25-numero-casa.png)
+![Relógio](img/sprint-25-relogio-parede.png)
+![Engrenagens](img/sprint-25-engrenagens.png)
+
 ## Como ficou
 - Exemplos embarcados usam **PGM** (cinza binário) em `public/examples/*.pgm` — o mesmo pipeline do diálogo, sem decodificador de PNG no Node (os testes constroem todos os exemplos). Os PNGs equivalentes ficam ao lado para quem quiser testar o "Importar".
 - Relevo mantém a grade ≤ 400 px de largura; a peça é tratada pela caixa envolvente no navegador/nesting.

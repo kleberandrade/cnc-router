@@ -11,7 +11,7 @@ describe("EmptyState", () => {
     const onTour = vi.fn();
     render(<EmptyState onTour={onTour} />);
     expect(screen.getByTestId("empty-state")).toHaveTextContent("Comece por aqui");
-    expect(screen.getByTestId("example-placa-gato")).toBeInTheDocument();
+    expect(screen.getByTestId("example-suporte-celular")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("empty-tour"));
     expect(onTour).toHaveBeenCalled();
     fireEvent.click(screen.getByTestId("example-placa-furos"));

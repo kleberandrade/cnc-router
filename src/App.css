@@ -2128,6 +2128,13 @@ a.link { color: var(--accent); font-size: var(--fs-md); }
 .ex-thumb-line { fill: none; stroke: var(--text); stroke-width: 1; }
 .ex-thumb-fill { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); stroke-width: 0.8; }
 .ex-gallery { max-height: 70vh; overflow: auto; }
+.ex-filters { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin: var(--s2) 0 var(--s3); }
+.ex-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; }
+.ex-chips .chip { font: inherit; font-size: var(--fs-sm); padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); cursor: pointer; }
+.ex-chips .chip:hover { border-color: var(--accent); }
+.ex-chips .chip.on { background: var(--blueprint); border-color: var(--blueprint); color: white; }
+.ex-chips .chip-n { opacity: 0.75; margin-left: 2px; }
+.ex-search { flex: 0 1 220px; min-width: 140px; height: var(--control-h); padding: 0 var(--s2); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: inherit; }
 .ex-group h3 { margin: var(--s3) 0 var(--s2); font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 .ex-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s2); }
 .ex-card { width: 100%; display: flex; gap: var(--s3); align-items: flex-start; text-align: left; padding: var(--s2); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; color: var(--text); font: inherit; }

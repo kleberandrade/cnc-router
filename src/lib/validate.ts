@@ -17,6 +17,7 @@ export interface Issue {
     | "stock-outside-table"
     | "invalid-setting"
     | "shape-narrower-than-tool"
+    | "slot-tight-fit"
   | "drill-not-circle"
   | "drill-larger-than-tool";
   message: string;
@@ -119,6 +120,14 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
           message: `${label}: ${shape.operation === "pocket" ? "rebaixo" : "furo (contorno interno)"} menor que a fresa Ø${toolD} mm — nada será cortado.`,
           shapeId: shape.id,
         });
+      }
+    }
+
+    // Slot/rectangle exactly the sheet thickness → won't slide in; hint about clearance (info-level warning).
+    if ((shape.kind === "slot" || shape.kind === "rectangle") && shape.operation === "outline" && shape.side === "inside") {
+      const w = shape.kind === "slot" ? shape.width : Math.min(shape.width, shape.height);
+      if (Math.abs(w - stock.thickness) < 0.05) {
+        issues.push({ level: "warning", code: "slot-tight-fit", message: `${label}: rasgo do tamanho exato da chapa (${stock.thickness} mm) — deixe 0,1 a 0,3 mm de folga para encaixar.`, shapeId: shape.id });
       }
     }
 

@@ -8,7 +8,7 @@ test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", ()
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
     await expect(page.getByTestId("examples-gallery")).toBeVisible();
-    await expect(page.getByTestId("examples-gallery")).toContainText("Esportes");
+    await expect(page.getByTestId("examples-gallery")).toContainText("Casa e oficina");
     expect(await page.locator(".ex-card").count()).toBeGreaterThanOrEqual(11);
     await expect(page.locator(".ex-thumb path").first()).toBeVisible();
     await page.getByTestId("gallery-placa-pata").click();

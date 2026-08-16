@@ -47,3 +47,15 @@ describe("validateProject", () => {
     expect(shapeIssueLevel([], "r")).toBeNull();
   });
 });
+
+describe("slot-tight-fit (sprint 26)", () => {
+  it("avisa quando o rasgo tem exatamente a espessura da chapa; some com folga", async () => {
+    const { validateProject } = await import("../validate");
+    const { DEFAULT_MACHINE_SETTINGS } = await import("../../types");
+    const settings = { ...DEFAULT_MACHINE_SETTINGS, stock: { ...DEFAULT_MACHINE_SETTINGS.stock, thickness: 12 } };
+    const tight = validateProject([{ id: "s", kind: "slot", x: 50, y: 50, length: 40, width: 12, rotation: 0, depth: 12.2, operation: "outline", side: "inside" }], settings);
+    expect(tight.some((i) => i.code === "slot-tight-fit")).toBe(true);
+    const ok = validateProject([{ id: "s", kind: "slot", x: 50, y: 50, length: 40, width: 12.2, rotation: 0, depth: 12.2, operation: "outline", side: "inside" }], settings);
+    expect(ok.some((i) => i.code === "slot-tight-fit")).toBe(false);
+  });
+});

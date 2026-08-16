@@ -16,6 +16,11 @@ test.describe("sprint 21: acessibilidade (axe, sério/crítico)", () => {
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-about").click();
     expect(await scan(page)).toEqual([]);
+    await page.keyboard.press("Escape");
+    await page.getByTestId("project-menu").click();
+    await page.getByTestId("menu-examples").click();
+    await page.getByTestId("ex-tag-encaixe").click();
+    expect(await scan(page)).toEqual([]);
   });
   test("simulator view and empty state", async ({ page }) => {
     await page.goto("/");
