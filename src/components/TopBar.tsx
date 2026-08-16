@@ -4,10 +4,11 @@ import {
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
   RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
-  AlignHorizontalSpaceAround, AlignVerticalSpaceAround,
+  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid,
 } from "lucide-react";
 import { useProjectActions } from "./useProjectActions";
 import { useUiStore, type View } from "../state/uiStore";
+import { useProjectStore } from "../state/store";
 import { useSimStore, SPEEDS, type Speed } from "../state/simStore";
 import type { StepMode } from "../lib/playback";
 import { useInstallAction } from "../hooks/useInstallAction";
@@ -111,6 +112,7 @@ function Shortcuts() {
     ["R / C / P", "Retângulo / Círculo / Polígono"],
     ["Enter · duplo clique · Esc", "Fechar polígono · cancelar"],
     ["Del", "Excluir forma"],
+    ["Ctrl+A", "Selecionar tudo"],
     ["Ctrl+D", "Duplicar"],
     ["Ctrl+Z / Ctrl+Y", "Desfazer / Refazer"],
     ["Ctrl+S", "Salvar projeto"],
@@ -161,6 +163,30 @@ function Preferences() {
   );
 }
 
+function NestDialog({ onDone }: { onDone: () => void }) {
+  const actions = useProjectActions();
+  const settings = useProjectStore((s) => s.settings);
+  const [gap, setGap] = useState(2);
+  const [rotate, setRotate] = useState(true);
+  const spacing = Math.round((settings.toolDiameter + gap) * 100) / 100;
+  const scope = actions.selectedIds.length >= 2 ? `${actions.selectedIds.length} peças selecionadas` : "todas as peças visíveis e destravadas";
+  return (
+    <>
+      <h2>Organizar na chapa</h2>
+      <p className="hint">Arruma {scope} na chapa {settings.stock.width} × {settings.stock.height} mm (caixas envolventes, maiores primeiro; rotação de 90° quando ajudar). Desfazer com Ctrl+Z.</p>
+      <label className="pref-row">
+        Folga entre peças (além do Ø da fresa)
+        <span><input type="number" min={0} step={0.5} value={gap} onChange={(e) => setGap(Number(e.target.value) || 0)} data-testid="nest-gap" style={{ width: "5em" }} /> mm → espaçamento {spacing} mm</span>
+      </label>
+      <label className="pref-row">
+        Permitir girar 90°
+        <input type="checkbox" checked={rotate} onChange={(e) => setRotate(e.target.checked)} data-testid="nest-rotate" />
+      </label>
+      <button type="button" className="rb primary" onClick={() => { actions.nest({ spacing, allowRotate: rotate }); onDone(); }} data-testid="nest-apply">Organizar</button>
+    </>
+  );
+}
+
 function About() {
   return (
     <>
@@ -176,6 +202,7 @@ function About() {
 
 export function TopBar() {
   const actions = useProjectActions();
+  const [nestOpen, setNestOpen] = useState(false);
   const view = useUiStore((s) => s.view);
   const setView = useUiStore((s) => s.setView);
 
@@ -259,6 +286,12 @@ export function TopBar() {
               <RibbonButton icon={<Undo2 size={ICON} />} label="Desfazer" onClick={actions.undo} disabled={actions.pastStates === 0} testId="undo" title="Desfazer (Ctrl+Z)" />
               <RibbonButton icon={<Redo2 size={ICON} />} label="Refazer" onClick={actions.redo} disabled={actions.futureStates === 0} testId="redo" title="Refazer (Ctrl+Y)" />
             </RibbonGroup>
+            <RibbonGroup title="Arranjar">
+              <RibbonButton icon={<LayoutGrid size={ICON} />} label="Organizar" onClick={() => setNestOpen(true)} disabled={actions.shapes.length === 0} testId="nest" title="Organizar as peças na chapa (nesting)" />
+              <RibbonButton icon={<Combine size={ICON} />} label="Unir" onClick={() => actions.boolean("union")} disabled={actions.selectedIds.length < 2} testId="bool-union" title="União das formas selecionadas" />
+              <RibbonButton icon={<SquareMinus size={ICON} />} label="Subtrair" onClick={() => actions.boolean("difference")} disabled={actions.selectedIds.length < 2} testId="bool-difference" title="Subtrair as outras da primeira selecionada" />
+              <RibbonButton icon={<SquareDot size={ICON} />} label="Intersec." onClick={() => actions.boolean("intersection")} disabled={actions.selectedIds.length < 2} testId="bool-intersection" title="Interseção das formas selecionadas" />
+            </RibbonGroup>
             {actions.selectedIds.length >= 2 && (
             <RibbonGroup title="Alinhar">
               <RibbonButton icon={<AlignStartVertical size={ICON} />} label="Esq." onClick={() => actions.alignSelected("left")} disabled={actions.selectedIds.length < 2} testId="align-left" title="Alinhar à esquerda" />
@@ -329,6 +362,14 @@ export function TopBar() {
         <RibbonButton icon={<Download size={ICON} />} label="Exportar G-code" onClick={actions.exportGcode} primary testId="export-gcode" />
       </div>
       {actions.inputs}
+      {nestOpen && (
+        <div className="dialog-backdrop" onClick={() => setNestOpen(false)} role="presentation">
+          <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="nest-dialog">
+            <NestDialog onDone={() => setNestOpen(false)} />
+            <button type="button" className="dialog-close" onClick={() => setNestOpen(false)}>Fechar</button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

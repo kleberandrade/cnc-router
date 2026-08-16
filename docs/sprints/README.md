@@ -59,6 +59,6 @@ Plano em [`fase-3.md`](fase-3.md) (backlog da Sprint 12 convertido).
 |---|---|---|---|
 | [13](sprint-13-ilhas-e-texto.md) ✅ | Pockets com ilhas e texto → contorno | — | G |
 | [14](sprint-14-entrada-furacao-tempo-pos.md) ✅ | Hélice, furação, tempo com aceleração, G20 + pós-processadores | — | M |
-| [15](sprint-15-nesting-e-booleanas.md) | Nesting e booleanas | 13 | G |
+| [15](sprint-15-nesting-e-booleanas.md) ✅ | Nesting e booleanas | 13 | G |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
 | [17](sprint-17-web-serial-sender.md) | Enviar para a máquina (Web Serial/GRBL) | 14 | G |

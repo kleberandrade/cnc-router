@@ -14,11 +14,22 @@ declare module "clipper-lib" {
     Execute(solution: Paths, delta: number): void;
     Clear(): void;
   }
+  export class PolyNode {
+    Contour(): Path;
+    Childs(): PolyNode[];
+    IsHole(): boolean;
+    IsOpen: boolean;
+    Parent(): PolyNode | null;
+  }
+  export class PolyTree extends PolyNode {
+    Total(): number;
+    Clear(): void;
+  }
   export class Clipper {
     constructor(initOptions?: number);
     AddPath(path: Path, polyType: PolyType, closed: boolean): boolean;
     AddPaths(paths: Paths, polyType: PolyType, closed: boolean): boolean;
-    Execute(clipType: ClipType, solution: Paths, subjFillType?: PolyFillType, clipFillType?: PolyFillType): boolean;
+    Execute(clipType: ClipType, solution: Paths | PolyTree, subjFillType?: PolyFillType, clipFillType?: PolyFillType): boolean;
     static Orientation(path: Path): boolean;
     static Area(path: Path): number;
     static CleanPolygon(path: Path, distance?: number): Path;

@@ -5,6 +5,7 @@ import { parseSvg } from "../lib/svgImport";
 import { parseDxf } from "../lib/dxfImport";
 import { tryGenerateGCode } from "../lib/gcode";
 import { findPost } from "../lib/post";
+import type { BooleanOp } from "../lib/boolean";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
 
@@ -84,6 +85,32 @@ export function useProjectActions() {
     };
     addShape(shape);
     setSection("shape");
+  };
+
+  const handleBoolean = (op: BooleanOp) => {
+    const ids = useProjectStore.getState().booleanSelected(op);
+    if (ids.length === 0) {
+      setNotice({ kind: "warning", title: op === "intersection" ? "As formas não se sobrepõem — interseção vazia." : "Selecione 2 ou mais formas (a primeira é a base)." });
+      return;
+    }
+    const label = { union: "União", difference: "Subtração", intersection: "Interseção" }[op];
+    setNotice({ kind: "info", title: `${label}: ${ids.length} forma(s) resultante(s).` });
+  };
+
+  const handleNest = (opts: { spacing: number; allowRotate: boolean }) => {
+    const st = useProjectStore.getState();
+    const result = st.nestOnStock(opts, st.selectedIds.length >= 2 ? st.selectedIds : undefined);
+    if (result.placed.length === 0 && result.overflow.length === 0) {
+      setNotice({ kind: "warning", title: "Nada para organizar — adicione peças visíveis e destravadas." });
+      return result;
+    }
+    if (result.overflow.length > 0) {
+      const names = result.overflow.map((id) => st.shapes.find((s) => s.id === id)?.name ?? id);
+      setNotice({ kind: "warning", title: `${result.placed.length} peça(s) organizada(s); ${result.overflow.length} não cabem na chapa e ficaram onde estavam.`, details: names });
+    } else {
+      setNotice({ kind: "info", title: `${result.placed.length} peça(s) organizada(s) na chapa (${Math.round(result.fill * 100)} % de ocupação).` });
+    }
+    return result;
   };
 
   const handleAddText = () => {
@@ -194,6 +221,10 @@ export function useProjectActions() {
         case "D":
           if (mod && st.selectedId) { e.preventDefault(); st.duplicateShape(st.selectedId); }
           break;
+        case "a":
+        case "A":
+          if (mod) { e.preventDefault(); st.selectMany(st.shapes.filter((x) => !x.hidden).map((x) => x.id)); }
+          break;
         case "r": case "R": if (!mod) handleAddRectangle(); break;
         case "c": case "C": if (!mod) handleAddCircle(); break;
         case "p": case "P": if (!mod) setTool(tool === "polygon" ? "select" : "polygon"); break;
@@ -241,6 +272,8 @@ export function useProjectActions() {
     addNgon: handleAddNgon,
     addSlot: handleAddSlot,
     addText: handleAddText,
+    boolean: handleBoolean,
+    nest: handleNest,
     alignSelected: useProjectStore.getState().alignSelected,
     distributeSelected: useProjectStore.getState().distributeSelected,
     tool,

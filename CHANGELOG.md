@@ -2,6 +2,19 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 15 — Nesting e booleanas] — 2026-08-16
+
+### Adicionado
+- **Booleanas** (grupo Arranjar: Unir / Subtrair / Intersec.): união, subtração (as outras da primeira selecionada) e interseção via Clipper → polígono com furos, herdando os parâmetros de corte da base; texto entra como polígonos; Ctrl+Z desfaz.
+- **Organizar na chapa** (nesting): MaxRects por caixa envolvente, maiores primeiro, rotação 0/90 opcional, espaçamento = Ø fresa + folga; peças que não cabem ficam onde estão e são listadas; escopo = seleção (≥ 2) ou todas as visíveis/destravadas.
+- Atalho **Ctrl+A** (selecionar tudo). `lib/boolean.ts`, `lib/nesting.ts`, `lib/transform.ts`.
+
+### Corrigido
+- Mover/alinhar/distribuir um polígono com furos não movia os furos.
+
+### Testes
+- `boolean.test.ts`, `nesting.test.ts`, store (`booleanSelected`/`nestOnStock`); e2e `nesting-boolean.spec.ts`. Total: 263 unitários, 64 e2e.
+
 ## [Sprint 14 — Hélice, furação, tempo com aceleração, pós-processadores] — 2026-08-15
 
 ### Adicionado
@@ -34,6 +47,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - **SEO**: Open Graph, Twitter Card, canonical, JSON-LD (`WebApplication`), `robots.txt` e `sitemap.xml` apontando para `https://oficina-cnc.vercel.app/`; imagem social `og-image.png`.
 - Título da aba acompanha a vista (`Desenhar` / `Simular — Oficina CNC`).
 - **Speed Insights** (`@vercel/speed-insights`) e **Web Analytics** (`@vercel/analytics`): Web Vitals e visitas no dashboard da Vercel.
+- Build: simulador (Three.js) em chunk sob demanda; Konva/Clipper/React separados — some o aviso de chunk > 500 kB no deploy.
 
 ## [Sprint 11 — Navegador, fresas por peça, tema escuro, DXF] — 2026-08-15
 

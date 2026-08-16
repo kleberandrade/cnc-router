@@ -60,3 +60,46 @@ describe("multi-selection", () => {
     expect(box("a").minX).toBe(before);
   });
 });
+
+describe("booleanSelected / nestOnStock", () => {
+  beforeEach(() => {
+    S().newProject();
+    S().addShapes([rect("a", 0, 0, 40, 30), rect("b", 20, 10, 40, 30), rect("c", 100, 5)]);
+  });
+  it("união substitui as selecionadas por 1 path na posição da primeira e a seleciona", () => {
+    S().selectMany(["a", "b"]);
+    const ids = S().booleanSelected("union");
+    expect(ids).toHaveLength(1);
+    expect(S().shapes.map((s) => s.id)).toEqual([ids[0], "c"]);
+    expect(S().selectedIds).toEqual(ids);
+    expect(S().shapes[0].kind).toBe("path");
+  });
+  it("com menos de 2 selecionadas não faz nada; formas travadas são ignoradas", () => {
+    S().select("a");
+    expect(S().booleanSelected("union")).toEqual([]);
+    S().updateShape("b", { locked: true });
+    S().selectMany(["a", "b"]);
+    expect(S().booleanSelected("difference")).toEqual([]);
+    expect(S().shapes).toHaveLength(3);
+  });
+  it("nestOnStock organiza todas as visíveis/destravadas dentro da chapa e devolve o resultado", () => {
+    S().updateStock({ width: 200, height: 100, offsetX: 10, offsetY: 20 });
+    S().updateShape("c", { hidden: true });
+    const res = S().nestOnStock({ spacing: 4, allowRotate: true });
+    expect(res.placed.map((p) => p.id).sort()).toEqual(["a", "b"]);
+    expect(res.overflow).toEqual([]);
+    for (const id of ["a", "b"]) {
+      const b = box(id);
+      expect(b.minX).toBeGreaterThanOrEqual(14 - 1e-6);
+      expect(b.minY).toBeGreaterThanOrEqual(24 - 1e-6);
+      expect(b.maxX).toBeLessThanOrEqual(210 - 4 + 1e-6);
+      expect(b.maxY).toBeLessThanOrEqual(120 - 4 + 1e-6);
+    }
+    expect(box("c").minX).toBe(100); // hidden shape untouched
+  });
+  it("nestOnStock com ids organiza só a seleção", () => {
+    const before = box("c");
+    S().nestOnStock({ spacing: 2, allowRotate: false }, ["a", "b"]);
+    expect(box("c")).toEqual(before);
+  });
+});

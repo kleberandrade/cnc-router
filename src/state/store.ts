@@ -1,3 +1,4 @@
+import { translateShape } from "../lib/transform";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { temporal, type TemporalState } from "zundo";
@@ -10,14 +11,11 @@ import { applyMaterial, applyToolDiameter } from "../lib/materials";
 import type { WorkArea, Stock, MaterialId, CutParamKey, Tool } from "../types";
 import { THROUGH_CUT_EXTRA } from "../types";
 import { boundingBox, shapeToPoints } from "../lib/geometry";
+import { booleanShapes, type BooleanOp } from "../lib/boolean";
+import { nestShapes, applyPlacements, type NestOptions, type NestResult } from "../lib/nesting";
 
 /** Translate any shape by (dx, dy) mm. */
-export function translateShape(shape: Shape, dx: number, dy: number): Shape {
-  if (shape.kind === "path") {
-    return { ...shape, points: shape.points.map(([x, y]) => [x + dx, y + dy] as [number, number]) };
-  }
-  return { ...shape, x: shape.x + dx, y: shape.y + dy };
-}
+export { translateShape };
 
 /** Depth a through-cut shape should have for a given stock thickness. */
 export const throughCutDepth = (thickness: number) => Math.round((thickness + THROUGH_CUT_EXTRA) * 100) / 100;
@@ -97,6 +95,10 @@ interface ProjectState {
   removeSelected: () => void;
   alignSelected: (mode: AlignMode) => void;
   distributeSelected: (mode: DistributeMode) => void;
+  /** Boolean between the selected shapes (selection order: first = base). Returns the ids created (empty = nothing to do). */
+  booleanSelected: (op: BooleanOp) => string[];
+  /** Arrange shapes on the stock (selection when ≥ 2 selected, else all visible unlocked). Returns the nesting result. */
+  nestOnStock: (opts: Pick<NestOptions, "spacing" | "allowRotate">, ids?: string[]) => NestResult;
   updateSettings: (patch: Partial<MachineSettings>) => void;
   /** Sets the work area and re-derives `machinePreset` ("custom" when it matches none). */
   setWorkArea: (patch: Partial<WorkArea>) => void;
@@ -129,7 +131,7 @@ interface ProjectState {
 export const useProjectStore = create<ProjectState>()(
   temporal(
   persist(
-    (set) => ({
+    (set, get) => ({
   shapes: [],
   selectedId: null,
   selectedIds: [],
@@ -216,6 +218,32 @@ export const useProjectStore = create<ProjectState>()(
       });
       return { shapes: state.shapes.map((s) => moved.get(s.id) ?? s) };
     }),
+
+  booleanSelected: (op) => {
+    const state = get();
+    const sel = state.selectedIds.map((id) => state.shapes.find((s) => s.id === id)).filter((s): s is Shape => !!s && !s.locked);
+    if (sel.length < 2) return [];
+    const prefix = { union: "uniao", difference: "subtracao", intersection: "intersecao" }[op];
+    const results = booleanShapes(op, sel, () => generateShapeId(prefix));
+    const removed = new Set(sel.map((s) => s.id));
+    const firstIdx = state.shapes.findIndex((s) => removed.has(s.id));
+    const kept = state.shapes.filter((s) => !removed.has(s.id));
+    const shapes = [...kept.slice(0, firstIdx), ...results, ...kept.slice(firstIdx)];
+    const ids = results.map((r) => r.id);
+    set({ shapes, selectedIds: ids, selectedId: ids[ids.length - 1] ?? null });
+    return ids;
+  },
+
+  nestOnStock: (opts, ids) => {
+    const state = get();
+    const { stock } = state.settings;
+    const pool = ids && ids.length >= 2 ? state.shapes.filter((s) => ids.includes(s.id)) : state.shapes.filter((s) => !s.hidden && !s.locked);
+    const result = nestShapes(pool, { width: stock.width, height: stock.height, spacing: opts.spacing, allowRotate: opts.allowRotate });
+    if (result.placed.length > 0) {
+      set({ shapes: applyPlacements(state.shapes, result.placed, [stock.offsetX, stock.offsetY]) });
+    }
+    return result;
+  },
 
   updateSettings: (patch) =>
     set((state) => ({ settings: { ...state.settings, ...patch } })),

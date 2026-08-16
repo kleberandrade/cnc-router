@@ -656,6 +656,16 @@
   overflow: auto;
 }
 
+.workspace-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 320px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
 .editor-canvas {
   position: relative;
   width: 100%;

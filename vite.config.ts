@@ -4,6 +4,23 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  build: {
+    // Three.js minificado fica ~560 kB; o limite padrão (500) só gerava ruído no CI.
+    chunkSizeWarningLimit: 600,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'three', test: /node_modules[\\/]three[\\/]/ },
+            { name: 'konva', test: /node_modules[\\/](?:konva|react-konva)[\\/]/ },
+            { name: 'clipper', test: /node_modules[\\/]clipper-lib[\\/]/ },
+            { name: 'react', test: /node_modules[\\/](?:react|react-dom)[\\/]/ },
+            { name: 'opentype', test: /node_modules[\\/]opentype\.js[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

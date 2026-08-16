@@ -1,9 +1,8 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { TopBar } from "./components/TopBar";
 import { SidePanel } from "./components/SidePanel";
 import { StatusBar } from "./components/StatusBar";
 import { Editor } from "./components/Editor";
-import { Simulator } from "./components/Simulator";
 import { BottomBar } from "./components/BottomBar";
 import { BottomSheet } from "./components/BottomSheet";
 import { PwaBanner } from "./components/PwaBanner";
@@ -14,6 +13,8 @@ import { useTheme } from "./hooks/useTheme";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
+
+const Simulator = lazy(() => import("./components/Simulator").then((m) => ({ default: m.Simulator })));
 
 function App() {
   const view = useUiStore((s) => s.view);
@@ -30,7 +31,17 @@ function App() {
     if (layout === "desktop") setPanelOpen(true);
   }, [layout, setPanelOpen]);
 
-  const workspace = <section className="workspace">{view === "editor" ? <Editor /> : <Simulator />}</section>;
+  const workspace = (
+    <section className="workspace">
+      {view === "editor" ? (
+        <Editor />
+      ) : (
+        <Suspense fallback={<div className="workspace-fallback" role="status">Carregando simulador…</div>}>
+          <Simulator />
+        </Suspense>
+      )}
+    </section>
+  );
 
   return (
     <div className={`app layout-${layout}`} data-layout={layout}>
