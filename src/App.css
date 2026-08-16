@@ -2153,3 +2153,15 @@ a.link { color: var(--accent); font-size: var(--fs-md); }
 .notice-compact ul { margin: 2px 0 0; padding-left: 14px; font-size: var(--fs-sm); }
 .notice-compact .notice-close { width: 20px; height: 20px; }
 .notice-more { font-size: var(--fs-xs); margin-left: 6px; }
+/* Sprint 25: import image */
+.import-image { display: flex; flex-direction: column; gap: var(--s3); }
+.ii-mode { display: flex; gap: var(--s2); }
+.ii-mode .choice-icon { flex: 1; padding: 6px 10px; font-size: var(--fs-md); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; color: var(--text); }
+.ii-mode .choice-icon.active { border-color: var(--accent); background: rgba(47,109,143,0.1); color: var(--accent); }
+.ii-body { display: grid; grid-template-columns: minmax(200px, 360px) 1fr; gap: var(--s3); align-items: start; }
+.ii-preview { max-width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.ii-controls { display: flex; flex-direction: column; gap: var(--s2); font-size: var(--fs-md); }
+.ii-controls label { display: flex; flex-direction: column; gap: 3px; }
+.ii-controls label.checkbox { flex-direction: row; align-items: center; gap: 6px; }
+.ii-controls select { height: var(--control-h); border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-size: var(--fs-base); background: var(--surface); color: var(--text); }
+@media (max-width: 767px) { .ii-body { grid-template-columns: 1fr; } }

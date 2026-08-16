@@ -110,3 +110,29 @@ export function pointAlong(poly: Polygon, d: number): Point {
   }
   return poly[0];
 }
+
+/**
+ * Offset a region (outer loop + holes) by `delta` mm using Clipper with all paths at once (outer CCW, holes CW).
+ * Negative delta shrinks the outer and grows the holes. Returns the resulting loops (outers CCW, holes CW).
+ */
+export function offsetRegion(outer: Polygon, holes: Polygon[], delta: number, arcTolerance = 0.05): { outer: Polygon; holes: Polygon[] }[] {
+  if (outer.length < 3) return [];
+  const co = new ClipperLib.ClipperOffset(2, arcTolerance * SCALE);
+  co.AddPath(toClipper(ccw(outer)), ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+  for (const h of holes) if (h.length >= 3) co.AddPath(toClipper([...ccw(h)].reverse()), ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+  const tree = new ClipperLib.PolyTree();
+  co.Execute(tree, delta * SCALE);
+  const out: { outer: Polygon; holes: Polygon[] }[] = [];
+  const visit = (node: ClipperLib.PolyNode) => {
+    for (const child of node.Childs()) {
+      if (!child.IsHole()) {
+        const o = ccw(fromClipper(ClipperLib.Clipper.CleanPolygon(child.Contour(), 0.5)));
+        const hs: Polygon[] = [];
+        for (const h of child.Childs()) { const hp = fromClipper(ClipperLib.Clipper.CleanPolygon(h.Contour(), 0.5)); if (hp.length >= 3) hs.push([...ccw(hp)].reverse()); visit(h); }
+        if (o.length >= 3) out.push({ outer: o, holes: hs });
+      } else visit(child);
+    }
+  };
+  visit(tree);
+  return out;
+}

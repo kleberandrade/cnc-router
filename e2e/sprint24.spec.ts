@@ -2,23 +2,21 @@ import { test, expect } from "@playwright/test";
 
 test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", () => {
   test.slow();
-  test("submenu by category opens an SVG example; gallery lists ≥ 10 with thumbnails; example opens and simulates", async ({ page }) => {
+  test("menu opens the gallery (≥ 11 cards with thumbnails, grouped by category); example opens and simulates", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
-    await expect(page.getByTestId("menu-examples-sub")).toBeVisible();
-    await expect(page.getByTestId("menu-examples-sub")).toContainText("Esportes");
-    await page.getByTestId("menu-example-placa-pata").click();
+    await expect(page.getByTestId("examples-gallery")).toBeVisible();
+    await expect(page.getByTestId("examples-gallery")).toContainText("Esportes");
+    expect(await page.locator(".ex-card").count()).toBeGreaterThanOrEqual(11);
+    await expect(page.locator(".ex-thumb path").first()).toBeVisible();
+    await page.getByTestId("gallery-placa-pata").click();
     await expect(page.getByTestId("status-shapes")).toHaveText("8 forma(s)");
     await expect(page.getByTestId("notice")).toContainText("pata de cachorro");
-    // gallery
+    // gallery again, replacing the project asks first
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
-    await page.getByTestId("menu-examples-all").click();
-    await expect(page.getByTestId("examples-gallery")).toBeVisible();
-    expect(await page.locator(".ex-card").count()).toBeGreaterThanOrEqual(10);
-    await expect(page.locator(".ex-thumb path").first()).toBeVisible();
     await page.getByTestId("gallery-tabua-carnes").click();
     await page.getByTestId("ask-ok").click();
     await expect(page.getByTestId("status-shapes")).toHaveText("4 forma(s)");

@@ -134,6 +134,11 @@ export function useProjectActions() {
   const handleSvgFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (/^image\/(png|jpe?g|webp|bmp|gif)$/i.test(file.type) || /\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name)) {
+      useUiStore.getState().setImageFile(file);
+      e.target.value = "";
+      return;
+    }
     const isDxf = /\.dxf$/i.test(file.name);
     try {
       const text = await file.text();
@@ -284,7 +289,7 @@ export function useProjectActions() {
 
   const inputs = (
     <>
-      <input ref={svgInputRef} type="file" accept=".svg,image/svg+xml,.dxf,application/dxf,image/vnd.dxf" style={{ display: "none" }} onChange={handleSvgFile} data-testid="svg-file-input" />
+      <input ref={svgInputRef} type="file" accept=".svg,image/svg+xml,.dxf,application/dxf,image/vnd.dxf,.png,.jpg,.jpeg,.webp,.bmp,image/png,image/jpeg,image/webp,image/bmp" style={{ display: "none" }} onChange={handleSvgFile} data-testid="svg-file-input" />
       <input ref={jsonInputRef} type="file" accept=".json,application/json" style={{ display: "none" }} onChange={handleJsonFile} data-testid="json-file-input" />
     </>
   );

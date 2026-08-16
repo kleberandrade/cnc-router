@@ -29,6 +29,9 @@ interface UiState {
   setRibbonTab: (view: View, tab: string) => void;
   ribbonMinimized: boolean;
   setRibbonMinimized: (m: boolean) => void;
+  /** Image waiting in the "Importar imagem" dialog. */
+  imageFile: File | null;
+  setImageFile: (f: File | null) => void;
   /** Examples gallery dialog requested (from the empty state). */
   galleryOpen: boolean;
   setGalleryOpen: (o: boolean) => void;
@@ -137,6 +140,8 @@ export const useUiStore = create<UiState>((set) => ({
     try { localStorage.setItem("oficina-cnc:ribbon-min", ribbonMinimized ? "1" : "0"); } catch { /* ignore */ }
     set({ ribbonMinimized });
   },
+  imageFile: null,
+  setImageFile: (imageFile) => set({ imageFile }),
   galleryOpen: false,
   setGalleryOpen: (galleryOpen) => set({ galleryOpen }),
   tourOpen: false,

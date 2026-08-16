@@ -11,7 +11,7 @@ import { ChoiceIcons, OPTION_ICONS } from "./OptionIcons";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
-import type { MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits, ExtraOperation } from "../types";
+import type { MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits, ExtraOperation, PocketStrategy } from "../types";
 import { throughCutDepth } from "../state/store";
 import { helixDiameter } from "../lib/toolpath";
 import { POSTS } from "../lib/post";
@@ -163,6 +163,7 @@ function shapeSummary(shape: Shape): string {
     case "ngon": return `polígono regular ${shape.sides} lados r${shape.radius}`;
     case "slot": return `rasgo ${shape.length}×${shape.width}`;
     case "text": return `texto "${shape.text.slice(0, 10)}" ${shape.size} mm`;
+    case "relief": return `relevo ${shape.width}×${shape.height} (${shape.cols}×${shape.rows} px, ${shape.depthMax} mm)`;
     default: return `polígono (${shape.points.length} pts${shape.holes?.length ? `, ${shape.holes.length} furo(s)` : ""})`;
   }
 }
@@ -383,6 +384,29 @@ export function SidePanel() {
                   onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
               </>
             )}
+            {selectedShape.kind === "relief" ? (
+              <>
+                <div className="field-row">
+                  <NumberField label="Largura" unit="mm" min={1} step={5} value={selectedShape.width} testId="relief-width" onChange={(v) => updateShape(selectedShape.id, { width: v, height: Math.round((v * selectedShape.rows) / selectedShape.cols * 100) / 100 })} />
+                  <NumberField label="Altura" unit="mm" min={1} step={5} value={selectedShape.height} testId="relief-height" onChange={(v) => updateShape(selectedShape.id, { height: v })} />
+                </div>
+                <NumberField label="Profundidade máxima (preto)" unit="mm" min={0.1} step={0.5} value={selectedShape.depthMax} testId="shape-depth" onChange={(v) => updateShape(selectedShape.id, { depthMax: v, depth: v })} />
+                <div className="field-row">
+                  <NumberField label="Gama" min={0.3} max={3} step={0.1} value={selectedShape.gamma ?? 1} testId="relief-gamma" onChange={(v) => updateShape(selectedShape.id, { gamma: v })} hint="< 1 aprofunda; > 1 suaviza" />
+                  <NumberField label="Passo das linhas" unit="mm" min={0.1} step={0.1} value={selectedShape.lineStep ?? settings.stepover} testId="relief-step" onChange={(v) => updateShape(selectedShape.id, { lineStep: v })} />
+                </div>
+                <div className="field-row">
+                  <label className="checkbox"><input type="checkbox" checked={!!selectedShape.invert} onChange={(e) => updateShape(selectedShape.id, { invert: e.target.checked })} data-testid="relief-invert" /> Inverter</label>
+                  <label>Direção
+                    <select value={selectedShape.direction ?? "x"} onChange={(e) => updateShape(selectedShape.id, { direction: e.target.value as "x" | "y" })} data-testid="relief-direction">
+                      <option value="x">Linhas em X</option>
+                      <option value="y">Linhas em Y</option>
+                    </select>
+                  </label>
+                </div>
+                <p className="hint">Relevo {selectedShape.cols} × {selectedShape.rows} px. Fresa esférica dá o melhor acabamento; a operação é sempre raster.</p>
+              </>
+            ) : (
             <NumberField
               label="Profundidade de corte"
               unit="mm"
@@ -392,6 +416,7 @@ export function SidePanel() {
               testId="shape-depth"
               onChange={(v) => updateShape(selectedShape.id, { depth: v, cutThrough: false })}
             />
+            )}
             <label className="checkbox">
               <input
                 type="checkbox"
@@ -422,6 +447,7 @@ export function SidePanel() {
                 </select>
               </label>
             )}
+            {selectedShape.kind !== "relief" && (<>
             <label>
               Operação
               <select
@@ -477,6 +503,7 @@ export function SidePanel() {
               </>
             )}
             <ExtraOps shape={selectedShape} />
+            </>)}
             <button type="button" className="danger" onClick={() => removeShape(selectedShape.id)}>
               Remover forma
             </button>
@@ -607,6 +634,16 @@ export function SidePanel() {
         {settings.helixEntry && (
           <NumberField label="Passo da hélice" hint="mm por volta" unit="mm" min={0.1} step={0.1} value={settings.helixPitch} testId="helix-pitch" onChange={(v) => updateSettings({ helixPitch: v })} />
         )}
+        <label>
+          Rebaixos: estratégia
+          <select value={settings.pocketStrategy ?? "contour"} onChange={(e) => updateSettings({ pocketStrategy: e.target.value as PocketStrategy })} data-testid="pocket-strategy">
+            <option value="contour">Contorno paralelo (de fora para dentro)</option>
+            <option value="zigzag">Zigue-zague (linhas)</option>
+          </select>
+        </label>
+        <ChoiceIcons value={(settings.pocketStrategy ?? "contour") as PocketStrategy} testId="pocket-icons" onChange={(v) => updateSettings({ pocketStrategy: v })} options={[
+          { value: "contour" as PocketStrategy, icon: "pocket-contour", label: "Contorno" }, { value: "zigzag" as PocketStrategy, icon: "pocket-zigzag", label: "Zigue-zague" },
+        ]} />
         <NumberField label="Furação: bicada" hint="profundidade por bicada; 0 = direto" unit="mm" min={0} step={0.5} value={settings.peckDepth} testId="peck-depth" onChange={(v) => updateSettings({ peckDepth: v })} />
         <label>
           Ordem de usinagem

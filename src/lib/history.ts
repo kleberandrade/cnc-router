@@ -9,7 +9,7 @@ export interface HistoryStep {
   ids: string[];
 }
 
-const KIND_PT: Record<Shape["kind"], string> = { rectangle: "retângulo", circle: "círculo", path: "polígono", ngon: "polígono regular", slot: "rasgo", text: "texto" };
+const KIND_PT: Record<Shape["kind"], string> = { rectangle: "retângulo", circle: "círculo", path: "polígono", ngon: "polígono regular", slot: "rasgo", text: "texto", relief: "relevo" };
 const SETTING_PT: Partial<Record<keyof MachineSettings, string>> = {
   stock: "Chapa", workArea: "Máquina", material: "Material", toolDiameter: "Ø da fresa", toolType: "Tipo de fresa", tools: "Fresas", feedRate: "Avanço", plungeRate: "Mergulho", spindleSpeed: "Rotação",
   passDepth: "Passe", stepover: "Stepover", rampAngle: "Rampa", helixEntry: "Hélice", peckDepth: "Bicada", orderMode: "Ordem", post: "Pós-processador", exportUnits: "Unidades", accel: "Aceleração", rapidRate: "G0", safeHeight: "Altura segura", projectName: "Nome do projeto", machinePreset: "Máquina", vbitAngle: "Ângulo V",

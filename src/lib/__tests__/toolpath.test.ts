@@ -28,7 +28,7 @@ describe("buildToolpath", () => {
   });
 
   it("pocket produces zig-zag feed rows inside the tool-offset contour, plus a wall pass", () => {
-    const tp = buildToolpath([circle], DEFAULT_MACHINE_SETTINGS);
+    const tp = buildToolpath([circle], { ...DEFAULT_MACHINE_SETTINGS, pocketStrategy: "zigzag" });
     const feeds = tp.segments.filter((s) => s.shapeId === "c1" && s.type === "feed");
     expect(feeds.length).toBeGreaterThan(4);
     expect(feeds.every((s) => s.op === "pocket")).toBe(true);
@@ -237,5 +237,28 @@ describe("rebaixo em anel (moldura): zigzag por região, sem hop a cada linha", 
     expect(plunges).toBeLessThanOrEqual(8);
     const t = estimateTime(tp.segments, { rapidRate: 3000, accel: 200 }).total;
     expect(t).toBeLessThan(6 * 60);
+  });
+});
+
+
+describe("rebaixo por contorno paralelo (padrão)", () => {
+  it("círculo: anéis concêntricos, tudo dentro de r − raio da fresa, 1 mergulho por passe, parede alcançada", () => {
+    const tp = buildToolpath([circle], DEFAULT_MACHINE_SETTINGS); // stepover 1.8, tool 3, depth 3, pass 2 → 2 passes
+    const cut = tp.segments.filter((s) => s.shapeId === "c1");
+    const feeds = cut.filter((s) => s.type === "feed");
+    for (const s of feeds) for (const p of [s.from, s.to]) expect(Math.hypot(p[0] - 50, p[1] - 50)).toBeLessThanOrEqual(8.5 + 0.02);
+    expect(Math.max(...feeds.map((s) => Math.hypot(s.to[0] - 50, s.to[1] - 50)))).toBeGreaterThan(8.3);
+    expect(cut.filter((s) => s.type === "plunge")).toHaveLength(2);
+    // no gaps wider than the stepover: some cut point within 1.8+ of every radius from 0..8.5
+    for (let rr = 0; rr <= 8.5; rr += 0.9) expect(feeds.some((s) => Math.abs(Math.hypot(s.to[0] - 50, s.to[1] - 50) - rr) <= 1.9)).toBe(true);
+  });
+  it("anel (moldura): sem nenhum hop entre linhas — 1 mergulho por passe", async () => {
+    const { booleanShapes } = await import("../boolean");
+    const S = { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 6, stepover: 3.6, passDepth: 4, stock: { ...DEFAULT_MACHINE_SETTINGS.stock, width: 420, height: 280, thickness: 30 } };
+    const outerR: Shape = { id: "o", kind: "rectangle", x: 30, y: 30, width: 300, height: 190, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 14 } };
+    const innerR: Shape = { id: "i", kind: "rectangle", x: 38, y: 38, width: 284, height: 174, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 8 } };
+    const groove = booleanShapes("difference", [outerR, innerR], () => "g")[0];
+    const tp = buildToolpath([groove], S);
+    expect(tp.segments.filter((s) => s.op === "pocket" && s.type === "plunge")).toHaveLength(1);
   });
 });

@@ -10,6 +10,9 @@ Arquivos gerados pelo app, usados como referência de regressão e para conferê
 | `sprint06-compensacao-tabs-rampa.gcode` | Peça 80×60 recorte por fora com 4 tabs, furo Ø20 por dentro, rebaixo 20×15, fresa Ø6, rampa 5° | Conferir visualmente: contorno externo com cantos arredondados a 3 mm da linha, tabs a Z-15,2, ordem rebaixo → furo → recorte. |
 
 | `sprint14-grbl.gcode` / `sprint14-marlin.gcode` / `sprint14-linuxcnc.ngc` / `sprint14-linuxcnc-inch.ngc` | Sprint 14 — rebaixo 50×30 com hélice de entrada, furação Ø3 com bicadas de 4 mm (fresa 3 mm, troca), recorte 100×60 com tabs; o mesmo programa nos três pós-processadores e em polegadas (G20) | Conferir num visualizador: hélice em vez de mergulho vertical no rebaixo, ciclos de furação, troca de fresa por pausa (M0 / (MSG,…)+M0), fim M2 / M84 / M30; a versão em polegadas tem as mesmas linhas de movimento com coordenadas ÷ 25,4. |
+| `sprint25-contorno-relevo.gcode` | Sprint 25 — rebaixo em anel (moldura com ilha) por **contorno paralelo** e um **relevo** 2,5D (cúpula 40×30, 3 mm) com fresa esférica Ø3 | Conferir: no anel, anéis concêntricos de dentro para fora e um só mergulho por passe (sem sobe-e-desce entre linhas); no relevo, linhas G1 contínuas com Z variando (desbaste em passes de 2 mm e acabamento). |
+
+Nota (Sprint 25): os samples antigos passaram a ser gerados com `pocketStrategy: "zigzag"` explícito — o padrão de projetos novos é contorno paralelo, e os arquivos anteriores continuam idênticos.
 
 Nota (Sprint 14): `baseline-v1` e `sprint06-…` foram regenerados — a hop entre linhas do rebaixo que encostavam na parede (retração + G0 + mergulho a cada duas linhas) deu lugar a um avanço direto ao longo da parede; o cabeçalho ganhou a linha `post … | units …` e o tempo estimado passou a considerar aceleração.
 

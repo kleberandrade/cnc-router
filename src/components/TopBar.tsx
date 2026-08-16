@@ -18,8 +18,9 @@ import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
 import { PRODUCT, AUTHOR, THIRD_PARTY } from "../content/about";
 import { FeedbackDialog } from "./FeedbackDialog";
-import { EXAMPLES, examplesByCategory } from "../content/examples";
+import { EXAMPLES } from "../content/examples";
 import { ExamplesGallery } from "./ExamplesGallery";
+import { ImportImageDialog } from "./ImportImageDialog";
 import { resetTour } from "./Tour";
 import { verifyProject } from "../lib/verify";
 import { Dialog } from "./Dialog";
@@ -29,8 +30,6 @@ import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVers
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news" | "feedback" | "privacidade" | "cookies" | "termos" | "examples">(null);
-  const [sub, setSub] = useState<null | "examples">(null);
-  useEffect(() => { if (!open) setSub(null); }, [open]);
   const [hasNews, setHasNews] = useState(false);
   useEffect(() => {
     if (isFirstRun()) markVersionSeen();
@@ -78,26 +77,10 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<FilePlus size={16} />, "Novo projeto", actions.newProject, "menu-new")}
           {item(<FolderOpen size={16} />, "Abrir projeto (.json)…", actions.openProject, "menu-open")}
           {item(<Save size={16} />, "Salvar projeto (.json)", actions.saveProject, "menu-save", "Ctrl+S")}
-          {item(<Upload size={16} />, "Importar SVG / DXF…", actions.importSvg, "menu-import")}
+          {item(<Upload size={16} />, "Importar SVG / DXF / imagem…", actions.importSvg, "menu-import")}
           {item(<Link2 size={16} />, "Copiar link do projeto", () => void actions.shareLink(), "menu-share")}
           <div className="menu-sep" />
-          <div className="menu-sub" onMouseEnter={() => setSub("examples")} onMouseLeave={() => setSub(null)}>
-            <button type="button" role="menuitem" className="menu-item" aria-haspopup="menu" aria-expanded={sub === "examples"} onClick={() => setSub(sub === "examples" ? null : "examples")} data-testid="menu-examples">
-              <BookOpen size={16} /><span>Exemplos</span><span className="menu-arrow">▸</span>
-            </button>
-            {sub === "examples" && (
-              <div className="menu menu-submenu" role="menu" data-testid="menu-examples-sub">
-                {examplesByCategory().map((g) => (
-                  <div key={g.category} className="menu-group">
-                    <div className="menu-title">{g.label}</div>
-                    {g.items.map((ex) => item(<span className="menu-bullet" />, ex.title, () => actions.openExample(ex.id), `menu-example-${ex.id}`))}
-                  </div>
-                ))}
-                <div className="menu-sep" />
-                {item(<BookOpen size={16} />, `Todos os exemplos (${EXAMPLES.length})…`, () => setDialog("examples"), "menu-examples-all")}
-              </div>
-            )}
-          </div>
+          {item(<BookOpen size={16} />, `Exemplos… (${EXAMPLES.length})`, () => setDialog("examples"), "menu-examples")}
           {item(<Compass size={16} />, "Tour rápido", () => { resetTour(); useUiStore.getState().setTourOpen(true); }, "menu-tour")}
           <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
@@ -343,6 +326,8 @@ export function TopBar() {
   const actions = useProjectActions();
   const [nestOpen, setNestOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const imageFile = useUiStore((s) => s.imageFile);
+  const setImageFile = useUiStore((s) => s.setImageFile);
   const view = useUiStore((s) => s.view);
   const setView = useUiStore((s) => s.setView);
   const panelOpen = useUiStore((s) => s.panelOpen);
@@ -419,7 +404,7 @@ export function TopBar() {
         { icon: <FilePlus size={ICON} />, label: "Novo", onClick: actions.newProject, testId: "new-project" , description: "Limpa a mesa e volta às configurações padrão." },
         { icon: <FolderOpen size={ICON} />, label: "Abrir", onClick: actions.openProject, testId: "open-project" , description: "Abre um projeto .json salvo por aqui." },
         { icon: <Save size={ICON} />, label: "Salvar", onClick: actions.saveProject, testId: "save-project", featured: true , shortcut: "Ctrl+S", description: "Baixa o projeto (.json) com formas e configurações." },
-        { icon: <Upload size={ICON} />, label: "Importar", onClick: actions.importSvg, testId: "import-svg" , description: "Importa contornos de SVG ou DXF (mm) como peças." },
+        { icon: <Upload size={ICON} />, label: "Importar", onClick: actions.importSvg, testId: "import-svg" , description: "Importa contornos de SVG/DXF (mm) ou uma imagem PNG/JPG (silhueta ou relevo)." },
       ],
     },
   ];
@@ -599,6 +584,7 @@ export function TopBar() {
       {!ribbonMinimized && <OverflowRibbon key={`${view}-${activeTab.id}`} groups={activeTab.groups} />}
 
       {actions.inputs}
+      <Dialog open={!!imageFile} onClose={() => setImageFile(null)} size="lg" testId="import-image-dialog" footer={null}>{imageFile && <ImportImageDialog file={imageFile} onDone={() => setImageFile(null)} />}</Dialog>
       <Dialog open={verifyOpen} onClose={() => setVerifyOpen(false)} size="lg" testId="verify-dialog"><VerifyDialog /></Dialog>
       <Dialog open={nestOpen} onClose={() => setNestOpen(false)} testId="nest-dialog"><NestDialog onDone={() => setNestOpen(false)} /></Dialog>
     </header>

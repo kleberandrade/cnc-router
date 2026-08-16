@@ -24,7 +24,7 @@ export { generateShapeId };
 
 /** localStorage key + schema version. Bump `PROJECT_SCHEMA_VERSION` and extend `migrateProject` on breaking changes. */
 export const PROJECT_STORAGE_KEY = "oficina-cnc:project";
-export const PROJECT_SCHEMA_VERSION = 7;
+export const PROJECT_SCHEMA_VERSION = 8;
 
 type PersistedProject = { shapes: Shape[]; settings: MachineSettings };
 
@@ -70,6 +70,8 @@ export function migrateProject(persisted: unknown, version: number): PersistedPr
     if (raw.helixPitch === undefined) settings.helixPitch = 1;
     if (raw.peckDepth === undefined) settings.peckDepth = 0;
   }
+  // v7 -> v8: pocket strategy (old projects keep zigzag so their G-code doesn't change; new ones default to contour).
+  if (version < 8 && !raw.pocketStrategy && shapes.length > 0) settings.pocketStrategy = "zigzag";
   return { shapes, settings };
 }
 

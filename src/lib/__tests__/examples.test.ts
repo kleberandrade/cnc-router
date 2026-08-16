@@ -13,12 +13,12 @@ beforeAll(() => {
     registerFont(f === "Bold" ? "inter-bold" : "inter", buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
   }
   // examples that import SVG fetch from /examples/*.svg → serve from public/
-  vi.stubGlobal("fetch", async (url: string) => new Response(readFileSync(`public${url}`, "utf8")));
+  vi.stubGlobal("fetch", async (url: string) => new Response(readFileSync(`public${url}`)));
 });
 
 describe("exemplos", () => {
-  it("há ≥ 9 exemplos em ≥ 4 categorias; todos validam sem erro, geram G-code e cabem na chapa", async () => {
-    expect(EXAMPLES.length).toBeGreaterThanOrEqual(9);
+  it("há ≥ 11 exemplos em ≥ 4 categorias; todos validam sem erro, geram G-code e cabem na chapa", async () => {
+    expect(EXAMPLES.length).toBeGreaterThanOrEqual(11);
     expect(examplesByCategory().length).toBeGreaterThanOrEqual(4);
     for (const ex of EXAMPLES) {
       const { shapes, settings } = await ex.build();
@@ -46,6 +46,11 @@ describe("exemplos", () => {
     expect(co.shapes.some((s) => s.extraOps?.length)).toBe(true);
     const gato = await findExample("placa-gato")!.build();
     expect(gato.shapes.some((s) => s.kind === "path" && (s.holes?.length ?? 0) >= 3)).toBe(true);
+    const fox = await findExample("placa-raposa")!.build();
+    expect(fox.shapes.some((s) => s.kind === "path" && (s.holes?.length ?? 0) >= 3)).toBe(true);
+    expect(fox.shapes.filter((s) => s.operation === "pocket").length).toBeGreaterThanOrEqual(2);
+    const relief = await findExample("relevo-oficina")!.build();
+    expect(relief.shapes[0].kind).toBe("relief");
     const pata = await findExample("placa-pata")!.build();
     expect(pata.shapes.filter((s) => s.operation === "pocket").length).toBeGreaterThanOrEqual(5);
   });

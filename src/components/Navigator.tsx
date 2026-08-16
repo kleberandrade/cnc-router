@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Eye, EyeOff, Lock, LockOpen, Square, Circle as CircleIcon, Pentagon, Hexagon, RectangleHorizontal, ArrowUp, ArrowDown, Search, Type } from "lucide-react";
+import { Eye, EyeOff, Lock, LockOpen, Square, Circle as CircleIcon, Pentagon, Hexagon, RectangleHorizontal, ArrowUp, ArrowDown, Search, Type, Mountain } from "lucide-react";
 import { useProjectStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
 import type { Shape } from "../types";
@@ -11,8 +11,9 @@ const KIND_ICON: Record<Shape["kind"], React.ReactNode> = {
   ngon: <Hexagon size={14} />,
   slot: <RectangleHorizontal size={14} />,
   text: <Type size={14} />,
+  relief: <Mountain size={14} />,
 };
-const KIND_LABEL: Record<Shape["kind"], string> = { rectangle: "Retângulo", circle: "Círculo", path: "Polígono", ngon: "Polígono regular", slot: "Rasgo", text: "Texto" };
+const KIND_LABEL: Record<Shape["kind"], string> = { rectangle: "Retângulo", circle: "Círculo", path: "Polígono", ngon: "Polígono regular", slot: "Rasgo", text: "Texto", relief: "Relevo" };
 
 const shapeDisplayName = (shape: Shape, index: number): string =>
   shape.name?.trim() || (shape.kind === "text" ? `Texto "${shape.text.slice(0, 12)}"` : `${KIND_LABEL[shape.kind]} ${index + 1}`);

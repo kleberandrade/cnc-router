@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Stage, Layer, Rect, Circle, Line, Text, Group, Transformer } from "react-konva";
+import { Stage, Layer, Rect, Circle, Line, Text, Group, Transformer, Image as KonvaImage } from "react-konva";
+import { reliefGrid } from "../lib/relief";
+import type { ReliefShape } from "../types";
 import type Konva from "konva";
 import { useProjectStore, generateShapeId, translateShape } from "../state/store";
 import { useUiStore } from "../state/uiStore";
@@ -57,6 +59,8 @@ function shapeCenter(shape: Shape): Point {
       const b = boundingBox(pts);
       return [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
     }
+    case "relief":
+      return [shape.x + shape.width / 2, shape.y + shape.height / 2];
     default: {
       const b = boundingBox(shape.points);
       return [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
@@ -65,6 +69,26 @@ function shapeCenter(shape: Shape): Point {
 }
 
 /** Outline points relative to the centre, WITHOUT the shape's own rotation (Konva rotates the node). */
+/** Grayscale canvas of a relief (cached by data). */
+const reliefCache = new Map<string, HTMLCanvasElement>();
+function reliefCanvas(shape: ReliefShape): HTMLCanvasElement | undefined {
+  if (typeof document === "undefined") return undefined;
+  const key = `${shape.cols}x${shape.rows}:${shape.invert ? 1 : 0}:${shape.data.length}:${shape.data.slice(0, 64)}`;
+  let c = reliefCache.get(key);
+  if (c) return c;
+  c = document.createElement("canvas");
+  c.width = shape.cols; c.height = shape.rows;
+  const ctx = c.getContext("2d");
+  if (!ctx) return c;
+  const g = reliefGrid(shape);
+  const img = ctx.createImageData(shape.cols, shape.rows);
+  for (let i = 0; i < g.length; i++) { const v = shape.invert ? 255 - g[i] : g[i]; img.data[i * 4] = v; img.data[i * 4 + 1] = v; img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255; }
+  ctx.putImageData(img, 0, 0);
+  if (reliefCache.size > 20) reliefCache.delete(reliefCache.keys().next().value!);
+  reliefCache.set(key, c);
+  return c;
+}
+
 function localPoints(shape: Shape): Point[] {
   const [cx, cy] = shapeCenter(shape);
   const unrotated: Shape = "rotation" in shape ? ({ ...shape, rotation: 0 } as Shape) : shape;
@@ -252,6 +276,11 @@ export function Editor() {
         updateShape(shape.id, { radius: r2(Math.max(shape.radius * Math.max(sx, sy), 0.1)), x: r2(cx), y: r2(cy) });
         break;
       }
+      case "relief": {
+        const width = r2(Math.max(shape.width * sx, 1)), height = r2(Math.max(shape.height * sy, 1));
+        updateShape(shape.id, { width, height, x: r2(cx - width / 2), y: r2(cy - height / 2) });
+        break;
+      }
       case "ngon": {
         updateShape(shape.id, { radius: r2(Math.max(shape.radius * Math.max(sx, sy), 0.1)), rotation: r2(rot), x: r2(cx), y: r2(cy) });
         break;
@@ -408,6 +437,17 @@ export function Editor() {
             };
             if (shape.kind === "circle") {
               return <Circle key={shape.id} {...common} radius={shape.radius * scale} />;
+            }
+            if (shape.kind === "relief") {
+              const img = reliefCanvas(shape);
+              const { fill: _f, ...rest } = common;
+              void _f;
+              return (
+                <Group key={shape.id} {...rest}>
+                  <KonvaImage image={img} width={shape.width * scale} height={shape.height * scale} offsetX={(shape.width * scale) / 2} offsetY={(shape.height * scale) / 2} opacity={0.85} />
+                  <Rect width={shape.width * scale} height={shape.height * scale} offsetX={(shape.width * scale) / 2} offsetY={(shape.height * scale) / 2} stroke={stroke} strokeWidth={strokeWidth} />
+                </Group>
+              );
             }
             if (shape.kind === "text" || (shape.kind === "path" && shape.holes && shape.holes.length)) {
               // compound outline: outer loops + holes, drawn with even-odd fill inside a Group

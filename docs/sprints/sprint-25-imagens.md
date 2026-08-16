@@ -1,6 +1,6 @@
 # Sprint 25 — Importar imagem (PNG/JPG): silhueta vetorizada e relevo (heightmap)
 
-**Status:** planejada
+**Status:** concluída — 2026-08-16 · **Versão:** 0.26.0
 **Esforço:** G (6–8 dias)
 **Depende de:** 24
 
@@ -38,11 +38,22 @@ lib/relief.ts: reliefToolpath(shape, settings, tool): Segment[]
 ```
 
 ## Tarefas
-- [ ] A — importação de imagem → silhueta (diálogo, marching squares, simplificação, furos, testes com bitmaps sintéticos: círculo com furo, letra "A").
-- [ ] B — relevo: `ReliefShape`, raster com perfil da fresa, desbaste + acabamento, editor/miniatura, persistência/link, testes (plano inclinado, semiesfera).
-- [ ] C — exemplos de imagem + gato/raposa mais detalhados + cards dos escudos com o aviso.
-- [ ] D — estratégia contorno paralelo + opção no painel + testes de tempo/mergulhos.
-- [ ] Docs, CHANGELOG 0.26.0, screenshots, a11y do diálogo.
+- [x] A — importação de imagem → silhueta: `lib/imageTrace.ts` (cinza, Otsu, suavização por caixa, limiar, contornos por rastreio de borda com furos, Douglas-Peucker fechado, `regionsToMm`), diálogo `ImportImageDialog` (pré-visualização com contorno azul, limiar/suavização/inverter/largura/operação, contagem de contornos e furos). Testes: `imageTrace.test.ts` (círculo com furo, letra, Otsu, PGM).
+- [x] B — relevo: `ReliefShape` (grade em base64, `depthMax`, `invert`, `gamma`, `direction`, `lineStep`), `lib/relief.ts` (amostragem bilinear, compensação do perfil da fresa reta/esférica/V), `toolpath.relief` (desbaste em passes limitados a `passDepth` + acabamento, G1 contínuo), miniatura em cinza no editor, campos no painel, navegador/histórico/nesting/simulador. Testes: `relief.test.ts`.
+- [x] C — exemplos **Placa de raposa (imagem)** (PGM próprio vetorizado → rebaixos com ilhas numa placa) e **Relevo em 2,5D (imagem)** (cúpula com ondas, fresa esférica); cards dos escudos avisam que a arte oficial é marca registrada e apontam para Importar; categoria "Importados (SVG e imagem)". Menu **Exemplos…** abre a galeria direto (submenu removido).
+- [x] D — `pocketStrategy: "contour" | "zigzag"` (v8: projetos antigos com peças ficam em zigzag; novos usam contorno), `offsetRegion` (Clipper com furos), `pocketContour` (anéis de dentro para fora, 1 mergulho por passe), opção + ilustração no painel Corte, testes de mergulhos (círculo, moldura).
+- [x] Docs, CHANGELOG 0.26.0, sample `sprint25-contorno-relevo.gcode`, screenshots, a11y (diálogo usa `Dialog`).
+
+## Como ficou
+- Exemplos embarcados usam **PGM** (cinza binário) em `public/examples/*.pgm` — o mesmo pipeline do diálogo, sem decodificador de PNG no Node (os testes constroem todos os exemplos). Os PNGs equivalentes ficam ao lado para quem quiser testar o "Importar".
+- Relevo mantém a grade ≤ 400 px de largura; a peça é tratada pela caixa envolvente no navegador/nesting.
+- Estratégia de rebaixo é do projeto (painel Corte), não da peça.
+
+## Screenshots
+![Importar imagem](img/sprint-25-importar.png)
+![Galeria](img/sprint-25-galeria.png)
+![Raposa vetorizada](img/sprint-25-raposa.png)
+![Relevo no simulador](img/sprint-25-relevo-sim.png)
 
 ## DoD específica
 - PNG preto e branco de um logotipo vira peças com furos em ≤ 2 s (1000 × 1000 px) e recorta/grava sem cortes fora (verificação 0 mm²).

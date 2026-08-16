@@ -125,6 +125,10 @@ export function shapeToPoints(shape: Shape): Point[] {
       // All glyph outlines concatenated (for bounding boxes / hit areas); machining uses lib/expand.
       return textToPolygons(shape).flatMap((g) => [...g.outer, g.outer[0]]);
     }
+    case "relief": {
+      const r = shape;
+      return [[r.x, r.y], [r.x + r.width, r.y], [r.x + r.width, r.y + r.height], [r.x, r.y + r.height], [r.x, r.y]];
+    }
     case "path": {
       const p = shape as PathShape;
       if (p.closed && p.points.length > 0) {

@@ -15,6 +15,7 @@ const OP_LABEL: Record<Segment["op"], string> = {
   outline: "contorno",
   pocket: "rebaixo",
   drill: "furação",
+  relief: "relevo",
   travel: "deslocamento",
 };
 

@@ -39,8 +39,8 @@ export function rotateShape90(shape: Shape): Shape {
   if (shape.kind === "path") {
     const rot = (pts: [number, number][]) => pts.map((p) => rotatePoint(p, c, 90) as [number, number]);
     out = { ...shape, points: rot(shape.points), holes: shape.holes ? shape.holes.map(rot) : undefined };
-  } else if (shape.kind === "circle") {
-    return shape;
+  } else if (shape.kind === "circle" || shape.kind === "relief") {
+    return shape; // reliefs are not rotated (raster grid)
   } else {
     out = { ...shape, rotation: ((shape.rotation || 0) + 90) % 360 };
   }

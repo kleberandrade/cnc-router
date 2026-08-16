@@ -1,10 +1,12 @@
-import type { Shape, MachineSettings, PathShape } from "../types";
+import type { Shape, MachineSettings, PathShape, ReliefShape } from "../types";
 import { DEFAULT_MACHINE_SETTINGS } from "../types";
 import { parseSvg } from "../lib/svgImport";
 import { booleanShapes } from "../lib/boolean";
+import { parsePgm, traceImage, regionsToMm } from "../lib/imageTrace";
+import { encodeGrid } from "../lib/relief";
 
 export type ExampleCategory = "basico" | "cozinha" | "decoracao" | "esportes" | "importado";
-export const CATEGORY_LABEL: Record<ExampleCategory, string> = { basico: "Básicos", cozinha: "Cozinha", decoracao: "Decoração", esportes: "Esportes", importado: "Importados (SVG)" };
+export const CATEGORY_LABEL: Record<ExampleCategory, string> = { basico: "Básicos", cozinha: "Cozinha", decoracao: "Decoração", esportes: "Esportes", importado: "Importados (SVG e imagem)" };
 
 export interface Project { shapes: Shape[]; settings: MachineSettings }
 export interface Example {
@@ -49,6 +51,26 @@ async function fromSvg(url: string, settings: MachineSettings, decorate: (shapes
   const text = await res.text();
   const { shapes } = parseSvg(text, {});
   return { shapes: decorate(shapes), settings };
+}
+
+/** Load a bundled grayscale image (binary PGM) — works in the browser and in Node tests. */
+async function loadPgm(url: string) {
+  const res = await fetch(url);
+  return parsePgm(await res.arrayBuffer());
+}
+/** Silhouette traced from a bundled image (same pipeline as “Importar imagem”). */
+async function fromImage(url: string, widthMm: number, settings: MachineSettings, decorate: (shapes: PathShape[]) => Shape[]): Promise<Project> {
+  const gray = await loadPgm(url);
+  const { regions } = traceImage(gray, { blur: 1, tolerance: 0.6, minArea: 6 });
+  const mm = regionsToMm(regions, gray, widthMm, 20, 20);
+  const shapes = mm.map((r, i): PathShape => ({ id: `ex-img-${i}`, kind: "path", points: r.outer, holes: r.holes.length ? r.holes : undefined, closed: true, depth: 3, operation: "pocket" }));
+  return { shapes: decorate(shapes), settings };
+}
+/** 2.5D relief from a bundled grayscale image. */
+async function fromRelief(url: string, id: string, widthMm: number, depthMax: number, settings: MachineSettings, extra: Partial<ReliefShape> = {}): Promise<Project> {
+  const gray = await loadPgm(url);
+  const shape: ReliefShape = { id, kind: "relief", x: 20, y: 20, width: widthMm, height: Math.round((widthMm * gray.h) / gray.w * 100) / 100, cols: gray.w, rows: gray.h, data: encodeGrid(gray.data), depthMax, depth: depthMax, operation: "pocket", name: "Relevo", ...extra };
+  return { shapes: [shape], settings };
 }
 
 export const EXAMPLES: Example[] = [
@@ -121,7 +143,7 @@ export const EXAMPLES: Example[] = [
   {
     id: "escudo-spfc", category: "esportes", difficulty: 2,
     title: "Escudo do São Paulo (tricolor)",
-    description: "Escudo 140 × 160 recortado, com as três faixas em níveis de rebaixo e as letras SPFC gravadas — desenho geométrico próprio, não a arte oficial.",
+    description: "Escudo 140 × 160 recortado, com as três faixas em níveis de rebaixo e as letras SPFC gravadas — desenho geométrico próprio, não a arte oficial (que é marca registrada). Para o escudo real, importe a imagem do seu time em Arquivo → Importar.",
     teaches: "Níveis (rebaixos de 1,5 e 3 mm fazem o relevo, já que G-code não tem cor), texto gravado, recorte por fora com tabs.",
     build: () => {
       const cx = 150, y0 = 20, w = 140, h = 160;
@@ -148,7 +170,7 @@ export const EXAMPLES: Example[] = [
   {
     id: "escudo-palmeiras", category: "esportes", difficulty: 3,
     title: "Escudo do Palmeiras (verde)",
-    description: "Círculo com coroa de 8 pontas e a estrela ao centro — união e subtração de formas; desenho próprio.",
+    description: "Círculo com coroa de 8 pontas e a estrela ao centro — união e subtração de formas; desenho próprio, não a arte oficial. Para o escudo real, importe a imagem do seu time.",
     teaches: "Booleanas (união de círculo + pontas, subtração da estrela), círculo por fora, gravação em níveis, hélice de entrada.",
     build: () => {
       const cx = 150, cy = 105, R = 62;
@@ -179,7 +201,7 @@ export const EXAMPLES: Example[] = [
   {
     id: "escudo-corinthians", category: "esportes", difficulty: 3,
     title: "Escudo do Corinthians (timão)",
-    description: "Escudo arredondado com âncora e dois remos cruzados em relevo — desenho geométrico próprio.",
+    description: "Escudo arredondado com âncora e dois remos cruzados em relevo — desenho geométrico próprio, não a arte oficial. Para o escudo real, importe a imagem do seu time.",
     teaches: "Polígonos desenhados, união de rasgos (remos), operações adicionais (rebaixo + recorte na mesma peça), tabs.",
     build: () => {
       const cx = 150, y0 = 25, w = 130, h = 150;
@@ -211,10 +233,22 @@ export const EXAMPLES: Example[] = [
   },
   {
     id: "placa-raposa", category: "importado", difficulty: 2,
-    title: "Placa de raposa (SVG)",
-    description: "Raposa com orelhas grandes, olhos, focinho e bochechas vazadas — recorte por fora.",
-    teaches: "SVG com vários furos internos; conferir na Verificação que os furos pequenos cabem na fresa.",
-    build: () => fromSvg("/examples/raposa.svg", base({ material: "plywood", toolDiameter: 2, stepover: 1.2, passDepth: 2 }), (shapes) => shapes.map((s, i) => s.kind === "circle" ? { ...s, id: `ex-fox-h${i}`, operation: "outline", side: "inside", depth: thru(12), cutThrough: true, name: "Furo para pendurar" } : { ...s, id: `ex-fox-${i}`, operation: "outline", side: "outside", depth: thru(12), cutThrough: true, name: "Raposa", tabs: { count: 5, width: 8, height: 3 } })),
+    title: "Placa de raposa (imagem)",
+    description: "Raposa vetorizada de uma imagem PNG em preto e branco: o preto vira rebaixo de 2 mm numa placa 170 × 170 recortada, com furos para parafuso.",
+    teaches: "Importar imagem → silhueta: limiar, suavizar e simplificar; o escuro vira rebaixo (com ilhas: olhos e nariz), o claro fica na superfície.",
+    build: () => fromImage("/examples/raposa.pgm", 150, base({ material: "plywood", toolDiameter: 3, stepover: 1.8, passDepth: 2 }), (shapes) => [
+      ...shapes.map((s, i) => ({ ...s, id: `ex-fox-${i}`, operation: "pocket", depth: 2, name: i === 0 ? "Raposa" : `Detalhe ${i}` }) as Shape),
+      { id: "ex-fox-h1", kind: "circle", x: 22, y: 168, radius: 1.5, depth: thru(12), operation: "drill", cutThrough: true, name: "Furo de parafuso" },
+      { id: "ex-fox-h2", kind: "circle", x: 168, y: 168, radius: 1.5, depth: thru(12), operation: "drill", cutThrough: true, name: "Furo de parafuso" },
+      { id: "ex-fox-plate", kind: "rectangle", x: 10, y: 10, width: 170, height: 170, rotation: 0, corners: { type: "fillet", size: 10 }, depth: thru(12), operation: "outline", side: "outside", cutThrough: true, name: "Placa", tabs: { count: 4, width: 8, height: 3 } },
+    ]),
+  },
+  {
+    id: "relevo-oficina", category: "decoracao", difficulty: 3,
+    title: "Relevo em 2,5D (imagem)",
+    description: "Cúpula com ondas usinada em raster a partir de uma imagem em tons de cinza: branco fica na superfície, preto desce 4 mm.",
+    teaches: "Relevo por heightmap: fresa esférica, passo fino entre linhas, desbaste em passes e acabamento — leva mais tempo que um rebaixo comum.",
+    build: () => fromRelief("/examples/relevo-oficina.pgm", "ex-relief", 150, 4, base({ material: "mdf", toolDiameter: 3, toolType: "ball", stepover: 1, passDepth: 2, feedRate: 1200 }), { name: "Relevo da oficina", lineStep: 1 }),
   },
   {
     id: "placa-pata", category: "importado", difficulty: 1,

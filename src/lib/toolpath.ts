@@ -5,10 +5,12 @@ import { offsetPolygon, scanlineSpans, perimeter, pointAlong, ccw, type Polygon 
 import { toolsInUse, toolForShape, settingsForTool, type EffectiveTool } from "./tools";
 import { expandShapes } from "./expand";
 import { booleanRegions } from "./boolean";
+import { offsetRegion } from "./offset";
+import { reliefLines } from "./relief";
 
 export type Vec3 = [number, number, number];
 export type MoveType = "rapid" | "plunge" | "feed" | "retract" | "toolchange";
-export type OperationKind = "outline" | "pocket" | "drill" | "travel";
+export type OperationKind = "outline" | "pocket" | "drill" | "relief" | "travel";
 
 /** One straight tool move. Coordinates are in *work* space (mm, G54), Z negative = below surface. */
 export interface Segment {
@@ -351,6 +353,100 @@ function drill(b: PathBuilder, shape: Shape, points: Point[], settings: MachineS
   });
 }
 
+/**
+ * Contour-parallel pocket: successive inward offsets of the region (outer − r − k·stepover, holes grown the same),
+ * machined from the innermost ring outwards so consecutive rings connect with a short feed inside cut material.
+ * Rings/frames get no per-line hops at all; the last ring is the wall pass.
+ */
+function pocketContour(b: PathBuilder, shape: Shape, base: Polygon, holes: Polygon[], r: number, stepover: number, settings: MachineSettings, warnings: ToolpathWarning[]) {
+  const safe = settings.safeHeight;
+  const rings: Polygon[][] = []; // rings[k] = all loops at offset r + k·stepover
+  for (let k = 0; k < 10000; k++) {
+    const regs = offsetRegion(base, holes, -(r + k * stepover));
+    if (regs.length === 0) break;
+    rings.push(regs.flatMap((rg) => [rg.outer, ...rg.holes]));
+  }
+  if (rings.length === 0) { warnings.push({ shapeId: shape.id, message: `Rebaixo menor que a fresa (Ø${settings.toolDiameter} mm) — forma ignorada.` }); return; }
+  const wall = rings[0]; // region at exactly −r: cutting region for "inside" tests
+  const passes = buildPassDepths(shape.depth, settings.passDepth);
+  const meta0: Meta = { shapeId: shape.id, pass: 0, op: "pocket" };
+  // entry: centroid-ish point of the innermost ring
+  const innermost = rings[rings.length - 1][0];
+  const cx = innermost.reduce((s, p) => s + p[0], 0) / innermost.length, cy = innermost.reduce((s, p) => s + p[1], 0) / innermost.length;
+  const helixR = helixDiameter(settings.toolDiameter) / 2;
+  const helixCenter: Point | null = settings.helixEntry && circleFits([cx, cy], helixR, wall) ? [cx, cy] : null;
+  if (settings.helixEntry && !helixCenter) warnings.push({ shapeId: shape.id, message: "Rebaixo estreito demais para a hélice de entrada — usando mergulho vertical." });
+  b.move([innermost[0][0], innermost[0][1], safe], "rapid", 0, meta0, `Pocket clear (contour), target depth ${shape.depth}mm (tool Ø${settings.toolDiameter}, stepover ${stepover})`);
+  passes.forEach((z, i) => {
+    const meta: Meta = { shapeId: shape.id, pass: i + 1, op: "pocket" };
+    if (helixCenter) {
+      helixDown(b, helixCenter, helixR, i === 0 ? 0 : -passes[i - 1], -z, settings.helixPitch, settings, meta);
+    } else {
+      const p = b.position;
+      if (Math.abs(p[0] - innermost[0][0]) > 1e-9 || Math.abs(p[1] - innermost[0][1]) > 1e-9) {
+        if (p[2] < safe) b.move([p[0], p[1], safe], "retract", 0, meta0);
+        b.move([innermost[0][0], innermost[0][1], safe], "rapid", 0, meta0);
+      }
+      b.move([innermost[0][0], innermost[0][1], -z], "plunge", settings.plungeRate, meta);
+    }
+    // from innermost ring outwards
+    for (let k = rings.length - 1; k >= 0; k--) {
+      for (const loop of rings[k]) {
+        const p = b.position;
+        let best = 0, bestD = Infinity;
+        loop.forEach(([x, y], j) => { const d = Math.hypot(x - p[0], y - p[1]); if (d < bestD) { bestD = d; best = j; } });
+        const rotated = [...loop.slice(best), ...loop.slice(0, best)];
+        if (bestD > 1e-9) {
+          if (bestD <= stepover * 1.5 + 1e-6 || segmentInside(wall, [p[0], p[1]], rotated[0], Math.max(r / 2, 0.25))) {
+            b.move([rotated[0][0], rotated[0][1], -z], "feed", settings.feedRate, meta);
+          } else {
+            b.move([p[0], p[1], safe], "retract", 0, meta0);
+            b.move([rotated[0][0], rotated[0][1], safe], "rapid", 0, meta0);
+            b.move([rotated[0][0], rotated[0][1], -z], "plunge", settings.plungeRate, meta);
+          }
+        }
+        for (const [x, y] of rotated.slice(1)) b.move([x, y, -z], "feed", settings.feedRate, meta);
+        b.move([rotated[0][0], rotated[0][1], -z], "feed", settings.feedRate, meta);
+      }
+    }
+  });
+  const cur = b.position;
+  b.move([cur[0], cur[1], safe], "retract", 0, meta0);
+}
+
+/** Relief: raster lines with the tool profile compensated; roughing passes clamp Z to −k·passDepth. */
+function relief(b: PathBuilder, shape: Extract<Shape, { kind: "relief" }>, settings: MachineSettings, tool: { type: "flat" | "ball" | "vbit"; radius: number; angle: number }, ox: number, oy: number) {
+  const safe = settings.safeHeight;
+  const lines = reliefLines(shape, settings, tool);
+  const meta0: Meta = { shapeId: shape.id, pass: 0, op: "relief" };
+  const passes = buildPassDepths(shape.depthMax, settings.passDepth);
+  b.move([lines[0].pts[0][0] - ox, lines[0].pts[0][1] - oy, safe], "rapid", 0, meta0, `Relief ${shape.cols}×${shape.rows}px, depth ${shape.depthMax}mm, ${lines.length} lines (tool ${tool.type} Ø${tool.radius * 2})`);
+  passes.forEach((zLimit, pi) => {
+    const meta: Meta = { shapeId: shape.id, pass: pi + 1, op: "relief" };
+    const last = pi === passes.length - 1;
+    lines.forEach((ln, li) => {
+      const fwd = li % 2 === 0;
+      const idx = fwd ? ln.pts.map((_, i) => i) : ln.pts.map((_, i) => ln.pts.length - 1 - i);
+      // clamp for roughing: never below −zLimit; skip lines that are entirely at the surface for this pass
+      const zs = idx.map((i) => Math.max(ln.z[i], -zLimit));
+      if (!last && zs.every((z) => z >= -1e-9)) return;
+      const first = idx[0];
+      const p = b.position;
+      const sx = ln.pts[first][0] - ox, sy = ln.pts[first][1] - oy;
+      if (li === 0 || Math.hypot(sx - p[0], sy - p[1]) > (shape.lineStep ?? settings.stepover) * 2 + 1e-6) {
+        if (p[2] < safe && li > 0) b.move([p[0], p[1], safe], "retract", 0, meta0);
+        b.move([sx, sy, safe], "rapid", 0, meta0);
+        b.move([sx, sy, zs[0]], "plunge", settings.plungeRate, meta);
+      } else {
+        b.move([sx, sy, zs[0]], "feed", settings.feedRate, meta);
+      }
+      for (let k = 1; k < idx.length; k++) b.move([ln.pts[idx[k]][0] - ox, ln.pts[idx[k]][1] - oy, zs[k]], "feed", settings.feedRate, meta);
+    });
+  });
+  const cur = b.position;
+  b.move([cur[0], cur[1], safe], "retract", 0, meta0);
+}
+
 function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: MachineSettings, warnings: ToolpathWarning[]) {
   const safe = settings.safeHeight;
   const r = settings.toolDiameter / 2;
@@ -371,6 +467,7 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
     : innerOnly;
 
   const stepover = Math.max(settings.stepover, 0.1);
+  if ((settings.pocketStrategy ?? "zigzag") === "contour") { pocketContour(b, shape, base, holes, r, stepover, settings, warnings); return; }
   const box = boundingBox(innerOnly.flat());
   // Rows strictly inside the offset region: start half a stepover in so the wall pass cleans the rest.
   const rows = scanlines(box.minY + 1e-6, box.maxY - 1e-6, stepover);
@@ -566,7 +663,8 @@ export function buildToolpath(shapes: Shape[], settings: MachineSettings): Toolp
       const before = b.segments.length;
       const cur = b.position;
       b.move([cur[0], cur[1], safe], "retract", 0, travel);
-      if (shape.operation === "pocket") pocket(b, shape, points, toolSettings, warnings);
+      if (shape.kind === "relief") relief(b, shape, toolSettings, { type: tool.type, radius: tool.diameter / 2, angle: tool.vbitAngle }, ox, oy);
+      else if (shape.operation === "pocket") pocket(b, shape, points, toolSettings, warnings);
       else if (shape.operation === "drill") drill(b, shape, points, toolSettings, warnings);
       else outline(b, shape, points, toolSettings, warnings);
       if (b.segments.length > before + 1) shapeCount += 1;

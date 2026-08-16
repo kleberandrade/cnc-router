@@ -15,7 +15,7 @@ test.describe("sprint 16: operações adicionais, verificação, link", () => {
     const dl = page.waitForEvent("download");
     await page.getByTestId("export-gcode").click();
     const text = await fs.readFile((await (await dl).path()) as string, "utf8");
-    expect(text).toContain("Pocket clear, target depth 4mm");
+    expect(text).toMatch(/Pocket clear.*target depth 4mm/);
     expect(text).toMatch(/G1 Z-18/); // through cut of the main outline (18 mm stock)
     // verification
     await page.getByTestId("tab-simulator").click();

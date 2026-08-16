@@ -14,13 +14,17 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
 
-## [Planejado — Sprint 23]
+## [0.26.0 — Sprint 25 — Importar imagem e relevo] — 2026-08-16
 
-- Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, linha do tempo, textos, regras dos agentes, políticas — `docs/sprints/sprint-23-acabamento-ux.md`.
+### Adicionado
+- **Importar imagem (PNG/JPG/WebP/BMP)** em Arquivo → Importar: modo **Silhueta** vetoriza o preto em peças (com furos) — limiar automático, suavização, inverter, largura em mm, operação; modo **Relevo** transforma tons de cinza em relevo 2,5D (profundidade máxima, gama).
+- **Peça Relevo**: usinagem em raster com compensação do perfil da fresa (reta, esférica, V), desbaste em passes + acabamento; miniatura em cinza no editor, campos próprios no painel, simula e exporta como as demais.
+- **Rebaixo por contorno paralelo** (padrão para projetos novos): anéis de dentro para fora, um mergulho por passe; opção Corte → "Rebaixos: estratégia" (contorno / zigue-zague). Projetos antigos continuam em zigue-zague.
+- Exemplos **Placa de raposa (imagem)** e **Relevo em 2,5D (imagem)**; cards dos escudos explicam que a arte oficial é marca registrada e apontam para Importar.
+- Menu **Exemplos…** abre a galeria direto (o submenu por categoria saiu).
 
-## [Planejado — Sprint 24]
-
-- Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias e galeria, ilustrações nas opções, notice compacto — `docs/sprints/sprint-24-exemplos.md`.
+### Corrigido
+- Peça importada de imagem já sai selecionada.
 
 ## [0.25.1] — 2026-08-16
 
@@ -28,9 +32,6 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - **Rebaixo em anel/U subia e descia a fresa a cada linha** (tábua de carnes: 51 mergulhos): o zigzag agora segue a mesma faixa contínua e só pula quando a região acaba (6 mergulhos, tempo de 11,8 → 4,8 min).
 - Diálogo: o foco não fica mais "pingando" entre o diálogo e o botão de origem (travava a página em máquinas lentas).
 - Aviso compacto: só avisos informativos escondem os detalhes; alertas e erros mostram tudo.
-
-### Planejado
-- Sprint 25: importar imagem (PNG/JPG) como silhueta vetorizada ou relevo; contorno paralelo nos rebaixos — `docs/sprints/sprint-25-imagens.md`.
 
 ## [0.25.0 — Sprint 24 — Exemplos e ilustrações] — 2026-08-16
 

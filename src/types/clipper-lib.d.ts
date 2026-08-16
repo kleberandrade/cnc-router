@@ -11,7 +11,7 @@ declare module "clipper-lib" {
     constructor(miterLimit?: number, arcTolerance?: number);
     AddPath(path: Path, joinType: JoinType, endType: EndType): void;
     AddPaths(paths: Paths, joinType: JoinType, endType: EndType): void;
-    Execute(solution: Paths, delta: number): void;
+    Execute(solution: Paths | PolyTree, delta: number): void;
     Clear(): void;
   }
   export class PolyNode {

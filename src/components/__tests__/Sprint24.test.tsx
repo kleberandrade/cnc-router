@@ -7,7 +7,7 @@ import { Notice } from "../Notice";
 import { projectThumbnail } from "../../lib/thumbnail";
 import { EXAMPLES, findExample } from "../../content/examples";
 
-beforeAll(() => { vi.stubGlobal("fetch", async (url: string) => new Response(readFileSync(`public${url}`, "utf8"))); });
+beforeAll(() => { vi.stubGlobal("fetch", async (url: string) => new Response(readFileSync(`public${url}`))); });
 
 describe("Sprint 24", () => {
   it("thumbnail: pockets filled, outlines stroked, holes included, fitted to the box", async () => {

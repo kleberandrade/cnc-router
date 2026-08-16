@@ -27,6 +27,8 @@ export const OPTION_ICONS: Record<string, ReactNode> = {
   tabs: <Svg title="Tabs"><path {...S} d="M3 20h8v-6h4v6h4v-6h4v6h8" /></Svg>,
   helix: <Svg title="Hélice de entrada"><path {...S} d="M8 5c6 0 12 2 12 5s-6 4-10 4 -6 3 0 4 8 2 8 5" /><path {...S} d="M4 23h26" strokeWidth="1" /></Svg>,
   plunge: <Svg title="Mergulho vertical"><path {...S} d="M17 3v16" /><path {...S} d="M12 14l5 6 5-6" /><path {...S} d="M4 23h26" strokeWidth="1" /></Svg>,
+  "pocket-contour": <Svg title="Contorno paralelo"><rect {...S} x="5" y="5" width="24" height="16" rx="2" /><rect {...S} x="9" y="8" width="16" height="10" rx="1.5" strokeWidth="1" /><rect {...S} x="13" y="11" width="8" height="4" rx="1" strokeWidth="1" /></Svg>,
+  "pocket-zigzag": <Svg title="Zigue-zague"><rect {...S} x="5" y="5" width="24" height="16" rx="2" /><path {...S} d="M8 8h18l-18 3h18l-18 3h18l-18 3h18" strokeWidth="1" /></Svg>,
   "order-auto": <Svg title="Ordem automática"><path {...S} d="M5 19h6M5 13h12M5 7h18" /><path {...S} d="M27 5v14l3-3M27 19l-3-3" /></Svg>,
   "order-manual": <Svg title="Ordem manual"><path {...S} d="M5 7h18M5 13h18M5 19h18" /><path {...S} d="M27 9l3-3 3 3M30 6v14" /></Svg>,
 };

@@ -1,4 +1,4 @@
-export type ShapeKind = "rectangle" | "circle" | "path" | "ngon" | "slot" | "text";
+export type ShapeKind = "rectangle" | "circle" | "path" | "ngon" | "slot" | "text" | "relief";
 
 export interface BaseShape {
   id: string;
@@ -133,7 +133,30 @@ export interface TextShape extends BaseShape {
   letterSpacing: number;
 }
 
-export type Shape = RectangleShape | CircleShape | PathShape | RegularPolygonShape | SlotShape | TextShape;
+/** 2.5D relief from a grayscale image: white = surface (0), black = depthMax (or inverted). Machined as a raster (Sprint 25). */
+export interface ReliefShape extends BaseShape {
+  kind: "relief";
+  /** Bottom-left corner on the table, mm. */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Grayscale grid (row 0 = top of the image), base64 of raw bytes (cols × rows). */
+  cols: number;
+  rows: number;
+  data: string;
+  /** Maximum depth (black), mm. `depth` mirrors it for validation. */
+  depthMax: number;
+  invert?: boolean;
+  /** Gamma applied to the gray ramp (1 = linear). */
+  gamma?: number;
+  /** Raster direction. */
+  direction?: "x" | "y";
+  /** Raster line spacing, mm (defaults to the stepover). */
+  lineStep?: number;
+}
+
+export type Shape = RectangleShape | CircleShape | PathShape | RegularPolygonShape | SlotShape | TextShape | ReliefShape;
 
 /** Usable travel of the machine (work envelope), in mm. */
 export interface WorkArea {
@@ -179,6 +202,7 @@ export interface Tool {
   spindleSpeed?: number;
 }
 
+export type PocketStrategy = "zigzag" | "contour";
 export type PostId = "grbl" | "marlin" | "linuxcnc";
 export type ExportUnits = "mm" | "inch";
 
@@ -197,6 +221,8 @@ export interface MachineSettings {
   helixPitch: number;
   /** Peck drilling: depth per peck, mm (0 = one plunge to full depth). Retracts to safe height between pecks. */
   peckDepth: number;
+  /** Pocket clearing strategy: zigzag lines (by region) or contour-parallel offsets (rings). */
+  pocketStrategy: PocketStrategy;
   /** Extra tools (the project default tool is toolDiameter/toolType/vbitAngle). */
   tools: Tool[];
   /** Tool tip geometry (visual + material removal). */
@@ -251,6 +277,7 @@ export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
   helixEntry: false,
   helixPitch: 1,
   peckDepth: 0,
+  pocketStrategy: "contour",
   tools: [],
   toolType: "flat",
   vbitAngle: 90,
