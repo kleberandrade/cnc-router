@@ -10,6 +10,7 @@ import { positionAt, segmentIndexAt } from "../lib/playback";
 import { boundariesFor } from "../lib/playback";
 import { segmentsToGCode } from "../lib/gcode";
 import { createHeightmap, carveUpTo, removedVolume, type Heightmap, type ToolProfile } from "../lib/heightmap";
+import { materialLook } from "../lib/materials";
 import { buildToolModel } from "../lib/toolModel";
 import { SimulatorControls } from "./SimulatorControls";
 import { ViewCube, type ViewName } from "./ViewCube";
@@ -18,11 +19,7 @@ const COLORS = {
   bg: 0x16283d,
   table: 0x22384f,
   tableEdge: 0x4f88b8,
-  stockTop: new THREE.Color(0xd9b98a),
-  stockCut: new THREE.Color(0xf1dcb8),
-  stockDeep: new THREE.Color(0xb98d5a),
   through: new THREE.Color(0x5b4a3a),
-  stockSide: 0xc9a675,
   cut: 0xf3b64c,
   future: 0x4f88b8,
   rapid: 0x8aa4bd,
@@ -44,6 +41,7 @@ interface SceneRefs {
   stockGroup: THREE.Group;
   surface: THREE.Mesh | null;
   surfaceColors: Float32Array | null;
+  look: { top: THREE.Color; cut: THREE.Color; deep: THREE.Color };
   hm: Heightmap | null;
   anim: { from: THREE.Vector3; to: THREE.Vector3; target: THREE.Vector3; t0: number } | null;
   frameSubs: Set<(camera: THREE.Camera) => void>;
@@ -160,7 +158,7 @@ export function Simulator() {
     refs.current = {
       renderer, scene, persp, ortho: orthoCam, camera: persp, controls,
       tool: null, cutLines: null, rapidLines: null, cutColors: null, cutIndexBySegment: null,
-      stockGroup, surface: null, surfaceColors: null, hm: null, anim: null, frameSubs: frameSubs.current, lastMeshUpdate: 0,
+      stockGroup, surface: null, surfaceColors: null, look: { top: new THREE.Color(0xd9b98a), cut: new THREE.Color(0xf1dcb8), deep: new THREE.Color(0xb98d5a) }, hm: null, anim: null, frameSubs: frameSubs.current, lastMeshUpdate: 0,
     };
 
     let last = performance.now();
@@ -281,7 +279,9 @@ export function Simulator() {
     stockGroup.add(new THREE.AxesHelper(25));
 
     // stock sides + bottom (top face is the heightmap surface)
-    const sideMat = new THREE.MeshStandardMaterial({ color: COLORS.stockSide, roughness: 0.85 });
+    const look = materialLook(settings.material);
+    r.look = { top: new THREE.Color(look.top), cut: new THREE.Color(look.cut), deep: new THREE.Color(look.deep) };
+    const sideMat = new THREE.MeshStandardMaterial({ color: look.side, roughness: look.roughness ?? 0.85, metalness: look.metalness ?? 0 });
     const noTop = new THREE.MeshBasicMaterial({ visible: false });
     const box = new THREE.Mesh(new THREE.BoxGeometry(stock.width, stock.height, stock.thickness), [sideMat, sideMat, sideMat, sideMat, noTop, sideMat]);
     box.position.set(stock.offsetX - ox + stock.width / 2, stock.offsetY - oy + stock.height / 2, -stock.thickness / 2);
@@ -302,7 +302,7 @@ export function Simulator() {
     }
     pos.needsUpdate = true;
     const colors = new Float32Array(hm.cols * hm.rows * 3);
-    for (let i = 0; i < hm.cols * hm.rows; i++) { colors[i * 3] = COLORS.stockTop.r; colors[i * 3 + 1] = COLORS.stockTop.g; colors[i * 3 + 2] = COLORS.stockTop.b; }
+    for (let i = 0; i < hm.cols * hm.rows; i++) { colors[i * 3] = r.look.top.r; colors[i * 3 + 1] = r.look.top.g; colors[i * 3 + 2] = r.look.top.b; }
     geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     geo.computeVertexNormals();
     const surface = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.02, side: THREE.DoubleSide }));
@@ -462,11 +462,11 @@ function flushSurface(r: SceneRefs) {
       const h = hm.heights[i];
       pos.setZ(i, h);
       let c: THREE.Color;
-      if (h >= 0) c = COLORS.stockTop;
+      if (h >= 0) c = r.look.top;
       else if (h <= -hm.thickness + 1e-6) c = COLORS.through;
       else {
         const k = Math.min(-h / depthMax, 1);
-        c = COLORS.stockCut.clone().lerp(COLORS.stockDeep, k);
+        c = r.look.cut.clone().lerp(r.look.deep, k);
       }
       colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
     }

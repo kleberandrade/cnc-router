@@ -11,6 +11,7 @@ export const PRODUCT = {
 export const AUTHOR = {
   name: "Kleber Andrade",
   email: "pdjkleber@gmail.com",
+  url: "https://kleberandrade.dev",
   role: "idealizador, projeto e desenvolvimento",
 } as const;
 

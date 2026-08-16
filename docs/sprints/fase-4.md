@@ -17,6 +17,8 @@
 | [21](sprint-21-usabilidade-onboarding-a11y.md) | Usabilidade: primeiro uso/estado vazio, exemplos, tooltips e mensagens, acessibilidade (foco, contraste, teclado), refinamentos mobile | 18 | M |
 | [22](sprint-22-ribbon-fusion.md) | Barra superior no estilo Fusion 360: app bar com nome do projeto, workspace + abas em caixa alta, ribbon com menus de grupo ▾, Selecionar à direita, tooltips ricos, ribbon minimizável | 18 | M |
 | [23](sprint-23-acabamento-ux.md) | Acabamento: diálogos próprios (sem `confirm`), espaçamentos/abas do painel, seletor visual de origem, cores por material no 3D, linha do tempo do projeto, copy humanizado, regras dos agentes, políticas (cookies/privacidade/termos) | 22 | G |
+| [24](sprint-24-exemplos.md) | Exemplos úteis + biblioteca com categorias + ilustrações nas opções + notice compacto | 21, 23 | M |
+| [23](sprint-23-acabamento-ux.md) | Acabamento: diálogos próprios (sem `confirm`), espaçamentos/abas do painel, seletor visual de origem, cores por material no 3D, linha do tempo do projeto, copy humanizado, regras dos agentes, políticas (cookies/privacidade/termos) | 22 | G |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) | (da Fase 3) Verificação de sobrecorte, múltiplas operações por forma, compartilhar por link | 13, 14 | M |
 
 Ordem recomendada: 18 → 19 → 20 → 21 → 22 → 16. A Sprint 17 (Web Serial) e o restante do backlog técnico foram para a [Fase 5](fase-5.md).

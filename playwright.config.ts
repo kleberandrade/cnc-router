@@ -9,7 +9,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
     // The first-run tour is opt-in for tests: mark it done everywhere (onboarding.spec clears it).
-    storageState: { cookies: [], origins: [{ origin: 'http://localhost:4173', localStorage: [{ name: 'oficina-cnc:tour-done', value: '1' }] }] },
+    storageState: { cookies: [], origins: [{ origin: 'http://localhost:4173', localStorage: [{ name: 'oficina-cnc:tour-done', value: '1' }, { name: 'oficina-cnc:storage-notice', value: '1' }] }] },
     // Optional: point at a pre-installed Chromium (e.g. sandboxes) instead of downloading one.
     ...(process.env.PW_CHROMIUM_PATH
       ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }

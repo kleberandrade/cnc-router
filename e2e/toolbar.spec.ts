@@ -21,9 +21,9 @@ test.describe("toolbar (sprint 05)", () => {
     await page.getByTestId("menu-save").click();
     const download = await downloadPromise;
     const path = await download.path();
-    page.on("dialog", (d) => d.accept());
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-new").click();
+    await page.getByTestId("ask-ok").click();
     await expect(page.getByTestId("status-shapes")).toHaveText("0 forma(s)");
     await page.getByTestId("json-file-input").setInputFiles(path as string);
     await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");

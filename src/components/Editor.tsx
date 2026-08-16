@@ -10,6 +10,7 @@ import { InlineDimensions } from "./InlineDimensions";
 import { useTheme } from "../hooks/useTheme";
 import { textToPolygons } from "../lib/text";
 import type { Shape } from "../types";
+import { originPoint } from "../lib/toolpath";
 import type { Point } from "../lib/geometry";
 
 const LIGHT = {
@@ -200,7 +201,7 @@ export function Editor() {
   }
 
   const [stockPxX, stockPxY] = toPx(stock.offsetX, stock.offsetY + stock.height);
-  const [originPxX, originPxY] = stock.origin === "center" ? toPx(stock.offsetX + stock.width / 2, stock.offsetY + stock.height / 2) : toPx(stock.offsetX, stock.offsetY);
+  const [originPxX, originPxY] = toPx(...originPoint(stock));
 
   // ---- drag with clamp + snap (node position = shape centre in px) ----
   const dragBound = (shape: Shape) => (pos: { x: number; y: number }) => {

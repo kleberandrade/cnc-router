@@ -6,9 +6,11 @@ alwaysApply: false
 
 # Testes
 
-- Unitários: `src/**/__tests__/*.test.ts(x)` ao lado do código.
-- E2E: `e2e/`. Reutilizar helpers em `e2e/helpers.ts` (`ribbonClick`, etc.).
-- Preservar `data-testid` existentes. Spec nova para fluxo de UI novo.
+- Unitários: `src/**/__tests__/*.test.ts(x)` ao lado do código; `api/__tests__` para a função de feedback.
+- E2E: `e2e/`. Reutilizar helpers em `e2e/helpers.ts` (`ribbonClick`, `alignClick`).
+- O Playwright já inicia com tour feito e aviso de armazenamento fechado (`storageState`); para testar esses fluxos, remova as chaves `oficina-cnc:tour-done` / `oficina-cnc:storage-notice` no teste.
+- Preservar `data-testid` existentes. Spec nova para fluxo de UI novo. Telas novas no `a11y.spec.ts`.
 - Thresholds: 80 % linhas/statements/funções, 75 % branches.
-- Editor.tsx e Simulator.tsx ficam de fora da cobertura unitária (e2e cobre).
+- Editor.tsx e Simulator.tsx ficam de fora da cobertura unitária (e2e cobre); `api/feedback.ts` também (só wiring).
+- `no-native-dialogs.test.ts` falha se aparecer `alert/confirm/prompt` em `src/`.
 - Rodar com `npm run test` / `npm run test:coverage` / `npm run test:e2e`.

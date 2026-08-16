@@ -13,7 +13,14 @@ export interface MaterialPreset {
   /** Pocket stepover = factor × tool diameter. */
   stepoverFactor: number;
   notes?: string;
+  /** Simulator look: top face, freshly cut face, deep cut, side of the stock (hex), and metalness (0–1). */
+  look?: MaterialLook;
 }
+
+export interface MaterialLook { top: number; cut: number; deep: number; side: number; metalness?: number; roughness?: number }
+
+/** Default (custom material) look — warm wood-ish, as before. */
+export const DEFAULT_LOOK: MaterialLook = { top: 0xd9b98a, cut: 0xf1dcb8, deep: 0xb98d5a, side: 0xc9a675 };
 
 /**
  * Conservative starting points for a 2-flute straight/upcut end mill on a hobby/small-shop router.
@@ -21,13 +28,13 @@ export interface MaterialPreset {
  */
 export const MATERIAL_PRESETS: MaterialPreset[] = [
   { id: "mdf", label: "MDF", feedRate: 1500, plungeRate: 500, spindleSpeed: 18000, passDepthFactor: 0.5, stepoverFactor: 0.5,
-    notes: "Poeira fina — use aspiração. Aceita passes mais fundos." },
+    notes: "Poeira fina — use aspiração. Aceita passes mais fundos.", look: { top: 0xc9a97a, cut: 0xdcc39a, deep: 0xa88b62, side: 0xb8946a } },
   { id: "plywood", label: "Compensado", feedRate: 1200, plungeRate: 400, spindleSpeed: 18000, passDepthFactor: 0.4, stepoverFactor: 0.5,
-    notes: "A cola desgasta a fresa mais rápido; passes um pouco menores." },
+    notes: "A cola desgasta a fresa mais rápido; passes um pouco menores.", look: { top: 0xdcc094, cut: 0xf0dcb4, deep: 0xb08a5a, side: 0xcaa878 } },
   { id: "pine", label: "Pinus / madeira macia", feedRate: 1800, plungeRate: 600, spindleSpeed: 16000, passDepthFactor: 0.5, stepoverFactor: 0.5,
-    notes: "Fibra longa: fresa afiada evita lascas nas bordas." },
+    notes: "Fibra longa: fresa afiada evita lascas nas bordas.", look: { top: 0xe8cfa2, cut: 0xf6e4c0, deep: 0xc9a56e, side: 0xd7b985 } },
   { id: "aluminum", label: "Alumínio (6061/5052)", advanced: true, feedRate: 300, plungeRate: 100, spindleSpeed: 10000, passDepthFactor: 0.1, stepoverFactor: 0.3,
-    notes: "Avançado: fresa de 1 corte para alumínio, lubrificação (álcool/WD-40), passes rasos, fixação firme. Evite mergulho vertical longo." },
+    notes: "Avançado: fresa de 1 corte para alumínio, lubrificação (álcool/WD-40), passes rasos, fixação firme. Evite mergulho vertical longo.", look: { top: 0xb8bec4, cut: 0xdfe3e6, deep: 0x8f979e, side: 0x9aa1a7, metalness: 0.6, roughness: 0.35 } },
 ];
 
 export const CUSTOM_MATERIAL_ID: MaterialId = "custom";
@@ -74,4 +81,9 @@ export function applyToolDiameter(settings: MachineSettings, toolDiameter: numbe
   if (!settings.overrides.passDepth) next.passDepth = suggested.passDepth;
   if (!settings.overrides.stepover) next.stepover = suggested.stepover;
   return next;
+}
+
+/** Simulator look for a material id (custom → default). */
+export function materialLook(id: MaterialId): MaterialLook {
+  return findMaterial(id)?.look ?? DEFAULT_LOOK;
 }

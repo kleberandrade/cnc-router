@@ -65,6 +65,7 @@ describe("Sobre / Novidades / versão (sprint 19)", () => {
     expect(screen.getByTestId("menu-version")).toHaveTextContent(/Oficina CNC v\d+/);
     await userEvent.click(screen.getByTestId("menu-about"));
     expect(screen.getByTestId("about")).toHaveTextContent("Kleber Andrade");
+    expect(screen.getByTestId("about")).toHaveTextContent("kleberandrade.dev");
     expect(screen.getByTestId("about")).toHaveTextContent("pdjkleber@gmail.com");
     expect(screen.getByTestId("about-version")).toHaveTextContent(/^v\d+\.\d+\.\d+ \(/);
   });

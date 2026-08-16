@@ -1,5 +1,5 @@
 ---
-description: UI React — pt-BR, Lucide, tokens, Notice
+description: UI React — pt-BR, Lucide, tokens, ribbon/painel/diálogos
 globs: src/components/**/*.tsx
 alwaysApply: false
 ---
@@ -7,9 +7,12 @@ alwaysApply: false
 # UI
 
 - Textos visíveis em **pt-BR**. Identificadores em inglês.
-- Tom de oficina: curto, concreto, falado (“esse SVG não abriu”, “desenhe uma peça antes”). Sem “não foi possível”, “inválido”, “resultante(s)” nem tom de manual. Sem emoji/gíria.
+- Tom de oficina: curto, concreto, falado (“esse SVG não abriu”, “desenhe uma peça antes”). Sem “não foi possível”, “inválido”, “resultante(s)” nem tom de manual. Sem emoji/gíria. Vale para `description` de tooltips e diálogos.
 - Ícones: `lucide-react`. Sem emoji ou glifo unicode decorativo.
-- Cores, espaçamento e fontes: tokens em `src/index.css` (ver `docs/design-tokens.md`).
-- Avisos: `Notice`. Nunca `alert()` / `window.alert`.
+- Cores, espaçamento e fontes: tokens em `src/index.css` (`--fs-*`, `--s*`, `--control-h`; ver `docs/design-tokens.md`). Sem `font-size` fixo novo.
+- **Ribbon**: ações são dados (`RibbonGroupDef` em `TopBar.tsx`, aba certa: FORMAS/USINAGEM/VISTA/REPRODUZIR); item com `testId`, `description`, `shortcut`. Não criar botão solto na barra.
+- **Painel**: 4 abas (`shape/machine/cut/post`); subgrupos `<Group>`; `NumberField` com `hint`; selects com texto curto.
+- **Diálogos**: `Dialog` / `confirmDialog` / `promptDialog` de `components/Dialog.tsx`. Nunca `alert()` / `confirm()` / `prompt()`. Avisos: `Notice`.
 - Fluxos novos de UI: `data-testid` estável. Não remover test ids existentes.
 - Componentes orquestram; cálculo fica em `src/lib/`.
+- Tela nova → entra no `e2e/a11y.spec.ts` (axe) e ganha screenshot em `docs/sprints/img/` ao fechar a sprint.

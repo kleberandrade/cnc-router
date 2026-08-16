@@ -8,6 +8,7 @@ import { findPost } from "../lib/post";
 import type { BooleanOp } from "../lib/boolean";
 import { findExample } from "../content/examples";
 import { buildShareUrl } from "../lib/share";
+import { confirmDialog, promptDialog } from "./Dialog";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
 
@@ -184,10 +185,10 @@ export function useProjectActions() {
     downloadTextFile(`${fileStem(settings.projectName)}.${findPost(settings.post).extension}`, result.gcode);
   };
 
-  const handleOpenExample = (id: string) => {
+  const handleOpenExample = async (id: string) => {
     const ex = findExample(id);
     if (!ex) return;
-    if (shapes.length > 0 && !window.confirm(`Abrir o exemplo "${ex.title}"? As formas atuais serão substituídas.`)) return;
+    if (shapes.length > 0 && !(await confirmDialog({ title: `Abrir o exemplo "${ex.title}"?`, message: "As peças que estão na mesa serão substituídas. Se quiser guardar, salve o projeto antes.", confirmLabel: "Abrir exemplo" }))) return;
     const { shapes: exShapes, settings: exSettings } = ex.build();
     useProjectStore.getState().loadProject({ shapes: exShapes, settings: exSettings });
     setSection("shape");
@@ -202,12 +203,12 @@ export function useProjectActions() {
       await navigator.clipboard.writeText(url);
       setNotice({ kind: tooLong ? "warning" : "info", title: tooLong ? `Link copiado, mas é grande (${Math.round(length / 1000)} k caracteres) — alguns apps cortam; prefira salvar o .json.` : "Link do projeto copiado. Quem abrir vê as mesmas peças e configurações." });
     } catch {
-      window.prompt("Copie o link do projeto:", url);
+      await promptDialog({ title: "Link do projeto", message: "Não consegui copiar sozinho — selecione e copie:", defaultValue: url, confirmLabel: "Pronto" });
     }
   };
 
-  const handleNewProject = () => {
-    if (shapes.length > 0 && !window.confirm("Começar do zero? As peças da mesa vão embora.")) return;
+  const handleNewProject = async () => {
+    if (shapes.length > 0 && !(await confirmDialog({ title: "Começar do zero?", message: "As peças da mesa vão embora. Se quiser guardar, salve o projeto antes.", confirmLabel: "Novo projeto", danger: true }))) return;
     newProject();
     setNotice({ kind: "info", title: "Mesa limpa. Projeto novo." });
   };

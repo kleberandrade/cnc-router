@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Toolbar } from "../Toolbar";
+import { AskHost } from "../Dialog";
 import { useProjectStore } from "../../state/store";
 import { useUiStore } from "../../state/uiStore";
 import { DEFAULT_MACHINE_SETTINGS } from "../../types";
@@ -236,12 +237,12 @@ describe("Toolbar (ActionBar + SidePanel + StatusBar)", () => {
   });
 
   it("starts a new project (shapes + default settings) after confirmation", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    render(<Toolbar />);
+    render(<><Toolbar /><AskHost /></>);
     await userEvent.click(screen.getByTestId("add-rectangle"));
     openSection("cut");
     fireEvent.change(screen.getByTestId("cut-feedRate"), { target: { value: "1500" } });
     await userEvent.click(screen.getByTestId("new-project"));
+    await userEvent.click(screen.getByTestId("ask-ok"));
     expect(useProjectStore.getState().shapes).toHaveLength(0);
     expect(useProjectStore.getState().settings.feedRate).toBe(800);
   });

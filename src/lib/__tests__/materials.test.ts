@@ -66,3 +66,16 @@ describe("applyToolDiameter", () => {
     expect(s.toolDiameter).toBe(10);
   });
 });
+
+describe("aparência por material (simulador)", () => {
+  it("cada preset tem cores válidas; personalizado usa a padrão; alumínio é metálico", async () => {
+    const { MATERIAL_PRESETS, materialLook, DEFAULT_LOOK } = await import("../materials");
+    for (const m of MATERIAL_PRESETS) {
+      const l = materialLook(m.id);
+      for (const c of [l.top, l.cut, l.deep, l.side]) expect(c).toBeGreaterThanOrEqual(0), expect(c).toBeLessThanOrEqual(0xffffff);
+      expect(l).not.toEqual(DEFAULT_LOOK);
+    }
+    expect(materialLook("custom")).toEqual(DEFAULT_LOOK);
+    expect(materialLook("aluminum").metalness).toBeGreaterThan(0.3);
+  });
+});

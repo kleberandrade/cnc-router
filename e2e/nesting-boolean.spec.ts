@@ -15,9 +15,9 @@ test.describe("sprint 15: booleanas e nesting", () => {
     await page.getByTestId("undo").click();
     await expect(page.locator('[data-testid^="nav-item-"]')).toHaveCount(2);
     // difference: circle inside a rectangle → hole
-    page.on("dialog", (d) => d.accept());
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-new").click();
+    await page.getByTestId("ask-ok").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
     await page.getByTestId("section-toggle-shape").click();

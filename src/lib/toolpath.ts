@@ -4,6 +4,7 @@ import { buildPassDepths } from "./passes";
 import { offsetPolygon, scanlineSpans, perimeter, pointAlong, ccw, type Polygon } from "./offset";
 import { toolsInUse, toolForShape, settingsForTool, type EffectiveTool } from "./tools";
 import { expandShapes } from "./expand";
+import { booleanRegions } from "./boolean";
 
 export type Vec3 = [number, number, number];
 export type MoveType = "rapid" | "plunge" | "feed" | "retract" | "toolchange";
@@ -43,11 +44,18 @@ export interface Toolpath {
 
 /** Translation from table coordinates to work coordinates (G54) according to stock + origin. */
 export function workOriginOffset(settings: MachineSettings): Point {
-  const { stock } = settings;
-  if (stock.origin === "center") {
-    return [stock.offsetX + stock.width / 2, stock.offsetY + stock.height / 2];
+  return originPoint(settings.stock);
+}
+
+/** Table-space point of the work origin for a stock. */
+export function originPoint(stock: MachineSettings["stock"]): Point {
+  switch (stock.origin) {
+    case "center": return [stock.offsetX + stock.width / 2, stock.offsetY + stock.height / 2];
+    case "front-right": return [stock.offsetX + stock.width, stock.offsetY];
+    case "back-left": return [stock.offsetX, stock.offsetY + stock.height];
+    case "back-right": return [stock.offsetX + stock.width, stock.offsetY + stock.height];
+    default: return [stock.offsetX, stock.offsetY];
   }
-  return [stock.offsetX, stock.offsetY];
 }
 
 type Meta = Pick<Segment, "shapeId" | "pass" | "op">;
@@ -97,8 +105,21 @@ function insideOrOn(polys: Polygon[], [px, py]: Point, eps = 1e-6): boolean {
   return (
     insidePolys(polys, [px, py]) ||
     insidePolys(polys, [px + eps, py]) || insidePolys(polys, [px - eps, py]) ||
-    insidePolys(polys, [px, py + eps]) || insidePolys(polys, [px, py - eps])
+    insidePolys(polys, [px, py + eps]) || insidePolys(polys, [px, py - eps]) ||
+    insidePolys(polys, [px + eps, py + eps]) || insidePolys(polys, [px - eps, py - eps]) ||
+    insidePolys(polys, [px + eps, py - eps]) || insidePolys(polys, [px - eps, py + eps])
   );
+}
+
+/** True when the straight move p→q stays inside the region (sampled every ≤ `step` mm, boundary-tolerant). */
+function segmentInside(polys: Polygon[], p: Point, q: Point, step = 0.5): boolean {
+  const len = Math.hypot(q[0] - p[0], q[1] - p[1]);
+  const n = Math.max(2, Math.ceil(len / step));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    if (!insideOrOn(polys, [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t], 0.06)) return false; // 0.06 ≈ arc chord tolerance
+  }
+  return true;
 }
 
 /**
@@ -342,8 +363,13 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
   }
   // islands (holes) grow by r; the pocket region is inner − islands (even-odd over all loops)
   const holes = shape.kind === "path" && shape.holes ? shape.holes.map(openLoop).filter((h) => h.length >= 3) : [];
-  const islands = holes.flatMap((h) => offsetPolygon(h, r));
-  const inner = [...innerOnly, ...islands];
+  const islandsRaw = holes.flatMap((h) => offsetPolygon(h, r));
+  // Region to clear = (outer − r) minus (islands + r), as proper polygons-with-holes (Clipper). Even-odd over the
+  // raw loops is wrong when a grown island pokes outside the shrunk outer (e.g. the counter of an "A").
+  const inner: Polygon[] = islandsRaw.length
+    ? booleanRegions("difference", innerOnly.map((o) => ({ outer: o, holes: [] })), islandsRaw.map((h) => ({ outer: h, holes: [] }))).flatMap((rg) => [rg.outer, ...rg.holes])
+    : innerOnly;
+
   const stepover = Math.max(settings.stepover, 0.1);
   const box = boundingBox(innerOnly.flat());
   // Rows strictly inside the offset region: start half a stepover in so the wall pass cleans the rest.
@@ -398,8 +424,7 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
         const xEnd = ltr ? span[1] : span[0];
         const p = b.position;
         // connect: feed if the straight move stays inside, else hop at safe height
-        const mid: Point = [(p[0] + xStart) / 2, (p[1] + row.y) / 2];
-        const direct = insideOrOn(inner, mid) && insideOrOn(inner, [xStart, row.y]);
+        const direct = segmentInside(inner, [p[0], p[1]], [xStart, row.y], Math.max(r / 2, 0.25));
         if (p[0] !== xStart || p[1] !== row.y) {
           if (direct || p[2] === -z && Math.hypot(xStart - p[0], row.y - p[1]) < 1e-9) {
             b.move([xStart, row.y, -z], "feed", settings.feedRate, meta);
@@ -424,8 +449,7 @@ function pocket(b: PathBuilder, shape: Shape, points: Point[], settings: Machine
         if (d < bestD) { bestD = d; best = k; }
       });
       const rotated = ccw([...loop.slice(best), ...loop.slice(0, best)]);
-      const mid: Point = [(p[0] + rotated[0][0]) / 2, (p[1] + rotated[0][1]) / 2];
-      if (insideOrOn(inner, mid) || bestD < 1e-9) {
+      if (bestD < 1e-9 || segmentInside(inner, [p[0], p[1]], rotated[0], Math.max(r / 2, 0.25))) {
         b.move([rotated[0][0], rotated[0][1], -z], "feed", settings.feedRate, meta);
       } else {
         b.move([p[0], p[1], safe], "retract", 0, meta0);

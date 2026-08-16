@@ -143,7 +143,8 @@ export interface WorkArea {
 }
 
 /** Where the G54 work origin (X0 Y0) sits relative to the stock. */
-export type StockOrigin = "front-left" | "center";
+/** Work origin (X0 Y0) on the stock: four corners or the centre. "front" = closest to the operator (Y = 0). */
+export type StockOrigin = "front-left" | "front-right" | "back-left" | "back-right" | "center";
 
 /** Raw material (sheet/block) clamped on the table, in mm. */
 export interface Stock {

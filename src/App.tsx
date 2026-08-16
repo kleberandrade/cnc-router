@@ -5,7 +5,7 @@ import { StatusBar } from "./components/StatusBar";
 import { Editor } from "./components/Editor";
 import { BottomBar } from "./components/BottomBar";
 import { BottomSheet } from "./components/BottomSheet";
-import { PwaBanner } from "./components/PwaBanner";
+import { PwaBanner, StorageNotice } from "./components/PwaBanner";
 import { Notice } from "./components/Notice";
 import { useUiStore } from "./state/uiStore";
 import { useLayout } from "./hooks/useMediaQuery";
@@ -14,6 +14,8 @@ import { EmptyState } from "./components/EmptyState";
 import { Tour, tourDone } from "./components/Tour";
 import { useProjectStore } from "./state/store";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { AskHost } from "./components/Dialog";
+import { Timeline } from "./components/Timeline";
 import { readShareHash } from "./lib/share";
 import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
@@ -73,6 +75,7 @@ function App() {
         </Suspense>
       )}
       {showEmpty && <EmptyState onTour={() => setTourOpen(true)} />}
+      {view === "editor" && layout !== "mobile" && <Timeline />}
     </section>
   );
 
@@ -80,7 +83,9 @@ function App() {
     <div className={`app layout-${layout}`} data-layout={layout}>
       <TopBar />
       <PwaBanner />
+      <StorageNotice onLegal={() => { window.location.hash = "privacidade"; }} />
       {tourOpen && layout !== "mobile" && <Tour onClose={() => setTourOpen(false)} />}
+      <AskHost />
       {layout === "mobile" ? (
         <>
           <main className="app-body mobile">

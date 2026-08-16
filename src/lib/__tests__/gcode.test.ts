@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildPassDepths, generateGCode, tryGenerateGCode, validateSettings, GCodeError, workOriginOffset } from "../gcode";
 import { DEFAULT_MACHINE_SETTINGS } from "../../types";
-import type { RectangleShape, CircleShape, PathShape } from "../../types";
+import type { StockOrigin, RectangleShape, CircleShape, PathShape } from "../../types";
 
 describe("buildPassDepths", () => {
   it("throws for non-positive totalDepth", () => {
@@ -161,6 +161,17 @@ describe("work origin & header", () => {
     expect(workOriginOffset(s)).toEqual([70, 50]);
     const g = generateGCode([rect], s);
     expect(g).toContain("G0 X-50 Y-30");
+  });
+
+  it("the four corners and the centre map to the right work offsets", () => {
+    const at = (origin: StockOrigin) => workOriginOffset({ ...base, stock: { ...base.stock, origin } });
+    expect(at("front-left")).toEqual([20, 20]);
+    expect(at("front-right")).toEqual([120, 20]);
+    expect(at("back-left")).toEqual([20, 80]);
+    expect(at("back-right")).toEqual([120, 80]);
+    expect(at("center")).toEqual([70, 50]);
+    const g = generateGCode([rect], { ...base, stock: { ...base.stock, origin: "back-right" } });
+    expect(g).toContain("G0 X-100 Y-60");
   });
 
   it("writes machine/stock header and warnings as comments", () => {

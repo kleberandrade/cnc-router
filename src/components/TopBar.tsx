@@ -21,17 +21,28 @@ import { FeedbackDialog } from "./FeedbackDialog";
 import { EXAMPLES } from "../content/examples";
 import { resetTour } from "./Tour";
 import { verifyProject } from "../lib/verify";
+import { Dialog } from "./Dialog";
+import { LegalContent, LegalLinks } from "./LegalDialog";
 import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVersionSeen } from "../lib/version";
 
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
-  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news" | "feedback">(null);
+  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news" | "feedback" | "privacidade" | "cookies" | "termos">(null);
   const [hasNews, setHasNews] = useState(false);
   useEffect(() => {
     if (isFirstRun()) markVersionSeen();
     else setHasNews(isNewVersion());
   }, []);
   const openNews = () => { setDialog("news"); markVersionSeen(); setHasNews(false); };
+  useEffect(() => {
+    const fromHash = () => {
+      const h = window.location.hash.replace(/^#\/?/, "");
+      if (h === "privacidade" || h === "cookies" || h === "termos" || h === "sobre") { setDialog(h === "sobre" ? "about" : h); history.replaceState(null, "", window.location.pathname + window.location.search); }
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, []);
   const ref = useRef<HTMLDivElement>(null);
   const installAction = useInstallAction();
   useEffect(() => {
@@ -42,12 +53,6 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
     window.addEventListener("keydown", esc);
     return () => { window.removeEventListener("mousedown", close); window.removeEventListener("keydown", esc); };
   }, [open]);
-  useEffect(() => {
-    if (!dialog) return;
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setDialog(null); };
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [dialog]);
 
   const item = (icon: ReactNode, label: string, onClick: () => void, testId?: string, hint?: string) => (
     <button type="button" role="menuitem" className="menu-item" onClick={() => { setOpen(false); onClick(); }} data-testid={testId}>
@@ -87,14 +92,9 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           <div className="menu-footer" data-testid="menu-version">{PRODUCT.name} {versionLabel()}</div>
         </div>
       )}
-      {dialog && (
-        <div className="dialog-backdrop" onClick={() => setDialog(null)} role="presentation">
-          <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="dialog">
-            {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : dialog === "feedback" ? <FeedbackDialog onDone={() => setDialog(null)} /> : <About onFeedback={() => setDialog("feedback")} />}
-            <button type="button" className="dialog-close" onClick={() => setDialog(null)}>Fechar</button>
-          </div>
-        </div>
-      )}
+      <Dialog open={!!dialog} onClose={() => setDialog(null)} size={dialog === "feedback" || dialog === "about" ? "lg" : "md"} testId="dialog">
+        {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : dialog === "feedback" ? <FeedbackDialog onDone={() => setDialog(null)} /> : dialog === "about" ? <About onFeedback={() => setDialog("feedback")} onLegal={(id) => setDialog(id)} /> : dialog === "privacidade" || dialog === "cookies" || dialog === "termos" ? <LegalContent id={dialog} /> : null}
+      </Dialog>
     </div>
   );
 }
@@ -236,7 +236,7 @@ function NestDialog({ onDone }: { onDone: () => void }) {
   );
 }
 
-function About({ onFeedback }: { onFeedback?: () => void }) {
+function About({ onFeedback, onLegal }: { onFeedback?: () => void; onLegal?: (id: "privacidade" | "cookies" | "termos") => void }) {
   return (
     <div className="about" data-testid="about">
       <h2 className="about-title">
@@ -250,7 +250,9 @@ function About({ onFeedback }: { onFeedback?: () => void }) {
         <dd>{AUTHOR.name} — {AUTHOR.role}</dd>
         <dt>Contato</dt>
         <dd><a href={`mailto:${AUTHOR.email}?subject=${encodeURIComponent(`${PRODUCT.name} ${versionLabel()}`)}`}><Mail size={13} aria-hidden="true" /> {AUTHOR.email}</a></dd>
-        <dt>Site</dt>
+        <dt>Site do autor</dt>
+        <dd><a href={AUTHOR.url} target="_blank" rel="noreferrer">{AUTHOR.url.replace(/^https?:\/\//, "")} <ExternalLink size={12} aria-hidden="true" /></a></dd>
+        <dt>Site do app</dt>
         <dd><a href={PRODUCT.url} target="_blank" rel="noreferrer">{PRODUCT.url.replace(/^https?:\/\//, "")} <ExternalLink size={12} aria-hidden="true" /></a></dd>
         <dt>Licença</dt>
         <dd>{PRODUCT.license}</dd>
@@ -258,6 +260,7 @@ function About({ onFeedback }: { onFeedback?: () => void }) {
       <p className="hint">
         <button type="button" className="link" onClick={onFeedback} data-testid="about-feedback">Sugestão ou problema? Manda por aqui</button> · Tudo em milímetros. A origem fica na chapa; o que você vê no simulador é o mesmo G-code que sai.
       </p>
+      <p className="hint"><LegalLinks onOpen={(id) => onLegal?.(id)} /></p>
       <details className="about-licenses">
         <summary>Bibliotecas e fontes de terceiros ({THIRD_PARTY.length})</summary>
         <ul>
@@ -576,22 +579,8 @@ export function TopBar() {
       {!ribbonMinimized && <OverflowRibbon key={`${view}-${activeTab.id}`} groups={activeTab.groups} />}
 
       {actions.inputs}
-      {verifyOpen && (
-        <div className="dialog-backdrop" onClick={() => setVerifyOpen(false)} role="presentation">
-          <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="verify-dialog">
-            <VerifyDialog />
-            <button type="button" className="dialog-close" onClick={() => setVerifyOpen(false)}>Fechar</button>
-          </div>
-        </div>
-      )}
-      {nestOpen && (
-        <div className="dialog-backdrop" onClick={() => setNestOpen(false)} role="presentation">
-          <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="nest-dialog">
-            <NestDialog onDone={() => setNestOpen(false)} />
-            <button type="button" className="dialog-close" onClick={() => setNestOpen(false)}>Fechar</button>
-          </div>
-        </div>
-      )}
+      <Dialog open={verifyOpen} onClose={() => setVerifyOpen(false)} size="lg" testId="verify-dialog"><VerifyDialog /></Dialog>
+      <Dialog open={nestOpen} onClose={() => setNestOpen(false)} testId="nest-dialog"><NestDialog onDone={() => setNestOpen(false)} /></Dialog>
     </header>
   );
 }

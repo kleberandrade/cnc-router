@@ -9,6 +9,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - `vercel.json`: removido `memory` (ignorado no Active CPU).
 
 ### Alterado
+- Sobre: link do autor para [kleberandrade.dev](https://kleberandrade.dev).
 - **Tom da UI**: avisos, erros, Sobre, PWA e dicas passam a falar como oficina — curto e concreto, sem tom de manual.
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
@@ -16,6 +17,24 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Planejado — Sprint 23]
 
 - Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, linha do tempo, textos, regras dos agentes, políticas — `docs/sprints/sprint-23-acabamento-ux.md`.
+
+## [Planejado — Sprint 24]
+
+- Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias e galeria, ilustrações nas opções, notice compacto — `docs/sprints/sprint-24-exemplos.md`.
+
+## [0.24.0 — Sprint 23 — Acabamento de UX] — 2026-08-16
+
+### Adicionado
+- **Diálogos próprios** em todo o app (confirmar/perguntar sem janelas do navegador).
+- **Origem da chapa visual**: clique no canto (ou centro) da miniatura da chapa; agora com os 4 cantos.
+- **Cor da peça por material** no simulador (MDF, compensado, pinus, alumínio metálico).
+- **Linha do tempo** do projeto no rodapé do editor: um marcador por mudança, clique volta/avança, ▶ reproduz a construção.
+- **Privacidade, cookies e termos** (Sobre e `#privacidade`/`#cookies`/`#termos`) + aviso de armazenamento local na primeira visita.
+- Regras dos agentes (`AGENTS.md`, rules, skill) atualizadas com a arquitetura atual.
+
+### Corrigido
+- **Rebaixo com furo (ex.: letra "A") cortava fora da peça** com fresas finas: a região a limpar agora é calculada como polígono-com-furos (Clipper) e cada ligação entre linhas é conferida ao longo do trajeto — nada de atravessar o miolo ou o vão entre as pernas.
+- Conteúdo do painel aparecendo na faixa acima das abas ao rolar; largura do painel; padding e espaçamentos.
 
 ## [0.23.0 — Sprint 16 — Verificação, operações adicionais, link] — 2026-08-16
 

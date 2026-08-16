@@ -6,10 +6,11 @@ import { MATERIAL_PRESETS, CUSTOM_MATERIAL_ID, findMaterial } from "../lib/mater
 import { boundingBox, shapeToPoints } from "../lib/geometry";
 import { Shapes, Cpu, Drill, FileOutput } from "lucide-react";
 import { NumberField } from "./NumberField";
+import { OriginPicker } from "./OriginPicker";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits, ExtraOperation } from "../types";
+import type { MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits, ExtraOperation } from "../types";
 import { throughCutDepth } from "../state/store";
 import { helixDiameter } from "../lib/toolpath";
 import { POSTS } from "../lib/post";
@@ -499,13 +500,8 @@ export function SidePanel() {
           <NumberField label="Posição X" unit="mm" min={0} step={10} value={stock.offsetX} testId="stock-x" onChange={(v) => updateStock({ offsetX: v })} />
           <NumberField label="Posição Y" unit="mm" min={0} step={10} value={stock.offsetY} testId="stock-y" onChange={(v) => updateStock({ offsetY: v })} />
         </div>
-        <label>
-          Origem (X0 Y0)
-          <select value={stock.origin} onChange={(e) => updateStock({ origin: e.target.value as StockOrigin })} data-testid="stock-origin">
-            <option value="front-left">Canto frontal esquerdo</option>
-            <option value="center">Centro da chapa</option>
-          </select>
-        </label>
+        <span className="label-row">Origem (X0 Y0) <span className="field-hint">clique no ponto da chapa</span></span>
+        <OriginPicker value={stock.origin} onChange={(origin) => updateStock({ origin })} width={stock.width} height={stock.height} />
         </Group>
       </Section>
 

@@ -38,3 +38,17 @@ describe("verifyProject", () => {
     expect(rep.results[0].shapeId).toBe("x");
   });
 });
+
+describe("regressão: rebaixo de letra com furo (A) não corta fora da peça", () => {
+  it("texto 'A' em rebaixo com fresa de 1 mm: 0 mm² fora e ~0 % não alcançado", async () => {
+    const { registerFont } = await import("../text");
+    const { readFileSync } = await import("node:fs");
+    const buf = readFileSync("public/fonts/Inter-Bold.ttf");
+    registerFont("inter-bold", buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+    const s = { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 1, stepover: 0.5, passDepth: 1 };
+    const t: Shape = { id: "t", kind: "text", x: 20, y: 20, text: "A", fontId: "inter-bold", size: 40, rotation: 0, align: "left", letterSpacing: 0, depth: 2, operation: "pocket" };
+    const rep = verifyProject([t], s, { res: 0.25 });
+    expect(rep.gougeArea).toBeLessThanOrEqual(1);
+    expect(rep.results[0].leftoverRatio).toBeLessThan(0.02);
+  });
+});
