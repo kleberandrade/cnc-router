@@ -11,7 +11,7 @@ async function exportGcode(page: import("@playwright/test").Page): Promise<strin
 test.describe("machining quality (sprint 06)", () => {
   test("outside compensation enlarges the tool path by the tool diameter", async ({ page }) => {
     await page.goto("/");
-    await page.getByTestId("section-toggle-material").click();
+    await page.getByTestId("section-toggle-cut").click();
     await page.getByTestId("tool-diameter").fill("6");
     await page.getByTestId("tool-diameter").press("Enter");
     await page.getByTestId("add-rectangle").click(); // 40×30 at (10,10), side outside by default

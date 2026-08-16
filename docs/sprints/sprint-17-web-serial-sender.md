@@ -1,6 +1,6 @@
 # Sprint 17 — Enviar para a máquina (Web Serial / GRBL)
 
-**Status:** planejada
+**Status:** backlog — Fase 5 (ver `fase-5.md`)
 **Esforço:** G (7–10 dias)
 **Depende de:** 14
 

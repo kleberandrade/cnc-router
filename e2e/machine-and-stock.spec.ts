@@ -27,7 +27,7 @@ test.describe("machine & stock (sprint 01)", () => {
   test("a shape outside the stock only warns and export still works", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
-    await page.getByTestId("section-toggle-stock").click();
+    await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("stock-width").fill("30"); // rect spans x 10..50 → outside stock but inside table
     await expect(page.getByTestId("issues")).toContainText("fora da chapa");
     const downloadPromise = page.waitForEvent("download");

@@ -51,7 +51,7 @@ test.describe("realistic simulator (sprint 10)", () => {
   });
 
   test("tool type can be changed (V-bit shows angle field)", async ({ page }) => {
-    await page.getByTestId("section-toggle-material").click();
+    await page.getByTestId("section-toggle-cut").click();
     await page.getByTestId("tool-type").selectOption("vbit");
     await expect(page.getByTestId("vbit-angle")).toHaveValue("90");
   });

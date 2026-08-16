@@ -65,6 +65,7 @@ test.describe("sprint 14: pós-processadores, G20, furação, hélice", () => {
     expect(after.text).toMatch(/tempo estimado: .*accel 200 mm\/s²/);
     // turning acceleration off shortens the estimate
     const t1 = after.text.match(/tempo estimado: ([^ ]+)/)?.[1];
+    await page.getByTestId("section-toggle-post").click();
     await page.getByTestId("accel").fill("0");
     await page.getByTestId("accel").press("Enter");
     const c = await exportGcode(page);

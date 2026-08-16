@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import type { NoticeData } from "../components/Notice";
 
-export type PanelSection = "machine" | "stock" | "material" | "cut" | "shape" | "navigator" | "tools" | "post";
+/** Panel tabs. Legacy ids (navigator/stock/material/tools) are accepted by `setSection` and mapped to the tab that now holds them. */
+export type PanelSection = "shape" | "machine" | "cut" | "post" | "navigator" | "stock" | "material" | "tools";
+const SECTION_ALIAS: Partial<Record<PanelSection, PanelSection>> = { navigator: "shape", stock: "machine", material: "cut", tools: "cut" };
+export const canonicalSection = (s: PanelSection): PanelSection => SECTION_ALIAS[s] ?? s;
 export type Theme = "light" | "dark" | "system";
 export type MousePreset = "standard" | "fusion";
 export type View = "editor" | "simulator";
@@ -97,7 +100,7 @@ export const useUiStore = create<UiState>((set) => ({
   notice: null,
   setNotice: (notice) => set({ notice }),
   section: "shape",
-  setSection: (section) => set({ section }),
+  setSection: (section) => set({ section: canonicalSection(section) }),
   zoom: 1,
   setZoom: (z) => set({ zoom: clampZoom(z) }),
   zoomIn: () => set((s) => ({ zoom: clampZoom(s.zoom * 1.25) })),

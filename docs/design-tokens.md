@@ -9,7 +9,7 @@ Definidos em `src/index.css` (`:root`). O tema escuro (Sprint 11) troca apenas o
 | `--topbar-h` | 64 px | Barra superior única (logo + abas + ribbon + exportar). |
 | `--radius` / `--radius-sm` | 10 / 6 px | Cartões e controles. |
 | `--bg`, `--surface`, `--surface-2`, `--text`, `--text-muted`, `--border`, `--border-strong`, `--danger`, `--success`, `--accent`, `--blueprint`, `--warn` | ver `index.css` | Semânticos — únicos que o tema escuro precisa sobrescrever. |
-| `--font-display` / `--font-body` / `--font-mono` | Fraunces / Inter / JetBrains Mono | Títulos, texto, números/código. |
+| `--font-display` / `--font-brand` / `--font-body` / `--font-mono` | Fraunces / Bricolage Grotesque / Inter / JetBrains Mono | Títulos, wordmark, texto, números/código. |
 
 ## Regras
 
@@ -23,3 +23,14 @@ Definidos em `src/index.css` (`:root`). O tema escuro (Sprint 11) troca apenas o
 
 - Antes: duas faixas no topo (~110 px), campos X/Y/Z cortando ("6(", "4(", "8("), checkbox encostado na borda, emojis nos controles.
 - Depois: uma barra de 64 px com abas de contexto, campos completos em 1280/1024/800 px, padding ≥ 12 px em todos os containers, ícones Lucide.
+
+## Tipografia e controles (Sprint 18)
+| Token | Valor | Uso |
+|---|---|---|
+| `--fs-xs` | 10.5px | rótulos da ribbon, unidades dos campos, títulos de menu |
+| `--fs-sm` | 11px | títulos de grupo do painel, dicas (`hint`, `field-hint`), status |
+| `--fs-md` | 12px | rótulos de campo, itens de menu, abas do painel, botões do painel |
+| `--fs-base` | 13px | inputs e selects (desktop) |
+| `--fs-lg` | 14px | parágrafos de diálogo |
+| `--control-h` | 30px | altura de inputs/selects/botões de ícone (mobile: 40px, fonte 16px) |
+| `--topbar-h` | 60px | altura da ribbon |

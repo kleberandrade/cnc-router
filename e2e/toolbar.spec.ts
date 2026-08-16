@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { ribbonClick } from "./helpers";
 
 test.describe("toolbar (sprint 05)", () => {
   test("undo after adding a shape, redo brings it back", async ({ page }) => {
@@ -56,10 +57,10 @@ test.describe("toolbar (sprint 05)", () => {
 
   test("zoom buttons change the zoom label; 0 fits again", async ({ page }) => {
     await page.goto("/");
-    await page.getByTestId("zoom-in").click();
-    await expect(page.getByTestId("zoom-fit")).toHaveText("125%");
+    await ribbonClick(page, "zoom-in");
+    await expect(page.locator(".editor-caption")).toContainText("zoom 125%");
     await page.keyboard.press("0");
-    await expect(page.getByTestId("zoom-fit")).toHaveText("100%");
+    await expect(page.locator(".editor-caption")).toContainText("zoom 100%");
   });
 
   test("keyboard: R adds a rectangle, Delete removes it, Tab reaches the toolbar", async ({ page }) => {

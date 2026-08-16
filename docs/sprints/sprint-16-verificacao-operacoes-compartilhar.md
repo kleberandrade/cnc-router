@@ -1,6 +1,6 @@
 # Sprint 16 — Verificação, múltiplas operações por forma, compartilhar
 
-**Status:** planejada
+**Status:** planejada — reprogramada para o fim da Fase 4 (após a Sprint 21)
 **Esforço:** M (4–6 dias)
 **Depende de:** 13, 14
 

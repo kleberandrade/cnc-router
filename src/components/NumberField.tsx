@@ -13,6 +13,8 @@ interface Props {
   badge?: React.ReactNode;
   testId?: string;
   disabled?: boolean;
+  /** Short helper text under the field. */
+  hint?: string;
 }
 
 /**
@@ -20,7 +22,7 @@ interface Props {
  * empty/invalid text keeps the last valid value (restored on blur / Enter).
  * Arrow keys step by `step` (×10 with Shift).
  */
-export function NumberField({ label, value, onChange, unit, min, max, step = 1, badge, testId, disabled }: Props) {
+export function NumberField({ label, value, onChange, unit, min, max, step = 1, badge, testId, disabled, hint }: Props) {
   const [text, setText] = useState(String(value));
   const [focused, setFocused] = useState(false);
 
@@ -75,6 +77,7 @@ export function NumberField({ label, value, onChange, unit, min, max, step = 1, 
         />
         {unit && <span className="unit">{unit}</span>}
       </span>
+      {hint && <span className="field-hint">{hint}</span>}
     </label>
   );
 }

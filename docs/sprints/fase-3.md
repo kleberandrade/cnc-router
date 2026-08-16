@@ -10,4 +10,4 @@
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte/cantos, múltiplas operações por forma, compartilhar por link + exemplos | 13, 14 | M | 6, 9, 10 |
 | [17](sprint-17-web-serial-sender.md) | Enviar direto para a máquina (Web Serial/GRBL): conexão, jog, zerar, DRO, streaming com buffer, pausa/retomar | 14 | G | 7 |
 
-Ordem recomendada: 13 → 14 → 15 → 16 → 17. Cada sprint segue a DoD global do `README.md`.
+Ordem recomendada: 13 → 14 → 15 → 16 → 17. **Atualização 2026-08-16:** 13–15 concluídas; a 16 foi movida para o fim da [Fase 4](fase-4.md) (UI/UX) e a 17 para a [Fase 5](fase-5.md) (backlog). Cada sprint segue a DoD global do `README.md`.

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { alignClick } from "./helpers";
 import fs from "node:fs/promises";
 
 async function exportGcode(page: import("@playwright/test").Page): Promise<string> {
@@ -101,7 +102,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
     await page.mouse.move(ox + 2 * scale, oyBottom - 2 * scale, { steps: 8 });
     await page.mouse.up();
     await expect(page.getByTestId("multi-summary")).toContainText("2 formas");
-    await page.getByTestId("align-left").click();
+    await alignClick(page, "align-left");
     await page.getByTestId("shape-x").waitFor({ state: "detached" });
     // both now share minX = 10 → delete both
     await page.locator("body").click({ position: { x: 5, y: 5 } });

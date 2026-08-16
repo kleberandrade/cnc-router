@@ -35,7 +35,7 @@ test.describe("text & islands (sprint 13)", () => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100mm" height="100mm"><path d="M10,10 H70 V60 H10 Z M30,25 H50 V45 H30 Z"/></svg>`;
     await page.getByTestId("svg-file-input").setInputFiles({ name: "furo.svg", mimeType: "image/svg+xml", buffer: Buffer.from(svg) });
     await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
-    await page.getByTestId("section-toggle-navigator").click();
+    await page.getByTestId("section-toggle-shape").click();
     await page.getByTestId("nav-item-0").dblclick();
     await page.getByTestId("shape-operation").selectOption("pocket");
     await page.getByTestId("shape-depth").fill("3");

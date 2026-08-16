@@ -12,6 +12,6 @@
     <circle cx="149" cy="118" r="15" fill="#f7f7f5"/>
     <path d="M149 70V166" fill="none" stroke="#f7f7f5" stroke-width="10" stroke-linecap="round"/>
   </g>
-  <text x="408" y="300" fill="#f7f7f5" font-family="Iowan Old Style, Palatino, Georgia, serif" font-size="72" font-weight="600">Oficina CNC</text>
+  <text x="408" y="300" fill="#f7f7f5" font-family="Bricolage Grotesque Variable, Bricolage Grotesque, system-ui, sans-serif" font-size="72" font-weight="700" font-stretch="88%" letter-spacing="-2">Oficina CNC</text>
   <text x="408" y="360" fill="#8fb4d4" font-family="Inter, system-ui, sans-serif" font-size="28">Desenhe, simule e exporte G-code no navegador</text>
 </svg>

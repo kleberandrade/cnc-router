@@ -4,7 +4,7 @@ import { useUiStore, type PanelSection } from "../state/uiStore";
 import { MACHINE_PRESETS, CUSTOM_PRESET_ID, findMachinePreset } from "../lib/machinePresets";
 import { MATERIAL_PRESETS, CUSTOM_MATERIAL_ID, findMaterial } from "../lib/materials";
 import { boundingBox, shapeToPoints } from "../lib/geometry";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Shapes, Cpu, Drill, FileOutput } from "lucide-react";
 import { NumberField } from "./NumberField";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
@@ -19,32 +19,67 @@ interface SectionProps {
   id: PanelSection;
   title: string;
   children: React.ReactNode;
-  summary?: string;
 }
 
-function Section({ id, title, children, summary }: SectionProps) {
+/** Body of a panel tab (only the active one renders). */
+function Section({ id, title, children }: SectionProps) {
   const open = useUiStore((s) => s.section === id);
+  if (!open) return null;
+  return (
+    <section className="panel-section open" data-testid={`section-${id}`} aria-labelledby={`tab-${id}`}>
+      <div className="panel-body" id={`panel-${id}`} role="tabpanel">
+        <h2 className="panel-heading">{title}</h2>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+const TABS: { id: PanelSection; label: string; icon: React.ReactNode }[] = [
+  { id: "shape", label: "Peça", icon: <Shapes size={15} /> },
+  { id: "machine", label: "Máquina", icon: <Cpu size={15} /> },
+  { id: "cut", label: "Corte", icon: <Drill size={15} /> },
+  { id: "post", label: "Exportar", icon: <FileOutput size={15} /> },
+];
+
+/** Tab strip at the top of the side panel. */
+function PanelTabs() {
+  const section = useUiStore((s) => s.section);
   const setSection = useUiStore((s) => s.setSection);
   return (
-    <section className={`panel-section${open ? " open" : ""}`} data-testid={`section-${id}`}>
-      <button
-        type="button"
-        className="panel-header"
-        aria-expanded={open}
-        aria-controls={`panel-${id}`}
-        onClick={() => setSection(id)}
-        data-testid={`section-toggle-${id}`}
-      >
-        <span className="chevron" aria-hidden="true">{open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
-        <span className="panel-title">{title}</span>
-        {!open && summary && <span className="panel-summary">{summary}</span>}
-      </button>
-      {open && (
-        <div className="panel-body" id={`panel-${id}`}>
-          {children}
-        </div>
-      )}
-    </section>
+    <div className="panel-tabs" role="tablist" aria-label="Seções do painel">
+      {TABS.map((t) => {
+        const active = section === t.id;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`tab-${t.id}`}
+            aria-selected={active}
+            aria-controls={`panel-${t.id}`}
+            className={`panel-tab${active ? " active" : ""}`}
+            onClick={() => setSection(t.id)}
+            data-testid={`section-toggle-${t.id}`}
+            title={t.label}
+          >
+            <span className="panel-tab-icon">{t.icon}</span>
+            <span className="panel-tab-label">{t.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Small sub-heading inside a tab. */
+function Group({ title, children, hint }: { title: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="panel-group">
+      <h3 className="panel-group-title">{title}</h3>
+      {hint && <p className="hint">{hint}</p>}
+      {children}
+    </div>
   );
 }
 
@@ -97,12 +132,14 @@ export function SidePanel() {
     <aside className="toolbar side-panel" aria-label="Configurações">
       <Notice notice={notice} onDismiss={() => setNotice(null)} />
 
-      <Section id="navigator" title="Navegador" summary={`${shapes.length} peça(s)${shapes.some((s) => s.hidden) ? " · ocultas" : ""}`}>
-        <Navigator />
-      </Section>
+      <PanelTabs />
 
-      <Section id="shape" title="Peça selecionada" summary={selectedShape ? shapeSummary(selectedShape) : selectedIds.length > 1 ? `${selectedIds.length} formas` : "nenhuma"}>
-        {!selectedShape && selectedIds.length < 2 && <p className="hint">Clique numa forma no desenho, ou adicione uma pela barra de ações. Shift+clique ou arraste no fundo para selecionar várias.</p>}
+      <Section id="shape" title="Peça">
+        <Group title={`Peças (${shapes.length})`}>
+          <Navigator />
+        </Group>
+        <h3 className="panel-group-title">{selectedShape ? "Selecionada" : selectedIds.length > 1 ? `${selectedIds.length} selecionadas` : "Nenhuma selecionada"}</h3>
+        {!selectedShape && selectedIds.length < 2 && <p className="hint">Clique numa forma no desenho ou adicione uma pela barra. Shift+clique ou arraste no fundo para selecionar várias.</p>}
         {selectedIds.length > 1 && (
           <>
             <p className="hint" data-testid="multi-summary">{selectedIds.length} formas selecionadas — use os botões Alinhar/Distribuir da barra, setas para mover, Del para excluir.</p>
@@ -286,7 +323,7 @@ export function SidePanel() {
                 onChange={(e) => setCutThrough(selectedShape.id, e.target.checked)}
                 data-testid="cut-through"
               />
-              Cortar através (espessura + 0,2 mm)
+              Cortar através <span className="field-hint">(espessura + 0,2 mm)</span>
             </label>
             <label>
               Nome
@@ -330,9 +367,9 @@ export function SidePanel() {
                     onChange={(e) => updateShape(selectedShape.id, { side: e.target.value as CutSide })}
                     data-testid="shape-side"
                   >
-                    <option value="outside">Por fora (recorte — peça fica no tamanho)</option>
-                    <option value="inside">Por dentro (furo — abertura fica no tamanho)</option>
-                    <option value="on">Na linha (gravação / sem compensação)</option>
+                    <option value="outside">Por fora (recorte)</option>
+                    <option value="inside">Por dentro (furo)</option>
+                    <option value="on">Na linha (gravação)</option>
                   </select>
                 </label>
                 <label className="checkbox">
@@ -363,7 +400,8 @@ export function SidePanel() {
         )}
       </Section>
 
-      <Section id="machine" title="Máquina" summary={`${workArea.width}×${workArea.height}×${workArea.zTravel}`}>
+      <Section id="machine" title="Máquina & chapa">
+        <Group title="Máquina (área útil)">
         <label>
           Modelo / área útil
           <select value={settings.machinePreset} onChange={(e) => handlePresetChange(e.target.value)} data-testid="machine-preset">
@@ -378,9 +416,8 @@ export function SidePanel() {
           <NumberField label="Y" unit="mm" min={10} step={10} value={workArea.height} testId="work-height" onChange={(v) => setWorkArea({ height: v })} />
           <NumberField label="Z" unit="mm" min={1} step={5} value={workArea.zTravel} testId="work-z" onChange={(v) => setWorkArea({ zTravel: v })} />
         </div>
-      </Section>
-
-      <Section id="stock" title="Chapa / base" summary={`${stock.width}×${stock.height}×${stock.thickness}`}>
+        </Group>
+        <Group title="Chapa / base" hint="A origem de trabalho (X0 Y0 do G-code) é definida pela chapa.">
         <div className="field-row">
           <NumberField label="Largura" unit="mm" min={1} step={10} value={stock.width} testId="stock-width" onChange={(v) => updateStock({ width: v })} />
           <NumberField label="Altura" unit="mm" min={1} step={10} value={stock.height} testId="stock-height" onChange={(v) => updateStock({ height: v })} />
@@ -393,13 +430,15 @@ export function SidePanel() {
         <label>
           Origem (X0 Y0)
           <select value={stock.origin} onChange={(e) => updateStock({ origin: e.target.value as StockOrigin })} data-testid="stock-origin">
-            <option value="front-left">Canto frontal esquerdo da chapa</option>
+            <option value="front-left">Canto frontal esquerdo</option>
             <option value="center">Centro da chapa</option>
           </select>
         </label>
+        </Group>
       </Section>
 
-      <Section id="material" title="Material & ferramenta" summary={`${material?.label ?? "personalizado"} · Ø${settings.toolDiameter}`}>
+      <Section id="cut" title="Fresas & corte">
+        <Group title="Material e fresa padrão">
         <label>
           Material
           <select
@@ -439,13 +478,11 @@ export function SidePanel() {
         {settings.toolType === "vbit" && (
           <NumberField label="Ângulo da fresa V" unit="°" min={10} max={170} step={5} value={settings.vbitAngle} testId="vbit-angle" onChange={(v) => updateSettings({ vbitAngle: v })} />
         )}
-      </Section>
-
-      <Section id="tools" title="Fresas" summary={`${settings.tools.length + 1} fresa(s)`}>
+        </Group>
+        <Group title={`Outras fresas (${settings.tools.length})`}>
         <ToolLibrary />
-      </Section>
-
-      <Section id="cut" title="Corte" summary={`F${settings.feedRate} · S${settings.spindleSpeed} · ${settings.passDepth}mm/passe`}>
+        </Group>
+        <Group title="Parâmetros de corte">
         {material && hasOverrides && (
           <button
             type="button"
@@ -477,28 +514,32 @@ export function SidePanel() {
             onChange={(v) => setCutParam(key, v)}
           />
         ))}
-        <NumberField label="Rampa de entrada (0 = mergulho vertical)" unit="°" min={0} max={45} step={1} value={settings.rampAngle} testId="ramp-angle" onChange={(v) => updateSettings({ rampAngle: v })} />
+        <NumberField label="Rampa de entrada" hint="0 = mergulho vertical" unit="°" min={0} max={45} step={1} value={settings.rampAngle} testId="ramp-angle" onChange={(v) => updateSettings({ rampAngle: v })} />
         <label className="checkbox">
           <input type="checkbox" checked={settings.helixEntry} onChange={(e) => updateSettings({ helixEntry: e.target.checked })} data-testid="helix-entry" />
-          Hélice de entrada nos rebaixos (Ø {round(helixDiameter(settings.toolDiameter) + settings.toolDiameter)} mm)
+          Hélice de entrada nos rebaixos <span className="field-hint">(furo Ø {round(helixDiameter(settings.toolDiameter) + settings.toolDiameter)} mm)</span>
         </label>
         {settings.helixEntry && (
-          <NumberField label="Passo da hélice (por volta)" unit="mm" min={0.1} step={0.1} value={settings.helixPitch} testId="helix-pitch" onChange={(v) => updateSettings({ helixPitch: v })} />
+          <NumberField label="Passo da hélice" hint="mm por volta" unit="mm" min={0.1} step={0.1} value={settings.helixPitch} testId="helix-pitch" onChange={(v) => updateSettings({ helixPitch: v })} />
         )}
-        <NumberField label="Furação: profundidade por bicada (0 = direto)" unit="mm" min={0} step={0.5} value={settings.peckDepth} testId="peck-depth" onChange={(v) => updateSettings({ peckDepth: v })} />
+        <NumberField label="Furação: bicada" hint="profundidade por bicada; 0 = direto" unit="mm" min={0} step={0.5} value={settings.peckDepth} testId="peck-depth" onChange={(v) => updateSettings({ peckDepth: v })} />
         <label>
           Ordem de usinagem
           <select value={settings.orderMode} onChange={(e) => updateSettings({ orderMode: e.target.value as OrderMode })} data-testid="order-mode">
-            <option value="auto">Automática (rebaixos → furos → recortes, mais próximo primeiro)</option>
-            <option value="manual">Manual (ordem de criação)</option>
+            <option value="auto">Automática (rebaixos → furos → recortes)</option>
+            <option value="manual">Manual (ordem do navegador)</option>
           </select>
         </label>
-        <NumberField label="Deslocamento rápido G0" unit="mm/min" min={1} step={100} value={settings.rapidRate} testId="rapid-rate" onChange={(v) => updateSettings({ rapidRate: v })} />
-        <NumberField label="Aceleração dos eixos (0 = ignorar no tempo)" unit="mm/s²" min={0} step={10} value={settings.accel} testId="accel" onChange={(v) => updateSettings({ accel: v })} />
-        <NumberField label="Altura segura" unit="mm" min={0} step={1} value={settings.safeHeight} testId="safe-height" onChange={(v) => updateSettings({ safeHeight: v })} />
+        </Group>
       </Section>
 
-      <Section id="post" title="Exportação" summary={`${POSTS.find((p) => p.id === settings.post)?.label ?? settings.post} · ${settings.exportUnits === "inch" ? "G20 pol" : "G21 mm"}`}>
+      <Section id="post" title="Exportação">
+        <Group title="Máquina (movimento)">
+          <NumberField label="Deslocamento rápido (G0)" unit="mm/min" min={1} step={100} value={settings.rapidRate} testId="rapid-rate" onChange={(v) => updateSettings({ rapidRate: v })} />
+          <NumberField label="Altura segura" unit="mm" min={0} step={1} value={settings.safeHeight} testId="safe-height" onChange={(v) => updateSettings({ safeHeight: v })} />
+          <NumberField label="Aceleração dos eixos" unit="mm/s²" min={0} step={10} value={settings.accel} testId="accel" onChange={(v) => updateSettings({ accel: v })} hint="0 = ignorar na estimativa de tempo" />
+        </Group>
+        <Group title="G-code">
         <label>
           Pós-processador (controlador)
           <select value={settings.post} onChange={(e) => updateSettings({ post: e.target.value as PostId })} data-testid="post">
@@ -512,9 +553,10 @@ export function SidePanel() {
           Unidades do G-code
           <select value={settings.exportUnits} onChange={(e) => updateSettings({ exportUnits: e.target.value as ExportUnits })} data-testid="export-units">
             <option value="mm">Milímetros (G21)</option>
-            <option value="inch">Polegadas (G20) — coordenadas e avanços convertidos</option>
+            <option value="inch">Polegadas (G20)</option>
           </select>
         </label>
+        </Group>
       </Section>
     </aside>
   );

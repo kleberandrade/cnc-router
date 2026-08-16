@@ -4,8 +4,9 @@ import {
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
   RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
-  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid,
+  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon,
 } from "lucide-react";
+import { OverflowRibbon, RibbonButton, ICON, type RibbonGroupDef } from "./Ribbon";
 import { useProjectActions } from "./useProjectActions";
 import { useUiStore, type View } from "../state/uiStore";
 import { useProjectStore } from "../state/store";
@@ -14,39 +15,9 @@ import type { StepMode } from "../lib/playback";
 import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
 
-const ICON = 18;
-
-interface RibbonButtonProps {
-  icon: ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  active?: boolean;
-  primary?: boolean;
-  testId?: string;
-  title?: string;
-}
-
-function RibbonButton({ icon, label, onClick, disabled, active, primary, testId, title }: RibbonButtonProps) {
-  return (
-    <button
-      type="button"
-      className={`rb${active ? " active" : ""}${primary ? " primary" : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      title={title ?? label}
-      data-testid={testId}
-    >
-      <span className="rb-icon">{icon}</span>
-      <span className="rb-label">{label}</span>
-    </button>
-  );
-}
-
 function RibbonGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className={`rgroup rgroup-${title.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "")}`} role="group" aria-label={title}>
+    <div className="rgroup" role="group" aria-label={title}>
       <div className="rgroup-items">{children}</div>
       <div className="rgroup-title">{title}</div>
     </div>
@@ -222,6 +193,65 @@ export function TopBar() {
   const simDisabled = duration <= 0;
   const atEnd = duration > 0 && t >= duration;
 
+  const sel = actions.selectedIds.length;
+  const editorGroups: RibbonGroupDef[] = [
+    {
+      key: "criar", title: "Criar", priority: 1, items: [
+        { icon: <Square size={ICON} />, label: "Retângulo", onClick: actions.addRectangle, testId: "add-rectangle", title: "Retângulo (R)" },
+        { icon: <CircleIcon size={ICON} />, label: "Círculo", onClick: actions.addCircle, testId: "add-circle", title: "Círculo (C)" },
+        { icon: <Pentagon size={ICON} />, label: "Polígono", onClick: () => actions.setTool(actions.tool === "polygon" ? "select" : "polygon"), active: actions.tool === "polygon", testId: "tool-polygon", title: "Polígono: clique os vértices, Enter/duplo clique fecha (P)" },
+        { icon: <Hexagon size={ICON} />, label: "Regular", onClick: actions.addNgon, testId: "add-ngon", title: "Polígono regular (N)" },
+        { icon: <RectangleHorizontal size={ICON} />, label: "Rasgo", onClick: actions.addSlot, testId: "add-slot", title: "Rasgo / oblongo (O)" },
+        { icon: <Type size={ICON} />, label: "Texto", onClick: actions.addText, testId: "add-text", title: "Texto (T)" },
+      ],
+    },
+    {
+      key: "modificar", title: "Modificar", priority: 2, items: [
+        { icon: <Copy size={ICON} />, label: "Duplicar", onClick: actions.duplicate, disabled: !actions.selectedId, testId: "duplicate", title: "Duplicar (Ctrl+D)" },
+        { icon: <Trash2 size={ICON} />, label: "Excluir", onClick: actions.remove, disabled: !actions.selectedId, testId: "delete", title: "Excluir (Del)" },
+        { icon: <Undo2 size={ICON} />, label: "Desfazer", onClick: actions.undo, disabled: actions.pastStates === 0, testId: "undo", title: "Desfazer (Ctrl+Z)" },
+        { icon: <Redo2 size={ICON} />, label: "Refazer", onClick: actions.redo, disabled: actions.futureStates === 0, testId: "redo", title: "Refazer (Ctrl+Y)" },
+      ],
+    },
+    {
+      key: "arranjar", title: "Arranjar", priority: 3, items: [
+        { icon: <LayoutGrid size={ICON} />, label: "Organizar", onClick: () => setNestOpen(true), disabled: actions.shapes.length === 0, testId: "nest", title: "Organizar as peças na chapa (nesting)" },
+        { icon: <Combine size={ICON} />, label: "Unir", onClick: () => actions.boolean("union"), disabled: sel < 2, testId: "bool-union", title: "União das formas selecionadas" },
+        { icon: <SquareMinus size={ICON} />, label: "Subtrair", onClick: () => actions.boolean("difference"), disabled: sel < 2, testId: "bool-difference", title: "Subtrair as outras da primeira selecionada" },
+        { icon: <SquareDot size={ICON} />, label: "Intersec.", onClick: () => actions.boolean("intersection"), disabled: sel < 2, testId: "bool-intersection", title: "Interseção das formas selecionadas" },
+        {
+          icon: <AlignIcon size={ICON} />, label: "Alinhar", disabled: sel < 2, testId: "align-menu", title: "Alinhar / distribuir (2+ formas)", onClick: () => {},
+          menu: [
+            { icon: <AlignStartVertical size={ICON} />, label: "Esquerda", onClick: () => actions.alignSelected("left"), testId: "align-left", title: "Alinhar à esquerda" },
+            { icon: <AlignCenterVertical size={ICON} />, label: "Centro (horizontal)", onClick: () => actions.alignSelected("centerX"), testId: "align-centerx", title: "Centralizar horizontalmente" },
+            { icon: <AlignEndVertical size={ICON} />, label: "Direita", onClick: () => actions.alignSelected("right"), testId: "align-right", title: "Alinhar à direita" },
+            { icon: <AlignStartHorizontal size={ICON} />, label: "Topo", onClick: () => actions.alignSelected("top"), testId: "align-top", title: "Alinhar ao topo" },
+            { icon: <AlignCenterHorizontal size={ICON} />, label: "Meio (vertical)", onClick: () => actions.alignSelected("centerY"), testId: "align-centery", title: "Centralizar verticalmente" },
+            { icon: <AlignEndHorizontal size={ICON} />, label: "Base", onClick: () => actions.alignSelected("bottom"), testId: "align-bottom", title: "Alinhar à base" },
+            { icon: <AlignHorizontalSpaceAround size={ICON} />, label: "Distribuir na horizontal", onClick: () => actions.distributeSelected("horizontal"), disabled: sel < 3, testId: "distribute-h", title: "Distribuir horizontalmente (3+)" },
+            { icon: <AlignVerticalSpaceAround size={ICON} />, label: "Distribuir na vertical", onClick: () => actions.distributeSelected("vertical"), disabled: sel < 3, testId: "distribute-v", title: "Distribuir verticalmente (3+)" },
+          ],
+        },
+      ],
+    },
+    {
+      key: "vista", title: "Vista", priority: 4, items: [
+        { icon: <ZoomOut size={ICON} />, label: "Reduzir", onClick: actions.zoomOut, testId: "zoom-out", title: "Reduzir (−)" },
+        { icon: <Maximize size={ICON} />, label: `${Math.round(actions.zoom * 100)}%`, onClick: actions.zoomFit, testId: "zoom-fit", title: "Ajustar à mesa (0)", labelClass: "zoom-label" },
+        { icon: <ZoomIn size={ICON} />, label: "Ampliar", onClick: actions.zoomIn, testId: "zoom-in", title: "Ampliar (+)" },
+        { icon: <Magnet size={ICON} />, label: "Snap", onClick: actions.toggleSnap, active: actions.snap, testId: "snap-toggle", title: "Snap a chapa/formas (S)" },
+      ],
+    },
+    {
+      key: "projeto", title: "Projeto", priority: 5, items: [
+        { icon: <FilePlus size={ICON} />, label: "Novo", onClick: actions.newProject, testId: "new-project", title: "Novo projeto" },
+        { icon: <FolderOpen size={ICON} />, label: "Abrir", onClick: actions.openProject, testId: "open-project", title: "Abrir projeto (.json)" },
+        { icon: <Save size={ICON} />, label: "Salvar", onClick: actions.saveProject, testId: "save-project", title: "Salvar projeto (.json) — Ctrl+S" },
+        { icon: <Upload size={ICON} />, label: "Importar", onClick: actions.importSvg, testId: "import-svg", title: "Importar SVG ou DXF" },
+      ],
+    },
+  ];
+
   const tab = (id: View, label: string) => (
     <button
       type="button"
@@ -256,65 +286,11 @@ export function TopBar() {
         </nav>
       </div>
 
+      {view === "editor" ? (
+        <OverflowRibbon groups={editorGroups} />
+      ) : (
       <div className="ribbon" role="toolbar" aria-label="Ações">
-        {view === "editor" ? (
-          <>
-            <RibbonGroup title="Projeto">
-              <RibbonButton icon={<FilePlus size={ICON} />} label="Novo" onClick={actions.newProject} testId="new-project" />
-              <RibbonButton icon={<FolderOpen size={ICON} />} label="Abrir" onClick={actions.openProject} testId="open-project" title="Abrir projeto (.json)" />
-              <RibbonButton icon={<Save size={ICON} />} label="Salvar" onClick={actions.saveProject} testId="save-project" title="Salvar projeto (.json) — Ctrl+S" />
-              <RibbonButton icon={<Upload size={ICON} />} label="Importar" onClick={actions.importSvg} testId="import-svg" title="Importar SVG ou DXF" />
-            </RibbonGroup>
-            <RibbonGroup title="Criar">
-              <RibbonButton icon={<Square size={ICON} />} label="Retângulo" onClick={actions.addRectangle} testId="add-rectangle" title="Retângulo (R)" />
-              <RibbonButton icon={<CircleIcon size={ICON} />} label="Círculo" onClick={actions.addCircle} testId="add-circle" title="Círculo (C)" />
-              <RibbonButton
-                icon={<Pentagon size={ICON} />}
-                label="Polígono"
-                onClick={() => actions.setTool(actions.tool === "polygon" ? "select" : "polygon")}
-                active={actions.tool === "polygon"}
-                testId="tool-polygon"
-                title="Polígono: clique os vértices, Enter/duplo clique fecha (P)"
-              />
-              <RibbonButton icon={<Hexagon size={ICON} />} label="Regular" onClick={actions.addNgon} testId="add-ngon" title="Polígono regular (N)" />
-              <RibbonButton icon={<RectangleHorizontal size={ICON} />} label="Rasgo" onClick={actions.addSlot} testId="add-slot" title="Rasgo / oblongo (O)" />
-              <RibbonButton icon={<Type size={ICON} />} label="Texto" onClick={actions.addText} testId="add-text" title="Texto (T)" />
-            </RibbonGroup>
-            <RibbonGroup title="Modificar">
-              <RibbonButton icon={<Copy size={ICON} />} label="Duplicar" onClick={actions.duplicate} disabled={!actions.selectedId} testId="duplicate" title="Duplicar (Ctrl+D)" />
-              <RibbonButton icon={<Trash2 size={ICON} />} label="Excluir" onClick={actions.remove} disabled={!actions.selectedId} testId="delete" title="Excluir (Del)" />
-              <RibbonButton icon={<Undo2 size={ICON} />} label="Desfazer" onClick={actions.undo} disabled={actions.pastStates === 0} testId="undo" title="Desfazer (Ctrl+Z)" />
-              <RibbonButton icon={<Redo2 size={ICON} />} label="Refazer" onClick={actions.redo} disabled={actions.futureStates === 0} testId="redo" title="Refazer (Ctrl+Y)" />
-            </RibbonGroup>
-            <RibbonGroup title="Arranjar">
-              <RibbonButton icon={<LayoutGrid size={ICON} />} label="Organizar" onClick={() => setNestOpen(true)} disabled={actions.shapes.length === 0} testId="nest" title="Organizar as peças na chapa (nesting)" />
-              <RibbonButton icon={<Combine size={ICON} />} label="Unir" onClick={() => actions.boolean("union")} disabled={actions.selectedIds.length < 2} testId="bool-union" title="União das formas selecionadas" />
-              <RibbonButton icon={<SquareMinus size={ICON} />} label="Subtrair" onClick={() => actions.boolean("difference")} disabled={actions.selectedIds.length < 2} testId="bool-difference" title="Subtrair as outras da primeira selecionada" />
-              <RibbonButton icon={<SquareDot size={ICON} />} label="Intersec." onClick={() => actions.boolean("intersection")} disabled={actions.selectedIds.length < 2} testId="bool-intersection" title="Interseção das formas selecionadas" />
-            </RibbonGroup>
-            {actions.selectedIds.length >= 2 && (
-            <RibbonGroup title="Alinhar">
-              <RibbonButton icon={<AlignStartVertical size={ICON} />} label="Esq." onClick={() => actions.alignSelected("left")} disabled={actions.selectedIds.length < 2} testId="align-left" title="Alinhar à esquerda" />
-              <RibbonButton icon={<AlignCenterVertical size={ICON} />} label="Centro" onClick={() => actions.alignSelected("centerX")} disabled={actions.selectedIds.length < 2} testId="align-centerx" title="Centralizar horizontalmente" />
-              <RibbonButton icon={<AlignEndVertical size={ICON} />} label="Dir." onClick={() => actions.alignSelected("right")} disabled={actions.selectedIds.length < 2} testId="align-right" title="Alinhar à direita" />
-              <RibbonButton icon={<AlignStartHorizontal size={ICON} />} label="Topo" onClick={() => actions.alignSelected("top")} disabled={actions.selectedIds.length < 2} testId="align-top" title="Alinhar ao topo" />
-              <RibbonButton icon={<AlignCenterHorizontal size={ICON} />} label="Meio" onClick={() => actions.alignSelected("centerY")} disabled={actions.selectedIds.length < 2} testId="align-centery" title="Centralizar verticalmente" />
-              <RibbonButton icon={<AlignEndHorizontal size={ICON} />} label="Base" onClick={() => actions.alignSelected("bottom")} disabled={actions.selectedIds.length < 2} testId="align-bottom" title="Alinhar à base" />
-              <RibbonButton icon={<AlignHorizontalSpaceAround size={ICON} />} label="Distr. H" onClick={() => actions.distributeSelected("horizontal")} disabled={actions.selectedIds.length < 3} testId="distribute-h" title="Distribuir horizontalmente" />
-              <RibbonButton icon={<AlignVerticalSpaceAround size={ICON} />} label="Distr. V" onClick={() => actions.distributeSelected("vertical")} disabled={actions.selectedIds.length < 3} testId="distribute-v" title="Distribuir verticalmente" />
-            </RibbonGroup>
-            )}
-            <RibbonGroup title="Vista">
-              <RibbonButton icon={<ZoomOut size={ICON} />} label="Reduzir" onClick={actions.zoomOut} testId="zoom-out" title="Reduzir (−)" />
-              <button type="button" className="rb" onClick={actions.zoomFit} title="Ajustar à mesa (0)" data-testid="zoom-fit">
-                <span className="rb-icon"><Maximize size={ICON} /></span>
-                <span className="rb-label zoom-label">{Math.round(actions.zoom * 100)}%</span>
-              </button>
-              <RibbonButton icon={<ZoomIn size={ICON} />} label="Ampliar" onClick={actions.zoomIn} testId="zoom-in" title="Ampliar (+)" />
-              <RibbonButton icon={<Magnet size={ICON} />} label="Snap" onClick={actions.toggleSnap} active={actions.snap} testId="snap-toggle" title="Snap a chapa/formas (S)" />
-            </RibbonGroup>
-          </>
-        ) : (
+        {(
           <>
             <RibbonGroup title="Reproduzir">
               <RibbonButton icon={<SkipBack size={ICON} />} label="Início" onClick={reset} disabled={simDisabled} title="Início (Home)" />
@@ -357,6 +333,7 @@ export function TopBar() {
           </>
         )}
       </div>
+      )}
 
       <div className="topbar-right">
         <RibbonButton icon={<Download size={ICON} />} label="Exportar G-code" onClick={actions.exportGcode} primary testId="export-gcode" />

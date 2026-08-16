@@ -53,9 +53,11 @@
   border: 1px solid transparent;
   background: transparent;
   border-radius: var(--radius-sm);
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 600;
+  font-family: var(--font-brand);
+  font-size: 16px;
+  font-weight: 700;
+  font-stretch: 88%;
+  letter-spacing: -0.03em;
   color: var(--text);
   cursor: pointer;
 }
@@ -91,7 +93,7 @@
   background: transparent;
   padding: var(--s2) var(--s3);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--text);
   cursor: pointer;
   text-align: left;
@@ -129,7 +131,7 @@
   height: calc(var(--control-h) - 6px);
   padding: 0 var(--s3);
   border-radius: 5px;
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
@@ -173,7 +175,10 @@
 }
 
 .rgroup-title {
-  font-size: 10px;
+  font-size: 9.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
@@ -187,8 +192,8 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: 48px;
-  padding: var(--s1) var(--s2);
+  min-width: 44px;
+  padding: var(--s1) 6px;
   border: 1px solid transparent;
   background: transparent;
   border-radius: var(--radius-sm);
@@ -231,8 +236,11 @@
 }
 
 .rb-label {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   line-height: 12px;
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .zoom-label {
@@ -267,26 +275,93 @@
 }
 
 .topbar-right .rb-label {
-  font-size: 13px;
+  font-size: var(--fs-md);
+  max-width: none;
 }
 
-/* Narrow ribbon: icons only (tooltips keep the names); the Projeto group lives in the menu too. */
-@media (max-width: 1440px) {
-  .rb-label:not(.zoom-label) {
-    display: none;
-  }
-  .rgroup-title {
-    display: none;
-  }
-  .rgroup {
-    justify-content: center;
-  }
-  .rgroup-projeto {
-    display: none;
-  }
-  .topbar-right .rb-label {
-    display: inline;
-  }
+/* Ribbon never scrolls: groups that do not fit move to the "Mais" menu (see Ribbon.tsx). */
+.ribbon {
+  overflow: visible;
+  flex-wrap: nowrap;
+}
+
+.rgroup-wrap {
+  display: flex;
+  flex: none;
+}
+
+/* Compact ribbon (icons only) — tried before moving groups into "Mais". */
+.ribbon.compact .rb-label:not(.zoom-label) {
+  display: none;
+}
+.ribbon.compact .rb-dropdown .rb-label {
+  display: inline-flex;
+}
+.ribbon.compact .rb-label-text {
+  display: none;
+}
+.ribbon.compact .rb {
+  min-width: 34px;
+  padding: var(--s1) 3px;
+}
+.ribbon.compact .rgroup {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.ribbon.compact .rgroup-title {
+  display: none;
+}
+.ribbon.compact .rgroup {
+  justify-content: center;
+}
+
+.rb-dropdown {
+  position: relative;
+  display: flex;
+}
+
+.rb-dropdown .rb-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ribbon-menu {
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.ribbon-menu.menu-right {
+  left: auto;
+  right: 0;
+}
+
+.menu-icon {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.menu-item.active .menu-icon,
+.menu-item:hover .menu-icon {
+  color: var(--accent);
+}
+
+.menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.menu-title {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: var(--s2) var(--s3) var(--s1);
+}
+
+.menu-group + .menu-group {
+  border-top: 1px solid var(--border);
+  margin-top: var(--s1);
 }
 
 @media (max-width: 1100px) {
@@ -325,6 +400,10 @@
   display: flex;
   align-items: center;
   gap: var(--s3);
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-stretch: 88%;
+  letter-spacing: -0.03em;
 }
 
 .dialog p {
@@ -373,84 +452,153 @@
   grid-template-columns: 1fr;
 }
 
-/* Side panel (accordion) */
+/* Side panel (tabs) */
 .side-panel {
-  padding: var(--s3);
-  gap: var(--s2);
+  padding: 0;
+  gap: 0;
+}
+
+.panel-tabs {
+  display: flex;
+  gap: 2px;
+  padding: var(--s2) var(--s2) 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.panel-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  white-space: nowrap;
+}
+
+.panel-tab:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.panel-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.panel-tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .panel-section {
   flex: none;
-  border: 1px solid var(--border);
-  border-radius: 9px;
   background: var(--panel);
-  overflow: hidden;
 }
 
-.panel-section.open {
-  border-color: var(--accent);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  border: none;
-  background: var(--paper);
-  padding: 8px 10px;
-  cursor: pointer;
-  text-align: left;
-  font-size: 12px;
-}
-
-.panel-title {
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
+.panel-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
   font-weight: 600;
-  white-space: nowrap;
-  font-size: 11px;
+  color: var(--text);
 }
 
-.panel-section.open .panel-title {
-  color: var(--ink);
+.panel-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--border);
 }
 
-.panel-summary {
-  margin-left: auto;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 0 1 auto;
-  min-width: 0;
+.panel-group:first-of-type {
+  border-top: none;
+  padding-top: 0;
 }
 
-.chevron {
-  color: var(--muted);
-  width: 10px;
+.panel-group-title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .panel-body {
-  padding: var(--s3) var(--s4) var(--s4);
+  padding: var(--s3) var(--s3) var(--s4);
   display: flex;
   flex-direction: column;
   gap: var(--s3);
+  font-size: var(--fs-md);
 }
 
 .panel-body > label,
 .panel-body > .number-field,
 .panel-body > .field-row,
 .panel-body > .hint,
-.panel-body > button {
+.panel-body > button,
+.panel-group > label,
+.panel-group > .number-field,
+.panel-group > .field-row,
+.panel-group > .hint,
+.panel-group > button {
   margin: 0;
 }
 
 .panel-body .hint {
   margin: 0;
+}
+
+.field-hint {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+label.checkbox .field-hint {
+  display: inline;
+  margin: 0 0 0 4px;
+}
+
+.side-panel label,
+.side-panel .number-field {
+  font-size: var(--fs-md);
+  gap: 3px;
+}
+
+.side-panel select,
+.side-panel input[type="text"],
+.side-panel input[type="search"] {
+  height: var(--control-h);
+  font-size: var(--fs-base);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.side-panel select {
+  text-overflow: ellipsis;
+}
+
+.side-panel .hint {
+  font-size: var(--fs-sm);
+  line-height: 1.4;
 }
 
 .toolbar .panel-header {
@@ -480,13 +628,13 @@
   min-width: 72px;
   height: var(--control-h);
   padding: 0 var(--s2);
-  font-size: 14px;
+  font-size: var(--fs-base);
   outline: none;
 }
 
 .number-field-input .unit {
   flex: none;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   padding: 0 var(--s2);
   border-left: 1px solid var(--border);
@@ -600,19 +748,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--s1);
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--ink);
   margin-bottom: 0;
 }
 
 .side-panel select,
+.side-panel input[type="text"],
 .toolbar-section input,
 .toolbar-section select {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   height: var(--control-h);
   padding: 0 var(--s2);
-  font-size: 14px;
+  font-size: var(--fs-base);
   background: white;
 }
 
@@ -626,8 +775,8 @@
   border: 1px solid var(--border);
   background: var(--paper);
   border-radius: 7px;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 6px 10px;
+  font-size: var(--fs-md);
   cursor: pointer;
   width: 100%;
 }
@@ -1605,4 +1754,23 @@
   padding: 0 var(--s2);
   background: var(--surface);
   color: var(--text);
+}
+
+/* Sprint 18: panel tabs override generic toolbar buttons; navigator search row */
+.toolbar .panel-tab {
+  width: auto;
+  padding: 0 4px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-width: 0 0 2px;
+  background: transparent;
+}
+.toolbar .panel-tab:hover { background: var(--surface-2); }
+.toolbar .panel-tab.active { background: transparent; }
+.side-panel .nav-search { flex-direction: row; gap: var(--s2); }
+.side-panel .nav-search input { height: var(--control-h); font-size: var(--fs-md); }
+.panel-tab-icon { display: none; }
+@media (max-width: 1100px) {
+  .panel-tab-label { display: none; }
+  .panel-tab-icon { display: inline-flex; }
+  .panel-tab { gap: 0; }
 }

@@ -1,15 +1,14 @@
 import { test, expect } from "@playwright/test";
+import { ribbonClick } from "./helpers";
 
 test.describe("sprint 15: booleanas e nesting", () => {
   test("união de dois retângulos vira 1 path; subtração cria furo; undo volta", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-rectangle").click(); // second one spawns offset, overlapping the first
-    await page.getByTestId("section-toggle-navigator").click();
-    await expect(page.getByTestId("bool-union")).toBeDisabled();
+    await page.getByTestId("section-toggle-shape").click();
     await page.keyboard.press("Control+a");
-    await expect(page.getByTestId("bool-union")).toBeEnabled();
-    await page.getByTestId("bool-union").click();
+    await ribbonClick(page, "bool-union");
     await expect(page.getByTestId("notice")).toContainText("União: 1 forma");
     await expect(page.locator('[data-testid^="nav-item-"]')).toHaveCount(1);
     // undo restores both
@@ -26,16 +25,16 @@ test.describe("sprint 15: booleanas e nesting", () => {
     await page.getByTestId("shape-y").fill("25"); await page.getByTestId("shape-y").press("Enter");
     await page.getByTestId("shape-radius").fill("5"); await page.getByTestId("shape-radius").press("Enter");
     await page.keyboard.press("Control+a");
-    await page.getByTestId("bool-difference").click();
+    await ribbonClick(page, "bool-difference");
     await expect(page.getByTestId("notice")).toContainText("Subtração: 1 forma");
-    await page.getByTestId("section-toggle-navigator").click();
+    await page.getByTestId("section-toggle-shape").click();
     await expect(page.locator('[data-testid^="nav-item-"]')).toHaveCount(1);
   });
 
   test("organizar na chapa arruma as peças e avisa as que não cabem", async ({ page }) => {
     await page.goto("/");
     for (let i = 0; i < 6; i++) await page.getByTestId("add-rectangle").click();
-    await page.getByTestId("nest").click();
+    await ribbonClick(page, "nest");
     await expect(page.getByTestId("nest-dialog")).toBeVisible();
     await page.getByTestId("nest-gap").fill("3");
     await page.getByTestId("nest-apply").click();
@@ -49,7 +48,7 @@ test.describe("sprint 15: booleanas e nesting", () => {
     // now something too big for the 300×200 stock
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-width").fill("350"); await page.getByTestId("shape-width").press("Enter");
-    await page.getByTestId("nest").click();
+    await ribbonClick(page, "nest");
     await page.getByTestId("nest-apply").click();
     await expect(page.getByTestId("notice")).toContainText("1 não cabem na chapa");
   });

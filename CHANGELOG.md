@@ -2,6 +2,21 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Sprint 18 — Painel em abas, ribbon adaptável, tipografia compacta] — 2026-08-16
+
+### Alterado
+- **Painel lateral**: 8 seções em acordeão → 4 abas (Peça com navegador, Máquina, Corte, Exportar), subgrupos com título, dicas curtas sob os campos; fontes menores (rótulos 12 px, campos 13 px).
+- **Ribbon**: nunca rola nem corta — mostra rótulos quando cabe, passa a só ícones quando aperta e move os grupos menos usados para o menu **Mais ▾**; Alinhar/Distribuir virou um dropdown em Arranjar.
+- Textos longos encurtados (compensação, unidades, rampa, furação, cortar através) com dica ao lado; rótulos com reticências mostram o texto completo no tooltip.
+- Tokens de tipografia (`--fs-*`) e alturas de controle (30 px) em `index.css`.
+
+### Testes
+- `Ribbon.test.tsx`, e2e `layout.spec.ts` (4 larguras) e helpers `ribbonClick`/`alignClick`. Total: 266 unitários, 69 e2e.
+
+## [Planejamento — Fase 4 e Fase 5] — 2026-08-16
+
+- Auditoria de UI (painel com 8 seções, ribbon cortando em 1600 px, tipografia grande, textos cortados) → [`docs/sprints/fase-4.md`](docs/sprints/fase-4.md): Sprints 18 (painel/ribbon/tipografia), 19 (versão/Sobre/Novidades), 20 (sugestões e problemas via Vercel Function + Blob), 21 (primeiro uso, mensagens, acessibilidade, mobile); Sprint 16 movida para o fim da Fase 4; Sprint 17 (Web Serial) para o backlog da [Fase 5](docs/sprints/fase-5.md).
+
 ## [Sprint 15 — Nesting e booleanas] — 2026-08-16
 
 ### Adicionado
@@ -48,6 +63,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Título da aba acompanha a vista (`Desenhar` / `Simular — Oficina CNC`).
 - **Speed Insights** (`@vercel/speed-insights`) e **Web Analytics** (`@vercel/analytics`): Web Vitals e visitas no dashboard da Vercel.
 - Build: simulador (Three.js) em chunk sob demanda; Konva/Clipper/React separados — some o aviso de chunk > 500 kB no deploy.
+- Wordmark **Oficina CNC** em Bricolage Grotesque (auto-hospedada), no lugar da Fraunces.
 
 ## [Sprint 11 — Navegador, fresas por peça, tema escuro, DXF] — 2026-08-15
 

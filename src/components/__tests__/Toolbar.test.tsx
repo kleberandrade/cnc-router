@@ -189,7 +189,7 @@ describe("Toolbar (ActionBar + SidePanel + StatusBar)", () => {
 
   it("new shapes spawn inside the stock with depth = stock thickness", async () => {
     render(<Toolbar />);
-    openSection("stock");
+    openSection("machine");
     fireEvent.change(screen.getByTestId("stock-thickness"), { target: { value: "12" } });
     await userEvent.click(screen.getByTestId("add-rectangle"));
     expect(useProjectStore.getState().shapes[0].depth).toBe(12);
@@ -213,14 +213,14 @@ describe("Toolbar (ActionBar + SidePanel + StatusBar)", () => {
 
   it("selecting a material fills cutting params; manual edits survive a material change", async () => {
     render(<Toolbar />);
-    openSection("material");
+    openSection("cut");
     fireEvent.change(screen.getByTestId("material-select"), { target: { value: "aluminum" } });
     expect(useProjectStore.getState().settings.feedRate).toBe(300);
     expect(screen.getByTestId("material-notes")).toHaveTextContent(/Avançado/);
     openSection("cut");
     fireEvent.change(screen.getByTestId("cut-feedRate"), { target: { value: "450" } });
     expect(screen.getByText("manual")).toBeInTheDocument();
-    openSection("material");
+    openSection("cut");
     fireEvent.change(screen.getByTestId("material-select"), { target: { value: "mdf" } });
     expect(useProjectStore.getState().settings.feedRate).toBe(450);
     openSection("cut");

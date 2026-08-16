@@ -60,5 +60,21 @@ Plano em [`fase-3.md`](fase-3.md) (backlog da Sprint 12 convertido).
 | [13](sprint-13-ilhas-e-texto.md) ✅ | Pockets com ilhas e texto → contorno | — | G |
 | [14](sprint-14-entrada-furacao-tempo-pos.md) ✅ | Hélice, furação, tempo com aceleração, G20 + pós-processadores | — | M |
 | [15](sprint-15-nesting-e-booleanas.md) ✅ | Nesting e booleanas | 13 | G |
+| [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link — **movida para o fim da Fase 4** | 13, 14 | M |
+| [17](sprint-17-web-serial-sender.md) | Enviar para a máquina (Web Serial/GRBL) — **movida para a Fase 5 (backlog)** | 14 | G |
+
+## Fase 4 — Usabilidade, UI/UX e produto
+
+Plano em [`fase-4.md`](fase-4.md) (auditoria de UI de 2026-08-16). Ordem: 18 → 19 → 20 → 21 → 16.
+
+| Sprint | Tema | Depende de | Esforço |
+|---|---|---|---|
+| [18](sprint-18-painel-e-ribbon.md) ✅ | Painel lateral em 4 seções, ribbon com overflow "Mais", escala tipográfica compacta, fim de textos cortados | — | M |
+| [19](sprint-19-produto-versao-sobre.md) | Versão visível (app, G-code, PWA), Sobre com autor/licenças, Novidades | — | P |
+| [20](sprint-20-feedback-vercel.md) | Sugestões e problemas: formulário → Vercel Function → Vercel Blob | 19 | M |
+| [21](sprint-21-usabilidade-onboarding-a11y.md) | Estado vazio, exemplos, tour, mensagens, acessibilidade, mobile | 18 | M |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
-| [17](sprint-17-web-serial-sender.md) | Enviar para a máquina (Web Serial/GRBL) | 14 | G |
+
+## Fase 5 — Backlog
+
+[`fase-5.md`](fase-5.md): Web Serial (Sprint 17), NFP, G2/G3, fontes do usuário, DXF com furos, i18n…

@@ -21,9 +21,17 @@
   --s6: 32px;
 
   /* control sizes */
-  --control-h: 32px;
-  --control-h-sm: 28px;
-  --topbar-h: 64px;
+  --control-h: 30px;
+  --control-h-sm: 26px;
+  --topbar-h: 60px;
+
+  /* type scale (desktop; mobile inputs stay 16px to avoid iOS zoom) */
+  --fs-xs: 10.5px;
+  --fs-sm: 11px;
+  --fs-md: 12px;
+  --fs-base: 13px;
+  --fs-lg: 14px;
+  --field-w: 6.5em;
 
   /* semantic (theme-ready; dark theme swaps these in Sprint 11) */
   --bg: var(--paper);
@@ -36,6 +44,7 @@
   --success: #3a7d44;
 
   --font-display: "Fraunces Variable", "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
+  --font-brand: "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
 }

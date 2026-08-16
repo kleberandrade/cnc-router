@@ -15,7 +15,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-x").fill("120");
     await page.getByTestId("shape-x").press("Enter");
-    await page.getByTestId("section-toggle-navigator").click();
+    await page.getByTestId("section-toggle-shape").click();
     await page.getByTestId("nav-eye-0").click(); // hide rectangle
     const g = await exportGcode(page);
     expect(g).not.toMatch(/G1 X50 Y10 F/); // rectangle path gone
@@ -23,7 +23,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
     // manual order: circle first
     await page.getByTestId("section-toggle-cut").click();
     await page.getByTestId("order-mode").selectOption("manual");
-    await page.getByTestId("section-toggle-navigator").click();
+    await page.getByTestId("section-toggle-shape").click();
     await page.getByTestId("nav-up-1").click();
     await expect(page.getByTestId("nav-item-0")).toContainText("Círculo");
     const g2 = await exportGcode(page);
@@ -37,7 +37,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-name").fill("Tampa");
-    await page.getByTestId("section-toggle-navigator").click();
+    await page.getByTestId("section-toggle-shape").click();
     await expect(page.getByTestId("nav-item-0")).toContainText("Tampa");
   });
 
@@ -47,7 +47,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-x").fill("120");
     await page.getByTestId("shape-x").press("Enter");
-    await page.getByTestId("section-toggle-tools").click();
+    await page.getByTestId("section-toggle-cut").click();
     await page.getByTestId("tool-add").click();
     await page.getByTestId("section-toggle-shape").click();
     await page.getByTestId("shape-tool").selectOption({ index: 1 });
