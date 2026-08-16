@@ -26,6 +26,7 @@ test.describe("sprint 21: primeiro uso", () => {
     await expect(page.getByTestId("notice")).toContainText("Placa com 4 furos");
     // examples also in the menu; confirm dialog when replacing
     await page.getByTestId("project-menu").click();
+    await page.getByTestId("menu-examples").click();
     await page.getByTestId("menu-example-letreiro").click();
     await page.getByTestId("ask-ok").click();
     await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");

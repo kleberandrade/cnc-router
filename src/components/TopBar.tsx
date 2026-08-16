@@ -18,7 +18,8 @@ import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
 import { PRODUCT, AUTHOR, THIRD_PARTY } from "../content/about";
 import { FeedbackDialog } from "./FeedbackDialog";
-import { EXAMPLES } from "../content/examples";
+import { EXAMPLES, examplesByCategory } from "../content/examples";
+import { ExamplesGallery } from "./ExamplesGallery";
 import { resetTour } from "./Tour";
 import { verifyProject } from "../lib/verify";
 import { Dialog } from "./Dialog";
@@ -27,13 +28,17 @@ import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVers
 
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
-  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news" | "feedback" | "privacidade" | "cookies" | "termos">(null);
+  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news" | "feedback" | "privacidade" | "cookies" | "termos" | "examples">(null);
+  const [sub, setSub] = useState<null | "examples">(null);
+  useEffect(() => { if (!open) setSub(null); }, [open]);
   const [hasNews, setHasNews] = useState(false);
   useEffect(() => {
     if (isFirstRun()) markVersionSeen();
     else setHasNews(isNewVersion());
   }, []);
   const openNews = () => { setDialog("news"); markVersionSeen(); setHasNews(false); };
+  const galleryOpen = useUiStore((s) => s.galleryOpen);
+  useEffect(() => { if (galleryOpen) { setDialog("examples"); useUiStore.getState().setGalleryOpen(false); } }, [galleryOpen]);
   useEffect(() => {
     const fromHash = () => {
       const h = window.location.hash.replace(/^#\/?/, "");
@@ -76,8 +81,23 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<Upload size={16} />, "Importar SVG / DXF…", actions.importSvg, "menu-import")}
           {item(<Link2 size={16} />, "Copiar link do projeto", () => void actions.shareLink(), "menu-share")}
           <div className="menu-sep" />
-          <div className="menu-title"><BookOpen size={12} aria-hidden="true" /> Exemplos</div>
-          {EXAMPLES.map((ex) => item(<span className="menu-bullet" />, ex.title, () => actions.openExample(ex.id), `menu-example-${ex.id}`))}
+          <div className="menu-sub" onMouseEnter={() => setSub("examples")} onMouseLeave={() => setSub(null)}>
+            <button type="button" role="menuitem" className="menu-item" aria-haspopup="menu" aria-expanded={sub === "examples"} onClick={() => setSub(sub === "examples" ? null : "examples")} data-testid="menu-examples">
+              <BookOpen size={16} /><span>Exemplos</span><span className="menu-arrow">▸</span>
+            </button>
+            {sub === "examples" && (
+              <div className="menu menu-submenu" role="menu" data-testid="menu-examples-sub">
+                {examplesByCategory().map((g) => (
+                  <div key={g.category} className="menu-group">
+                    <div className="menu-title">{g.label}</div>
+                    {g.items.map((ex) => item(<span className="menu-bullet" />, ex.title, () => actions.openExample(ex.id), `menu-example-${ex.id}`))}
+                  </div>
+                ))}
+                <div className="menu-sep" />
+                {item(<BookOpen size={16} />, `Todos os exemplos (${EXAMPLES.length})…`, () => setDialog("examples"), "menu-examples-all")}
+              </div>
+            )}
+          </div>
           {item(<Compass size={16} />, "Tour rápido", () => { resetTour(); useUiStore.getState().setTourOpen(true); }, "menu-tour")}
           <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
@@ -92,8 +112,8 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           <div className="menu-footer" data-testid="menu-version">{PRODUCT.name} {versionLabel()}</div>
         </div>
       )}
-      <Dialog open={!!dialog} onClose={() => setDialog(null)} size={dialog === "feedback" || dialog === "about" ? "lg" : "md"} testId="dialog">
-        {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : dialog === "feedback" ? <FeedbackDialog onDone={() => setDialog(null)} /> : dialog === "about" ? <About onFeedback={() => setDialog("feedback")} onLegal={(id) => setDialog(id)} /> : dialog === "privacidade" || dialog === "cookies" || dialog === "termos" ? <LegalContent id={dialog} /> : null}
+      <Dialog open={!!dialog} onClose={() => setDialog(null)} size={dialog === "feedback" || dialog === "about" || dialog === "examples" ? "lg" : "md"} testId="dialog">
+        {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : dialog === "feedback" ? <FeedbackDialog onDone={() => setDialog(null)} /> : dialog === "about" ? <About onFeedback={() => setDialog("feedback")} onLegal={(id) => setDialog(id)} /> : dialog === "privacidade" || dialog === "cookies" || dialog === "termos" ? <LegalContent id={dialog} /> : dialog === "examples" ? <ExamplesGallery onOpen={(id) => { setDialog(null); void actions.openExample(id); }} /> : null}
       </Dialog>
     </div>
   );

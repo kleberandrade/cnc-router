@@ -22,6 +22,16 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 - Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias e galeria, ilustrações nas opções, notice compacto — `docs/sprints/sprint-24-exemplos.md`.
 
+## [0.25.0 — Sprint 24 — Exemplos e ilustrações] — 2026-08-16
+
+### Adicionado
+- **10 exemplos** em 5 categorias: tábua de carnes, escudos do São Paulo, Palmeiras e Corinthians (desenhos geométricos próprios), placas de gato, raposa e pata de cachorro importadas de SVG, além dos 3 anteriores. Menu **Exemplos ▸** por categoria e **galeria** com miniaturas e "o que ensina".
+- **Ilustrações** ao lado das opções com variação visual: tipo de fresa, operação, compensação, cantos, entrada (mergulho/hélice), ordem, tabs.
+- Aviso compacto no painel (1 linha, detalhes sob demanda) e aviso "percurso recalculado" ao trocar o Ø da fresa.
+
+### Corrigido
+- Validação "rebaixo menor que a fresa" considera a fresa escolhida para a peça.
+
 ## [0.24.0 — Sprint 23 — Acabamento de UX] — 2026-08-16
 
 ### Adicionado

@@ -123,7 +123,7 @@
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 2px;
+  padding: 3px;
   box-sizing: border-box;
 }
 
@@ -1944,15 +1944,15 @@ a.link { color: var(--accent); font-size: var(--fs-md); }
 
 .tabrow {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--s3);
-  height: 30px;
+  height: 34px;
   padding: 0 var(--s2);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
-.tabrow .tabs { margin-bottom: 3px; align-items: center; }
-.tabrow .tab { height: 20px; font-size: var(--fs-sm); padding: 0 var(--s2); line-height: 1; }
+.tabrow .tabs { align-items: center; }
+.tabrow .tab { height: 22px; font-size: var(--fs-sm); padding: 0 var(--s2); line-height: 1; }
 .ribbon-tabs { display: flex; gap: 2px; height: 100%; align-items: flex-end; }
 .ribbon-tab {
   height: 28px;
@@ -2118,3 +2118,38 @@ a.link { color: var(--accent); font-size: var(--fs-md); }
 .toolbar .op-point { width: 18px; height: 18px; padding: 0; min-height: 0; }
 .toolbar .op-point.active { width: 22px; height: 22px; }
 .op-box { position: relative; }
+
+/* Sprint 24: examples submenu, gallery, thumbnails */
+.menu-sub { position: relative; }
+.menu-arrow { margin-left: auto; color: var(--text-muted); font-size: 10px; }
+.menu-submenu { position: absolute; left: 100%; top: -4px; min-width: 240px; max-height: 70vh; overflow: auto; }
+.ex-thumb { flex: none; }
+.ex-thumb-bg { fill: var(--surface-2); stroke: var(--border); }
+.ex-thumb-line { fill: none; stroke: var(--text); stroke-width: 1; }
+.ex-thumb-fill { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); stroke-width: 0.8; }
+.ex-gallery { max-height: 70vh; overflow: auto; }
+.ex-group h3 { margin: var(--s3) 0 var(--s2); font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.ex-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s2); }
+.ex-card { width: 100%; display: flex; gap: var(--s3); align-items: flex-start; text-align: left; padding: var(--s2); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; color: var(--text); font: inherit; }
+.ex-card:hover { border-color: var(--accent); background: var(--surface-2); }
+.ex-card-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ex-teach { font-size: var(--fs-xs); color: var(--text-muted); }
+.ex-diff { font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.empty-examples button .ex-thumb { width: 100%; height: auto; }
+.empty-state h3 .link { font-size: var(--fs-md); text-transform: none; letter-spacing: 0; margin-left: 6px; }
+/* Sprint 24-C: option illustrations */
+.choice-icons { display: flex; gap: 4px; flex-wrap: wrap; margin-top: -2px; }
+.toolbar .choice-icon { width: auto; flex: 1 1 0; min-width: 0; display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 4px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); font-size: var(--fs-xs); line-height: 1.1; cursor: pointer; }
+.toolbar .choice-icon:hover { border-color: var(--accent); color: var(--text); }
+.toolbar .choice-icon.active { border-color: var(--accent); background: rgba(47, 109, 143, 0.10); color: var(--accent); }
+.toolbar .choice-icon:disabled { opacity: 0.4; cursor: default; }
+.opt-icon { display: block; }
+.opt-inline { display: inline-flex; vertical-align: middle; color: var(--text-muted); margin-right: 2px; }
+.opt-inline .opt-icon { width: 24px; height: 18px; }
+/* Sprint 24-D: compact notice */
+.notice-compact { padding: 4px var(--s2); gap: 6px; align-items: flex-start; font-size: var(--fs-md); }
+.notice-compact .notice-icon svg { width: 14px; height: 14px; }
+.notice-compact .notice-body strong { font-weight: 500; font-size: var(--fs-md); }
+.notice-compact ul { margin: 2px 0 0; padding-left: 14px; font-size: var(--fs-sm); }
+.notice-compact .notice-close { width: 20px; height: 20px; }
+.notice-more { font-size: var(--fs-xs); margin-left: 6px; }

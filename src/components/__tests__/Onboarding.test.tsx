@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { EmptyState } from "../EmptyState";
 import { Tour, TOUR_STEPS, tourDone, resetTour } from "../Tour";
 import { useProjectStore } from "../../state/store";
@@ -7,15 +7,15 @@ import { useUiStore, initUiPrefs } from "../../state/uiStore";
 
 describe("EmptyState", () => {
   beforeEach(() => { useProjectStore.getState().newProject(); useUiStore.setState({ emptyDismissed: false }); });
-  it("lists the 3 steps, the examples and opens one; close dismisses", () => {
+  it("lists the 3 steps, the examples and opens one; close dismisses", async () => {
     const onTour = vi.fn();
     render(<EmptyState onTour={onTour} />);
     expect(screen.getByTestId("empty-state")).toHaveTextContent("Comece por aqui");
-    expect(screen.getByTestId("example-letreiro")).toBeInTheDocument();
+    expect(screen.getByTestId("example-placa-gato")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("empty-tour"));
     expect(onTour).toHaveBeenCalled();
     fireEvent.click(screen.getByTestId("example-placa-furos"));
-    expect(useProjectStore.getState().shapes.length).toBe(6);
+    await waitFor(() => expect(useProjectStore.getState().shapes.length).toBe(6));
     fireEvent.click(screen.getByTestId("empty-close"));
     expect(useUiStore.getState().emptyDismissed).toBe(true);
   });

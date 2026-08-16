@@ -2,6 +2,7 @@ import { Square, FolderOpen, Compass, Upload, X } from "lucide-react";
 import { useUiStore } from "../state/uiStore";
 import { useProjectActions } from "./useProjectActions";
 import { EXAMPLES } from "../content/examples";
+import { ExampleThumb } from "./ExamplesGallery";
 import { useProjectStore } from "../state/store";
 
 /** Shown over the editor while the project has no shapes: 3 steps, examples, tour. */
@@ -24,11 +25,12 @@ export function EmptyState({ onTour }: { onTour: () => void }) {
         <button type="button" className="rb" onClick={actions.openProject} data-testid="empty-open"><FolderOpen size={16} aria-hidden="true" /> Abrir projeto</button>
         <button type="button" className="rb" onClick={onTour} data-testid="empty-tour"><Compass size={16} aria-hidden="true" /> Tour rápido</button>
       </div>
-      <h3>Ou abra um exemplo</h3>
+      <h3>Ou abra um exemplo <button type="button" className="link" onClick={() => useUiStore.getState().setGalleryOpen(true)} data-testid="empty-gallery">ver todos ({EXAMPLES.length})</button></h3>
       <ul className="empty-examples">
-        {EXAMPLES.map((ex) => (
+        {EXAMPLES.filter((ex) => ["placa-furos", "tabua-carnes", "placa-gato"].includes(ex.id)).map((ex) => (
           <li key={ex.id}>
             <button type="button" onClick={() => actions.openExample(ex.id)} data-testid={`example-${ex.id}`}>
+              <ExampleThumb example={ex} width={120} height={60} />
               <span className="ex-title">{ex.title}</span>
               <span className="ex-desc">{ex.description}</span>
             </button>

@@ -189,7 +189,7 @@ export function useProjectActions() {
     const ex = findExample(id);
     if (!ex) return;
     if (shapes.length > 0 && !(await confirmDialog({ title: `Abrir o exemplo "${ex.title}"?`, message: "As peças que estão na mesa serão substituídas. Se quiser guardar, salve o projeto antes.", confirmLabel: "Abrir exemplo" }))) return;
-    const { shapes: exShapes, settings: exSettings } = ex.build();
+    const { shapes: exShapes, settings: exSettings } = await ex.build();
     useProjectStore.getState().loadProject({ shapes: exShapes, settings: exSettings });
     setSection("shape");
     setNotice({ kind: "info", title: `Exemplo "${ex.title}" aberto.`, details: [ex.teaches] });

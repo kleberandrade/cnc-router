@@ -2,6 +2,7 @@ import type { Shape, MachineSettings } from "../types";
 import { shapeToPoints, boundingBox } from "./geometry";
 import { offsetPolygon } from "./offset";
 import { expandShape } from "./expand";
+import { toolForShape } from "./tools";
 
 export type IssueLevel = "error" | "warning";
 
@@ -93,28 +94,29 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
     if (shape.operation === "drill") {
       if (shape.kind !== "circle") {
         issues.push({ level: "error", code: "drill-not-circle", message: `${label}: furação só se aplica a círculos.`, shapeId: shape.id });
-      } else if (shape.radius * 2 > settings.toolDiameter + 1e-6) {
+      } else if (shape.radius * 2 > toolForShape(shape, settings).diameter + 1e-6) {
         issues.push({
           level: "warning",
           code: "drill-larger-than-tool",
-          message: `${label}: furo Ø${round2(shape.radius * 2)} mm maior que a fresa Ø${settings.toolDiameter} mm — a furação usa o Ø da fresa; para o tamanho certo, use contorno "por dentro".`,
+          message: `${label}: furo Ø${round2(shape.radius * 2)} mm maior que a fresa Ø${toolForShape(shape, settings).diameter} mm — a furação usa o Ø da fresa; para o tamanho certo, use contorno "por dentro".`,
           shapeId: shape.id,
         });
       }
     }
 
+    const toolD = toolForShape(shape, settings).diameter;
     if (shape.operation === "pocket" || (shape.operation === "outline" && shape.side === "inside")) {
       const parts = expandShape(shape);
       const anyTooNarrow = parts.some((part) => {
         const pp = shapeToPoints(part);
         const open = pp.length > 1 && pp[0][0] === pp[pp.length - 1][0] && pp[0][1] === pp[pp.length - 1][1] ? pp.slice(0, -1) : pp;
-        return open.length >= 3 && offsetPolygon(open, -settings.toolDiameter / 2).length === 0;
+        return open.length >= 3 && offsetPolygon(open, -toolD / 2).length === 0;
       });
       if (anyTooNarrow) {
         issues.push({
           level: "error",
           code: "shape-narrower-than-tool",
-          message: `${label}: ${shape.operation === "pocket" ? "rebaixo" : "furo (contorno interno)"} menor que a fresa Ø${settings.toolDiameter} mm — nada será cortado.`,
+          message: `${label}: ${shape.operation === "pocket" ? "rebaixo" : "furo (contorno interno)"} menor que a fresa Ø${toolD} mm — nada será cortado.`,
           shapeId: shape.id,
         });
       }

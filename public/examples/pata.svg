@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100mm" height="100mm">
+  <!-- Oficina CNC — placa com pata de cachorro. A placa é o retângulo; a pata (almofada + 4 dedos) é rebaixada. -->
+  <rect x="2" y="2" width="96" height="96" rx="10" fill="none" stroke="#000" stroke-width="0.5"/>
+  <path d="M50 88 C36 88 26 78 26 68 C26 60 34 56 40 52 C46 48 46 44 50 44 C54 44 54 48 60 52 C66 56 74 60 74 68 C74 78 64 88 50 88 Z" fill="none" stroke="#000" stroke-width="0.5"/>
+  <ellipse cx="30" cy="42" rx="7" ry="9" fill="none" stroke="#000" stroke-width="0.5"/>
+  <ellipse cx="43" cy="30" rx="7" ry="9" fill="none" stroke="#000" stroke-width="0.5"/>
+  <ellipse cx="57" cy="30" rx="7" ry="9" fill="none" stroke="#000" stroke-width="0.5"/>
+  <ellipse cx="70" cy="42" rx="7" ry="9" fill="none" stroke="#000" stroke-width="0.5"/>
+  <circle cx="14" cy="14" r="2.5" fill="none" stroke="#000" stroke-width="0.5"/>
+  <circle cx="86" cy="14" r="2.5" fill="none" stroke="#000" stroke-width="0.5"/>
+</svg>

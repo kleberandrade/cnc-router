@@ -29,6 +29,9 @@ interface UiState {
   setRibbonTab: (view: View, tab: string) => void;
   ribbonMinimized: boolean;
   setRibbonMinimized: (m: boolean) => void;
+  /** Examples gallery dialog requested (from the empty state). */
+  galleryOpen: boolean;
+  setGalleryOpen: (o: boolean) => void;
   /** Tour open (first run or from the menu). */
   tourOpen: boolean;
   setTourOpen: (open: boolean) => void;
@@ -134,6 +137,8 @@ export const useUiStore = create<UiState>((set) => ({
     try { localStorage.setItem("oficina-cnc:ribbon-min", ribbonMinimized ? "1" : "0"); } catch { /* ignore */ }
     set({ ribbonMinimized });
   },
+  galleryOpen: false,
+  setGalleryOpen: (galleryOpen) => set({ galleryOpen }),
   tourOpen: false,
   setTourOpen: (tourOpen) => set({ tourOpen }),
   emptyDismissed: false,

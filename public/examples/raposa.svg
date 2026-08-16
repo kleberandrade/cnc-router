@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 120" width="130mm" height="120mm">
+  <!-- Oficina CNC — placa de raposa (desenho próprio). Cabeça pontuda com orelhas grandes; olhos, focinho e a marca das bochechas são furos. -->
+  <path d="M8 40 C8 20 14 6 20 4 L46 30 L84 30 L110 4 C116 6 122 20 122 40 C122 70 96 92 65 116 C34 92 8 70 8 40 Z
+           M40 52 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z
+           M78 52 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z
+           M60 82 a5 4 0 1 0 10 0 a5 4 0 1 0 -10 0 Z
+           M28 62 L44 70 L28 78 Z
+           M102 62 L86 70 L102 78 Z" fill="none" stroke="#000" stroke-width="0.5"/>
+  <circle cx="65" cy="12" r="2.5" fill="none" stroke="#000" stroke-width="0.5"/>
+</svg>

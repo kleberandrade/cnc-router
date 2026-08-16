@@ -75,6 +75,7 @@ Plano em [`fase-4.md`](fase-4.md) (auditoria de UI de 2026-08-16). Ordem: 18 →
 | [21](sprint-21-usabilidade-onboarding-a11y.md) ✅ | Estado vazio, exemplos, tour, mensagens, acessibilidade, mobile | 18 | M |
 | [22](sprint-22-ribbon-fusion.md) ✅ | Barra superior no estilo Fusion 360 (app bar, workspace + abas, ribbon com menus de grupo, tooltips ricos, nome do projeto) | 18 | M |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) ✅ | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
+| [24](sprint-24-exemplos.md) ✅ | Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias/galeria, ilustrações nas opções, notice compacto | 21, 23 | M |
 | [24](sprint-24-exemplos.md) | Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias/galeria, ilustrações nas opções, notice compacto | 21, 23 | M |
 | [23](sprint-23-acabamento-ux.md) ✅ | Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, histórico (linha do tempo), textos, regras dos agentes, políticas | 22 | G |
 | [23](sprint-23-acabamento-ux.md) | Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, histórico (linha do tempo), textos, regras dos agentes, políticas | 22 | G |

@@ -7,6 +7,7 @@ import { boundingBox, shapeToPoints } from "../lib/geometry";
 import { Shapes, Cpu, Drill, FileOutput } from "lucide-react";
 import { NumberField } from "./NumberField";
 import { OriginPicker } from "./OriginPicker";
+import { ChoiceIcons, OPTION_ICONS } from "./OptionIcons";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
@@ -202,7 +203,7 @@ export function SidePanel() {
 
   return (
     <aside className="toolbar side-panel" aria-label="Configurações">
-      <Notice notice={notice} onDismiss={() => setNotice(null)} />
+      <Notice notice={notice} onDismiss={() => setNotice(null)} compact autoHideMs={6000} />
 
       <PanelTabs />
 
@@ -279,6 +280,9 @@ export function SidePanel() {
                     <option value="chamfer">Chanfrados</option>
                   </select>
                 </label>
+                <ChoiceIcons value={(selectedShape.corners?.type ?? "sharp") as CornerType} testId="corner-icons" onChange={(type) => updateShape(selectedShape.id, { corners: type === "sharp" ? undefined : { type, size: selectedShape.corners?.size || 5, which: selectedShape.corners?.which } })} options={[
+                  { value: "sharp" as CornerType, icon: "corner-sharp", label: "Vivos" }, { value: "fillet" as CornerType, icon: "corner-fillet", label: "Raio" }, { value: "chamfer" as CornerType, icon: "corner-chamfer", label: "Chanfro" },
+                ]} />
                 {selectedShape.corners && selectedShape.corners.type !== "sharp" && (
                   <>
                     <NumberField
@@ -430,6 +434,10 @@ export function SidePanel() {
                 {selectedShape.kind === "circle" && <option value="drill">Furação (mergulho no centro)</option>}
               </select>
             </label>
+            <ChoiceIcons value={selectedShape.operation} onChange={(v) => updateShape(selectedShape.id, { operation: v })} testId="op-icons" options={[
+              { value: "outline" as const, icon: "op-outline", label: "Contorno" }, { value: "pocket" as const, icon: "op-pocket", label: "Rebaixo" },
+              ...(selectedShape.kind === "circle" ? [{ value: "drill" as const, icon: "op-drill", label: "Furação" }] : []),
+            ]} />
             {selectedShape.operation === "outline" && (
               <>
                 <label>
@@ -444,6 +452,9 @@ export function SidePanel() {
                     <option value="on">Na linha (gravação)</option>
                   </select>
                 </label>
+                <ChoiceIcons value={(selectedShape.side ?? "on") as CutSide} onChange={(v) => updateShape(selectedShape.id, { side: v })} testId="side-icons" options={[
+                  { value: "outside" as CutSide, icon: "side-outside", label: "Por fora" }, { value: "inside" as CutSide, icon: "side-inside", label: "Por dentro" }, { value: "on" as CutSide, icon: "side-on", label: "Na linha" },
+                ]} />
                 <label className="checkbox">
                   <input
                     type="checkbox"
@@ -451,7 +462,7 @@ export function SidePanel() {
                     onChange={(e) => updateShape(selectedShape.id, { tabs: e.target.checked ? { ...DEFAULT_TABS } : undefined })}
                     data-testid="shape-tabs"
                   />
-                  Pontes (tabs) para segurar a peça
+                  <span className="opt-inline">{OPTION_ICONS.tabs}</span> Pontes (tabs) para segurar a peça
                 </label>
                 {selectedShape.tabs && selectedShape.tabs.count > 0 && (
                   <div className="field-row">
@@ -534,7 +545,7 @@ export function SidePanel() {
         {material?.notes && (
           <p className={material.advanced ? "hint hint-warn" : "hint"} data-testid="material-notes">{material.notes}</p>
         )}
-        <NumberField label="Ø da fresa" unit="mm" min={0.1} step={0.5} value={settings.toolDiameter} testId="tool-diameter" onChange={setToolDiameter} />
+        <NumberField label="Ø da fresa" unit="mm" min={0.1} step={0.5} value={settings.toolDiameter} testId="tool-diameter" onChange={(v) => { setToolDiameter(v); if (shapes.length > 0) setNotice({ kind: "info", title: `Percurso e tempo recalculados para a fresa Ø${v} mm.` }); }} />
         <label>
           Tipo de fresa
           <select value={settings.toolType} onChange={(e) => updateSettings({ toolType: e.target.value as ToolType })} data-testid="tool-type">
@@ -543,6 +554,9 @@ export function SidePanel() {
             <option value="vbit">V (gravação)</option>
           </select>
         </label>
+        <ChoiceIcons value={settings.toolType} onChange={(v) => updateSettings({ toolType: v })} testId="tool-type-icons" options={[
+          { value: "flat", icon: "tool-flat", label: "Reta" }, { value: "ball", icon: "tool-ball", label: "Esférica" }, { value: "vbit", icon: "tool-vbit", label: "V" },
+        ]} />
         {settings.toolType === "vbit" && (
           <NumberField label="Ângulo da fresa V" unit="°" min={10} max={170} step={5} value={settings.vbitAngle} testId="vbit-angle" onChange={(v) => updateSettings({ vbitAngle: v })} />
         )}
@@ -587,6 +601,9 @@ export function SidePanel() {
           <input type="checkbox" checked={settings.helixEntry} onChange={(e) => updateSettings({ helixEntry: e.target.checked })} data-testid="helix-entry" />
           Hélice de entrada nos rebaixos <span className="field-hint">(furo Ø {round(helixDiameter(settings.toolDiameter) + settings.toolDiameter)} mm)</span>
         </label>
+        <ChoiceIcons value={settings.helixEntry ? "helix" : "plunge"} testId="entry-icons" onChange={(v) => updateSettings({ helixEntry: v === "helix" })} options={[
+          { value: "plunge", icon: "plunge", label: "Mergulho" }, { value: "helix", icon: "helix", label: "Hélice" },
+        ]} />
         {settings.helixEntry && (
           <NumberField label="Passo da hélice" hint="mm por volta" unit="mm" min={0.1} step={0.1} value={settings.helixPitch} testId="helix-pitch" onChange={(v) => updateSettings({ helixPitch: v })} />
         )}
@@ -598,6 +615,9 @@ export function SidePanel() {
             <option value="manual">Manual (ordem do navegador)</option>
           </select>
         </label>
+        <ChoiceIcons value={settings.orderMode} testId="order-icons" onChange={(v) => updateSettings({ orderMode: v })} options={[
+          { value: "auto" as OrderMode, icon: "order-auto", label: "Automática" }, { value: "manual" as OrderMode, icon: "order-manual", label: "Manual" },
+        ]} />
         </Group>
       </Section>
 
