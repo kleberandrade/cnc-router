@@ -1,0 +1,12 @@
+---
+description: Lógica pura em src/lib — sem React, com testes
+globs: src/lib/**/*.ts
+alwaysApply: false
+---
+
+# `src/lib`
+
+- Sem React, sem stores, sem DOM. Funções puras e tipos.
+- Nova lógica ganha `src/lib/__tests__/<nome>.test.ts`.
+- Se alterar `toolpath.ts` ou `gcode.ts`: gerar/atualizar sample em `docs/samples/` (cabeçalho, unidades, multi-passe, retorno ao safe height).
+- Unidades em mm. Sem `any` novo.

@@ -1,0 +1,14 @@
+---
+description: Testes unitários e e2e do Oficina CNC
+globs: "**/*.{test.ts,test.tsx},e2e/**"
+alwaysApply: false
+---
+
+# Testes
+
+- Unitários: `src/**/__tests__/*.test.ts(x)` ao lado do código.
+- E2E: `e2e/`. Reutilizar helpers em `e2e/helpers.ts` (`ribbonClick`, etc.).
+- Preservar `data-testid` existentes. Spec nova para fluxo de UI novo.
+- Thresholds: 80 % linhas/statements/funções, 75 % branches.
+- Editor.tsx e Simulator.tsx ficam de fora da cobertura unitária (e2e cobre).
+- Rodar com `npm run test` / `npm run test:coverage` / `npm run test:e2e`.

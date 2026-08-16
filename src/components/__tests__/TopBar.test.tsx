@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { TopBar } from "../TopBar";
+import { Toolbar } from "../Toolbar";
+import userEvent from "@testing-library/user-event";
 import { useUiStore } from "../../state/uiStore";
 import { useSimStore } from "../../state/simStore";
 
@@ -52,5 +54,29 @@ describe("TopBar", () => {
     expect(screen.getByTestId("project-menu-list")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("menu-about"));
     expect(screen.getByTestId("dialog")).toHaveTextContent("Oficina CNC");
+  });
+});
+
+describe("Sobre / Novidades / versão (sprint 19)", () => {
+  it("shows the version in the project menu, the status bar and the About dialog with author and contact", async () => {
+    render(<Toolbar />);
+    expect(screen.getByTestId("status-version")).toHaveTextContent(/^v\d+\.\d+\.\d+/);
+    await userEvent.click(screen.getByTestId("project-menu"));
+    expect(screen.getByTestId("menu-version")).toHaveTextContent(/Oficina CNC v\d+/);
+    await userEvent.click(screen.getByTestId("menu-about"));
+    expect(screen.getByTestId("about")).toHaveTextContent("Kleber Andrade");
+    expect(screen.getByTestId("about")).toHaveTextContent("pdjkleber@gmail.com");
+    expect(screen.getByTestId("about-version")).toHaveTextContent(/^v\d+\.\d+\.\d+ \(/);
+  });
+  it("Novidades badge appears when the stored version differs and disappears after opening", async () => {
+    localStorage.setItem("oficina-cnc:seen-version", "0.0.1");
+    render(<Toolbar />);
+    expect(screen.getByTestId("news-dot")).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId("project-menu"));
+    await userEvent.click(screen.getByTestId("menu-news"));
+    expect(screen.getByTestId("news")).toBeInTheDocument();
+    expect(localStorage.getItem("oficina-cnc:seen-version")).not.toBe("0.0.1");
+    expect(screen.queryByTestId("news-dot")).toBeNull();
+    localStorage.removeItem("oficina-cnc:seen-version");
   });
 });

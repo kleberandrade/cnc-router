@@ -1462,7 +1462,8 @@ label.checkbox .field-hint {
 
 /* Coarse pointers (touch): bigger targets in the ribbon and controls */
 @media (pointer: coarse) {
-  .rb {
+  .rb,
+  .ribbon.compact .rb {
     min-width: 44px;
     min-height: 44px;
   }
@@ -1774,3 +1775,47 @@ label.checkbox .field-hint {
   .panel-tab-icon { display: inline-flex; }
   .panel-tab { gap: 0; }
 }
+
+/* Sprint 19: version, about, news */
+.menu-footer {
+  padding: var(--s1) var(--s3) var(--s2);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.status-version {
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  opacity: 0.8;
+}
+.news-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warn);
+  display: inline-block;
+}
+.about-version {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: var(--s2);
+}
+.about-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s1) var(--s3);
+  margin: 0 0 var(--s3);
+  font-size: var(--fs-base);
+}
+.about-facts dt { color: var(--text-muted); }
+.about-facts dd { margin: 0; }
+.about-facts a { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); }
+.about-licenses { font-size: var(--fs-md); }
+.about-licenses summary { cursor: pointer; color: var(--text-muted); }
+.about-licenses ul { margin: var(--s2) 0 0; padding-left: 18px; columns: 2; }
+.about-licenses a { color: var(--accent); }
+.news-entry h3 { margin: var(--s3) 0 var(--s1); font-size: var(--fs-lg); font-family: var(--font-display); }
+.news-entry ul { margin: 0; padding-left: 18px; font-size: var(--fs-base); line-height: 1.45; }
+.news { max-height: 60vh; overflow: auto; }

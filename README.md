@@ -8,6 +8,12 @@ Funcionalidades atuais: booleanas (união/subtração/interseção), nesting aut
 
 No dashboard da Vercel, ative **Web Analytics** e **Speed Insights** (o app já inclui `@vercel/analytics` e `@vercel/speed-insights`). **Observability** (Edge Requests, Fast Data Transfer, Build Diagnostics) fica disponível sem código extra. **Runtime Logs** só terá conteúdo se no futuro existirem Serverless/Edge Functions — hoje o site é 100% estático.
 
+## Sobre o projeto e o autor
+
+**Oficina CNC** é um projeto de **Kleber Andrade** (`pdjkleber@gmail.com`) — idealização, projeto e desenvolvimento — para quem tem uma router hobby ou de pequena oficina e quer sair do desenho para o G-code sem instalar nada. Produção: [oficina-cnc.vercel.app](https://oficina-cnc.vercel.app). No app: menu **Oficina CNC → Sobre** (autor, contato, licenças) e **Novidades** (últimas sprints).
+
+**Versionamento:** `package.json` segue as sprints — cada sprint fechada sobe o *minor* (`0.19.0` = Sprint 19), correções sobem o *patch*; a versão, o sha do commit (`VERCEL_GIT_COMMIT_SHA` no deploy) e a data entram no build via `define` do Vite e aparecem no menu, no rodapé, no Sobre e no cabeçalho do G-code. Ao fechar uma sprint: `git tag vX.Y.Z`.
+
 ## Stack
 
 - **Vite + React + TypeScript**

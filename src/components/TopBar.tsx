@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, RectangleHorizontal, Magnet, Settings2, Type,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon,
 } from "lucide-react";
@@ -14,6 +14,8 @@ import { useSimStore, SPEEDS, type Speed } from "../state/simStore";
 import type { StepMode } from "../lib/playback";
 import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
+import { PRODUCT, AUTHOR, THIRD_PARTY } from "../content/about";
+import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVersionSeen } from "../lib/version";
 
 function RibbonGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -26,7 +28,13 @@ function RibbonGroup({ title, children }: { title: string; children: ReactNode }
 
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
-  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs">(null);
+  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news">(null);
+  const [hasNews, setHasNews] = useState(false);
+  useEffect(() => {
+    if (isFirstRun()) markVersionSeen();
+    else setHasNews(isNewVersion());
+  }, []);
+  const openNews = () => { setDialog("news"); markVersionSeen(); setHasNews(false); };
   const ref = useRef<HTMLDivElement>(null);
   const installAction = useInstallAction();
   useEffect(() => {
@@ -37,6 +45,12 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
     window.addEventListener("keydown", esc);
     return () => { window.removeEventListener("mousedown", close); window.removeEventListener("keydown", esc); };
   }, [open]);
+  useEffect(() => {
+    if (!dialog) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setDialog(null); };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [dialog]);
 
   const item = (icon: ReactNode, label: string, onClick: () => void, testId?: string, hint?: string) => (
     <button type="button" role="menuitem" className="menu-item" onClick={() => { setOpen(false); onClick(); }} data-testid={testId}>
@@ -48,6 +62,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
     <div className="brand" ref={ref}>
       <button type="button" className="brand-button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} data-testid="project-menu">
         <BrandMark size={ICON} className="brand-mark" />
+        {hasNews && <span className="news-dot" aria-label="Há novidades" data-testid="news-dot" />}
         <span className="brand-name">Oficina CNC</span>
         <ChevronDown size={14} aria-hidden="true" />
       </button>
@@ -63,13 +78,16 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
           {item(<Settings2 size={16} />, "Preferências (tema, mouse)", () => setDialog("prefs"), "menu-prefs")}
           {item(<Keyboard size={16} />, "Atalhos de teclado", () => setDialog("shortcuts"), "menu-shortcuts", "?")}
+          {item(<Sparkles size={16} />, hasNews ? "Novidades desta versão" : "Novidades", openNews, "menu-news", hasNews ? "novo" : undefined)}
           {item(<Info size={16} />, "Sobre", () => setDialog("about"), "menu-about")}
+          <div className="menu-sep" />
+          <div className="menu-footer" data-testid="menu-version">{PRODUCT.name} {versionLabel()}</div>
         </div>
       )}
       {dialog && (
         <div className="dialog-backdrop" onClick={() => setDialog(null)} role="presentation">
           <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="dialog">
-            {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : <About />}
+            {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : <About />}
             <button type="button" className="dialog-close" onClick={() => setDialog(null)}>Fechar</button>
           </div>
         </div>
@@ -160,14 +178,54 @@ function NestDialog({ onDone }: { onDone: () => void }) {
 
 function About() {
   return (
-    <>
+    <div className="about" data-testid="about">
       <h2 className="about-title">
         <BrandMark size={28} filled />
-        Oficina CNC
+        {PRODUCT.name} <span className="about-version" data-testid="about-version">{buildLabel()}</span>
       </h2>
-      <p>Editor 2D com importação SVG/DXF, gerador de G-code GRBL e simulador 3D para router CNC — 100% no navegador, instalável como PWA.</p>
-      <p className="hint">Unidades: milímetros. Origem de trabalho definida pela chapa. Percurso do simulador é o mesmo do G-code exportado.</p>
-    </>
+      <p>{PRODUCT.tagline}</p>
+      <p className="hint">{PRODUCT.audience}</p>
+      <dl className="about-facts">
+        <dt>Autor</dt>
+        <dd>{AUTHOR.name} — {AUTHOR.role}</dd>
+        <dt>Contato</dt>
+        <dd><a href={`mailto:${AUTHOR.email}?subject=${encodeURIComponent(`${PRODUCT.name} ${versionLabel()}`)}`}><Mail size={13} aria-hidden="true" /> {AUTHOR.email}</a></dd>
+        <dt>Site</dt>
+        <dd><a href={PRODUCT.url} target="_blank" rel="noreferrer">{PRODUCT.url.replace(/^https?:\/\//, "")} <ExternalLink size={12} aria-hidden="true" /></a></dd>
+        <dt>Licença</dt>
+        <dd>{PRODUCT.license}</dd>
+      </dl>
+      <p className="hint">Sugestões e problemas: por enquanto pelo e-mail acima (um formulário dentro do app chega na próxima versão). Unidades: milímetros. Origem de trabalho definida pela chapa; o percurso do simulador é o mesmo do G-code exportado.</p>
+      <details className="about-licenses">
+        <summary>Bibliotecas e fontes de terceiros ({THIRD_PARTY.length})</summary>
+        <ul>
+          {THIRD_PARTY.map((t) => (
+            <li key={t.name}><a href={t.url} target="_blank" rel="noreferrer">{t.name}</a> — {t.license}</li>
+          ))}
+        </ul>
+      </details>
+    </div>
+  );
+}
+
+function News() {
+  const entries = CHANGELOG.slice(0, 3);
+  return (
+    <div className="news" data-testid="news">
+      <h2>Novidades <span className="about-version">{versionLabel()}</span></h2>
+      {entries.length === 0 && <p className="hint">Sem histórico nesta build.</p>}
+      {entries.map((e) => (
+        <section key={e.title} className="news-entry">
+          <h3>{e.title} {e.date && <span className="hint">— {e.date}</span>}</h3>
+          <ul>
+            {e.body.split("\n").filter((l) => l.startsWith("- ")).slice(0, 6).map((l, i) => (
+              <li key={i}>{l.slice(2).replace(/\*\*/g, "").replace(/`/g, "")}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
+      <p className="hint">Histórico completo no CHANGELOG do projeto.</p>
+    </div>
   );
 }
 

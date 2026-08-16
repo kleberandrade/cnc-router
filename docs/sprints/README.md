@@ -70,7 +70,7 @@ Plano em [`fase-4.md`](fase-4.md) (auditoria de UI de 2026-08-16). Ordem: 18 →
 | Sprint | Tema | Depende de | Esforço |
 |---|---|---|---|
 | [18](sprint-18-painel-e-ribbon.md) ✅ | Painel lateral em 4 seções, ribbon com overflow "Mais", escala tipográfica compacta, fim de textos cortados | — | M |
-| [19](sprint-19-produto-versao-sobre.md) | Versão visível (app, G-code, PWA), Sobre com autor/licenças, Novidades | — | P |
+| [19](sprint-19-produto-versao-sobre.md) ✅ | Versão visível (app, G-code, PWA), Sobre com autor/licenças, Novidades | — | P |
 | [20](sprint-20-feedback-vercel.md) | Sugestões e problemas: formulário → Vercel Function → Vercel Blob | 19 | M |
 | [21](sprint-21-usabilidade-onboarding-a11y.md) | Estado vazio, exemplos, tour, mensagens, acessibilidade, mobile | 18 | M |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |

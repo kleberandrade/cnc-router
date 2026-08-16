@@ -1,3 +1,4 @@
+import { versionLabel, buildLabel } from "../lib/version";
 import { useMemo } from "react";
 import { AlertTriangle, CircleCheck, OctagonAlert, Clock, Layers, Ruler } from "lucide-react";
 import { useProjectStore } from "../state/store";
@@ -68,6 +69,7 @@ export function StatusBar() {
       ) : (
         <span className="status-item status-ok"><CircleCheck size={13} aria-hidden="true" /> sem avisos</span>
       )}
+      <span className="status-item status-version" title={buildLabel()} data-testid="status-version">{versionLabel()}</span>
     </footer>
   );
 }

@@ -2,6 +2,14 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [0.19.0 — Sprint 19 — Versão, Sobre e Novidades] — 2026-08-16
+
+### Adicionado
+- **Versão visível**: menu do projeto, rodapé do editor, Sobre (com sha e data do build), cabeçalho do G-code e aviso de atualização do PWA. `package.json` passa a ser versionado por sprint (0.19.0).
+- **Sobre** reescrito: propósito, público, autor **Kleber Andrade** (contato por e-mail), site, licença e lista de bibliotecas/fontes de terceiros.
+- **Novidades**: diálogo com as últimas sprints do CHANGELOG; marcador "novo" no menu e ponto na marca quando a versão mudou desde a última visita.
+- Esc fecha os diálogos do menu.
+
 ## [Sprint 18 — Painel em abas, ribbon adaptável, tipografia compacta] — 2026-08-16
 
 ### Alterado

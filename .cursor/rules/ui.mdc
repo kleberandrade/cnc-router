@@ -1,0 +1,14 @@
+---
+description: UI React — pt-BR, Lucide, tokens, Notice
+globs: src/components/**/*.tsx
+alwaysApply: false
+---
+
+# UI
+
+- Textos visíveis em **pt-BR**. Identificadores em inglês.
+- Ícones: `lucide-react`. Sem emoji ou glifo unicode decorativo.
+- Cores, espaçamento e fontes: tokens em `src/index.css` (ver `docs/design-tokens.md`).
+- Avisos: `Notice`. Nunca `alert()` / `window.alert`.
+- Fluxos novos de UI: `data-testid` estável. Não remover test ids existentes.
+- Componentes orquestram; cálculo fica em `src/lib/`.

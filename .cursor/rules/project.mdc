@@ -1,0 +1,16 @@
+---
+description: Convenções globais do Oficina CNC
+alwaysApply: true
+---
+
+# Projeto
+
+Ler [`AGENTS.md`](../../AGENTS.md) no início de tarefas que toquem código, testes ou sprints.
+
+- Marca pública: **Oficina CNC**. Repo: `cnc-router`. URL: `oficina-cnc.vercel.app`.
+- Package manager: **npm**. Não criar nem commitar `pnpm-lock.yaml`.
+- Unidades internas em **mm**.
+- Estado: `useProjectStore` (projeto) e `useSimStore` (simulação).
+- Lógica pura em `src/lib/`; componentes só orquestram.
+- UI em pt-BR; identificadores em inglês.
+- DoD, testes e commits: ver AGENTS.md.
