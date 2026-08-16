@@ -81,11 +81,15 @@ test.describe("toolbar (sprint 05)", () => {
 });
 
 test.describe("top bar (sprint 07)", () => {
-  test("single top bar ≤ 64 px; ribbon switches with the view", async ({ page }) => {
+  test("single top bar (app bar + tabs + ribbon ≤ 130 px; minimized ≤ 70 px); ribbon switches with the view", async ({ page }) => {
     await page.goto("/");
     const bar = page.locator(".topbar");
-    const box = await bar.boundingBox();
-    expect(box!.height).toBeLessThanOrEqual(64);
+    let box = await bar.boundingBox();
+    expect(box!.height).toBeLessThanOrEqual(130);
+    await page.getByTestId("ribbon-minimize").click();
+    box = await bar.boundingBox();
+    expect(box!.height).toBeLessThanOrEqual(70);
+    await page.getByTestId("ribbon-minimize").click();
     await expect(page.getByTestId("add-rectangle")).toBeVisible();
     await expect(page.getByTestId("simulate-toggle")).toHaveCount(0);
     await page.getByTestId("tab-simulator").click();

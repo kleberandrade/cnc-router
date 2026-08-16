@@ -1,5 +1,5 @@
 import { put } from "@vercel/blob";
-import { handleFeedback } from "./_lib/feedback-core";
+import { handleFeedback } from "./_lib/feedback-core.js";
 
 /**
  * POST /api/feedback — stores suggestions / bug reports as private JSON blobs in Vercel Blob

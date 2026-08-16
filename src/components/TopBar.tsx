@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, BookOpen, Compass, RectangleHorizontal, Magnet, Settings2, Type,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, BookOpen, Compass,
+  Link2, ClipboardCheck, Scissors, SquareDashedBottom, Drill, SquareArrowOutUpRight, SquareArrowDownLeft, Minus, Anchor, Spline, ListOrdered, Sun, Moon, MousePointer2, BoxSelect, ChevronUp, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon,
 } from "lucide-react";
@@ -12,22 +13,15 @@ import { useUiStore, type View } from "../state/uiStore";
 import { useProjectStore } from "../state/store";
 import { useSimStore, SPEEDS, type Speed } from "../state/simStore";
 import type { StepMode } from "../lib/playback";
+import { DEFAULT_TABS, type Shape } from "../types";
 import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
 import { PRODUCT, AUTHOR, THIRD_PARTY } from "../content/about";
 import { FeedbackDialog } from "./FeedbackDialog";
 import { EXAMPLES } from "../content/examples";
 import { resetTour } from "./Tour";
+import { verifyProject } from "../lib/verify";
 import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVersionSeen } from "../lib/version";
-
-function RibbonGroup({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="rgroup" role="group" aria-label={title}>
-      <div className="rgroup-items">{children}</div>
-      <div className="rgroup-title">{title}</div>
-    </div>
-  );
-}
 
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
@@ -72,9 +66,10 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
       {open && (
         <div className="menu" role="menu" data-testid="project-menu-list">
           {item(<FilePlus size={16} />, "Novo projeto", actions.newProject, "menu-new")}
-          {item(<FolderOpen size={16} />, "Abrir projeto…", actions.openProject, "menu-open")}
-          {item(<Save size={16} />, "Salvar projeto", actions.saveProject, "menu-save", "Ctrl+S")}
+          {item(<FolderOpen size={16} />, "Abrir projeto (.json)…", actions.openProject, "menu-open")}
+          {item(<Save size={16} />, "Salvar projeto (.json)", actions.saveProject, "menu-save", "Ctrl+S")}
           {item(<Upload size={16} />, "Importar SVG / DXF…", actions.importSvg, "menu-import")}
+          {item(<Link2 size={16} />, "Copiar link do projeto", () => void actions.shareLink(), "menu-share")}
           <div className="menu-sep" />
           <div className="menu-title"><BookOpen size={12} aria-hidden="true" /> Exemplos</div>
           {EXAMPLES.map((ex) => item(<span className="menu-bullet" />, ex.title, () => actions.openExample(ex.id), `menu-example-${ex.id}`))}
@@ -83,7 +78,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
           <div className="menu-sep" />
           {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
-          {item(<Settings2 size={16} />, "Preferências", () => setDialog("prefs"), "menu-prefs")}
+          {item(<Settings2 size={16} />, "Preferências (tema, mouse)", () => setDialog("prefs"), "menu-prefs")}
           {item(<Keyboard size={16} />, "Atalhos de teclado", () => setDialog("shortcuts"), "menu-shortcuts", "?")}
           {item(<MessageSquarePlus size={16} />, "Sugestões e problemas…", () => setDialog("feedback"), "menu-feedback")}
           {item(<Sparkles size={16} />, hasNews ? "Novidades desta versão" : "Novidades", openNews, "menu-news", hasNews ? "novo" : undefined)}
@@ -174,8 +169,46 @@ function Preferences() {
           <option value="large">Grande</option>
         </select>
       </label>
-      <p className="hint">Tudo em milímetros. Snap e ordem de corte ficam no projeto.</p>
+      <p className="hint">Unidades: milímetros. Snap e ordem de usinagem ficam no projeto.</p>
     </>
+  );
+}
+
+/** Result of comparing the simulated removal with what each operation asks for. */
+function VerifyDialog() {
+  const shapes = useProjectStore((s) => s.shapes);
+  const settings = useProjectStore((s) => s.settings);
+  const [report, setReport] = useState<ReturnType<typeof verifyProject> | null>(null);
+  useEffect(() => {
+    const t = setTimeout(() => setReport(verifyProject(shapes, settings)), 10);
+    return () => clearTimeout(t);
+  }, [shapes, settings]);
+  if (!report) return <><h2>Verificação</h2><p className="hint">Calculando…</p></>;
+  return (
+    <div className="verify" data-testid="verify-report">
+      <h2>Verificação do resultado</h2>
+      <p className="hint">Malha de {report.res} mm. Cantos internos sempre ficam com raio ≥ raio da fresa; vãos mais estreitos que a fresa não são cortados.</p>
+      {report.results.length === 0 && <p>Nenhum rebaixo, furo ou furação para conferir — contornos por fora/na linha só seguem a linha.</p>}
+      {report.results.length > 0 && (
+        <table className="verify-table">
+          <thead><tr><th>Peça</th><th>Operação</th><th>Não alcançado</th><th>Raio mín.</th></tr></thead>
+          <tbody>
+            {report.results.map((r, i) => (
+              <tr key={`${r.shapeId}-${i}`} className={r.leftoverRatio > 0.02 ? "warn" : ""}>
+                <td>{r.name}</td>
+                <td>{{ outline: "furo (contorno por dentro)", pocket: "rebaixo", drill: "furação" }[r.operation]}</td>
+                <td>{r.leftoverArea} mm² ({Math.round(r.leftoverRatio * 100)} %)</td>
+                <td>{r.minRadius} mm</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p className={report.gougeArea > 1 ? "hint hint-warn" : "hint"} data-testid="verify-gouge">Corte fora das peças: {report.gougeArea} mm²</p>
+      {report.warnings.length > 0 && (
+        <ul className="verify-warnings">{report.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+      )}
+    </div>
   );
 }
 
@@ -258,18 +291,47 @@ function News() {
   );
 }
 
+/** Editable project name in the app bar (file name, G-code header, tab title). */
+function ProjectName() {
+  const name = useProjectStore((s) => s.settings.projectName ?? "");
+  const updateSettings = useProjectStore((s) => s.updateSettings);
+  const [draft, setDraft] = useState<string | null>(null);
+  useEffect(() => {
+    document.title = `${name.trim() || "Sem nome"} — Oficina CNC`;
+  }, [name]);
+  return (
+    <input
+      className="project-name"
+      type="text"
+      value={draft ?? name}
+      placeholder="Nome do projeto"
+      aria-label="Nome do projeto"
+      maxLength={80}
+      onFocus={() => setDraft(name)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => { if (draft !== null) updateSettings({ projectName: draft.trim() || undefined }); setDraft(null); }}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") (e.target as HTMLInputElement).blur(); e.stopPropagation(); }}
+      data-testid="project-name"
+    />
+  );
+}
+
 export function TopBar() {
   const actions = useProjectActions();
   const [nestOpen, setNestOpen] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const view = useUiStore((s) => s.view);
   const setView = useUiStore((s) => s.setView);
-
-  useEffect(() => {
-    document.title = view === "simulator" ? "Simular — Oficina CNC" : "Desenhar — Oficina CNC";
-  }, [view]);
   const panelOpen = useUiStore((s) => s.panelOpen);
   const togglePanel = useUiStore((s) => s.togglePanel);
   const simCamera = useUiStore((s) => s.simCamera);
+  const ribbonTab = useUiStore((s) => s.ribbonTab);
+  const setRibbonTab = useUiStore((s) => s.setRibbonTab);
+  const ribbonMinimized = useUiStore((s) => s.ribbonMinimized);
+  const setRibbonMinimized = useUiStore((s) => s.setRibbonMinimized);
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
+  const settings = useProjectStore((s) => s.settings);
 
   const playing = useSimStore((s) => s.playing);
   const speed = useSimStore((s) => s.speed);
@@ -284,28 +346,28 @@ export function TopBar() {
   const editorGroups: RibbonGroupDef[] = [
     {
       key: "criar", title: "Criar", priority: 1, items: [
-        { icon: <Square size={ICON} />, label: "Retângulo", onClick: actions.addRectangle, testId: "add-rectangle", title: "Retângulo (R)" },
-        { icon: <CircleIcon size={ICON} />, label: "Círculo", onClick: actions.addCircle, testId: "add-circle", title: "Círculo (C)" },
-        { icon: <Pentagon size={ICON} />, label: "Polígono", onClick: () => actions.setTool(actions.tool === "polygon" ? "select" : "polygon"), active: actions.tool === "polygon", testId: "tool-polygon", title: "Polígono: clique os vértices, Enter/duplo clique fecha (P)" },
-        { icon: <Hexagon size={ICON} />, label: "Regular", onClick: actions.addNgon, testId: "add-ngon", title: "Polígono regular (N)" },
-        { icon: <RectangleHorizontal size={ICON} />, label: "Rasgo", onClick: actions.addSlot, testId: "add-slot", title: "Rasgo / oblongo (O)" },
-        { icon: <Type size={ICON} />, label: "Texto", onClick: actions.addText, testId: "add-text", title: "Texto (T)" },
+        { icon: <Square size={ICON} />, label: "Retângulo", onClick: actions.addRectangle, testId: "add-rectangle", featured: true , shortcut: "R", description: "Retângulo com cantos vivos, arredondados ou chanfrados. Recorte por fora, furo por dentro ou gravação na linha." },
+        { icon: <CircleIcon size={ICON} />, label: "Círculo", onClick: actions.addCircle, testId: "add-circle" , shortcut: "C", description: "Círculo: furo por dentro, disco por fora, rebaixo ou furação no centro (Ø ≤ fresa)." },
+        { icon: <Pentagon size={ICON} />, label: "Polígono", onClick: () => actions.setTool(actions.tool === "polygon" ? "select" : "polygon"), active: actions.tool === "polygon", testId: "tool-polygon" , shortcut: "P", description: "Clique os vértices na mesa; Enter ou duplo clique fecha; Esc cancela." },
+        { icon: <Hexagon size={ICON} />, label: "Regular", onClick: actions.addNgon, testId: "add-ngon" , shortcut: "N", description: "Polígono regular (3–64 lados) definido por raio." },
+        { icon: <RectangleHorizontal size={ICON} />, label: "Rasgo", onClick: actions.addSlot, testId: "add-slot" , shortcut: "O", description: "Rasgo oblongo (comprimento × largura) — encaixes e furos alongados." },
+        { icon: <Type size={ICON} />, label: "Texto", onClick: actions.addText, testId: "add-text" , shortcut: "T", description: "Texto com fonte embarcada; letras viram polígonos com miolo preservado." },
       ],
     },
     {
       key: "modificar", title: "Modificar", priority: 2, items: [
-        { icon: <Copy size={ICON} />, label: "Duplicar", onClick: actions.duplicate, disabled: !actions.selectedId, testId: "duplicate", title: "Duplicar (Ctrl+D)" },
-        { icon: <Trash2 size={ICON} />, label: "Excluir", onClick: actions.remove, disabled: !actions.selectedId, testId: "delete", title: "Excluir (Del)" },
-        { icon: <Undo2 size={ICON} />, label: "Desfazer", onClick: actions.undo, disabled: actions.pastStates === 0, testId: "undo", title: "Desfazer (Ctrl+Z)" },
-        { icon: <Redo2 size={ICON} />, label: "Refazer", onClick: actions.redo, disabled: actions.futureStates === 0, testId: "redo", title: "Refazer (Ctrl+Y)" },
+        { icon: <Copy size={ICON} />, label: "Duplicar", onClick: actions.duplicate, disabled: !actions.selectedId, testId: "duplicate", featured: true , shortcut: "Ctrl+D", description: "Cópia deslocada da peça selecionada, com os mesmos parâmetros de corte." },
+        { icon: <Trash2 size={ICON} />, label: "Excluir", onClick: actions.remove, disabled: !actions.selectedId, testId: "delete" , shortcut: "Del", description: "Remove as peças selecionadas (Ctrl+Z desfaz)." },
+        { icon: <Undo2 size={ICON} />, label: "Desfazer", onClick: actions.undo, disabled: actions.pastStates === 0, testId: "undo" , shortcut: "Ctrl+Z", description: "Desfaz a última alteração de formas ou configurações." },
+        { icon: <Redo2 size={ICON} />, label: "Refazer", onClick: actions.redo, disabled: actions.futureStates === 0, testId: "redo" , shortcut: "Ctrl+Y", description: "Refaz o que foi desfeito." },
       ],
     },
     {
       key: "arranjar", title: "Arranjar", priority: 3, items: [
-        { icon: <LayoutGrid size={ICON} />, label: "Organizar", onClick: () => setNestOpen(true), disabled: actions.shapes.length === 0, testId: "nest", title: "Organizar as peças na chapa (nesting)" },
-        { icon: <Combine size={ICON} />, label: "Unir", onClick: () => actions.boolean("union"), disabled: sel < 2, testId: "bool-union", title: "Unir as peças selecionadas" },
-        { icon: <SquareMinus size={ICON} />, label: "Subtrair", onClick: () => actions.boolean("difference"), disabled: sel < 2, testId: "bool-difference", title: "Subtrair as outras da primeira selecionada" },
-        { icon: <SquareDot size={ICON} />, label: "Intersec.", onClick: () => actions.boolean("intersection"), disabled: sel < 2, testId: "bool-intersection", title: "Ficar só com o que se cruza" },
+        { icon: <LayoutGrid size={ICON} />, label: "Organizar", onClick: () => setNestOpen(true), disabled: actions.shapes.length === 0, testId: "nest", featured: true , description: "Arruma as peças na chapa (caixas envolventes, maiores primeiro, giro de 90° opcional)." },
+        { icon: <Combine size={ICON} />, label: "Unir", onClick: () => actions.boolean("union"), disabled: sel < 2, testId: "bool-union" , description: "Une as peças selecionadas numa só; herda os parâmetros da primeira." },
+        { icon: <SquareMinus size={ICON} />, label: "Subtrair", onClick: () => actions.boolean("difference"), disabled: sel < 2, testId: "bool-difference" , description: "Subtrai as outras peças da primeira selecionada — cria furos/ilhas." },
+        { icon: <SquareDot size={ICON} />, label: "Intersec.", onClick: () => actions.boolean("intersection"), disabled: sel < 2, testId: "bool-intersection" , description: "Mantém só a área comum às peças selecionadas." },
         {
           icon: <AlignIcon size={ICON} />, label: "Alinhar", disabled: sel < 2, testId: "align-menu", title: "Alinhar / distribuir (2+ formas)", onClick: () => {},
           menu: [
@@ -323,23 +385,126 @@ export function TopBar() {
     },
     {
       key: "vista", title: "Vista", priority: 4, items: [
-        { icon: <ZoomOut size={ICON} />, label: "Reduzir", onClick: actions.zoomOut, testId: "zoom-out", title: "Reduzir (−)" },
-        { icon: <Maximize size={ICON} />, label: `${Math.round(actions.zoom * 100)}%`, onClick: actions.zoomFit, testId: "zoom-fit", title: "Ajustar à mesa (0)", labelClass: "zoom-label" },
-        { icon: <ZoomIn size={ICON} />, label: "Ampliar", onClick: actions.zoomIn, testId: "zoom-in", title: "Ampliar (+)" },
-        { icon: <Magnet size={ICON} />, label: "Snap", onClick: actions.toggleSnap, active: actions.snap, testId: "snap-toggle", title: "Snap na chapa e nas peças (S)" },
+        { icon: <ZoomOut size={ICON} />, label: "Reduzir", onClick: actions.zoomOut, testId: "zoom-out" , shortcut: "−", description: "Afasta a vista." },
+        { icon: <Maximize size={ICON} />, label: `${Math.round(actions.zoom * 100)}%`, onClick: actions.zoomFit, testId: "zoom-fit", featured: true, labelClass: "zoom-label" , shortcut: "0", description: "Ajusta a mesa inteira na tela." },
+        { icon: <ZoomIn size={ICON} />, label: "Ampliar", onClick: actions.zoomIn, testId: "zoom-in" , shortcut: "+", description: "Aproxima a vista." },
+        { icon: <Magnet size={ICON} />, label: "Snap", onClick: actions.toggleSnap, active: actions.snap, testId: "snap-toggle" , shortcut: "S", description: "Gruda em bordas/centros da chapa e das outras peças ao mover ou redimensionar." },
       ],
     },
     {
       key: "projeto", title: "Projeto", priority: 5, items: [
-        { icon: <FilePlus size={ICON} />, label: "Novo", onClick: actions.newProject, testId: "new-project", title: "Novo projeto" },
-        { icon: <FolderOpen size={ICON} />, label: "Abrir", onClick: actions.openProject, testId: "open-project", title: "Abrir projeto" },
-        { icon: <Save size={ICON} />, label: "Salvar", onClick: actions.saveProject, testId: "save-project", title: "Salvar projeto (Ctrl+S)" },
-        { icon: <Upload size={ICON} />, label: "Importar", onClick: actions.importSvg, testId: "import-svg", title: "Importar SVG ou DXF" },
+        { icon: <FilePlus size={ICON} />, label: "Novo", onClick: actions.newProject, testId: "new-project" , description: "Limpa a mesa e volta às configurações padrão." },
+        { icon: <FolderOpen size={ICON} />, label: "Abrir", onClick: actions.openProject, testId: "open-project" , description: "Abre um projeto .json salvo por aqui." },
+        { icon: <Save size={ICON} />, label: "Salvar", onClick: actions.saveProject, testId: "save-project", featured: true , shortcut: "Ctrl+S", description: "Baixa o projeto (.json) com formas e configurações." },
+        { icon: <Upload size={ICON} />, label: "Importar", onClick: actions.importSvg, testId: "import-svg" , description: "Importa contornos de SVG ou DXF (mm) como peças." },
       ],
     },
   ];
 
-  const tab = (id: View, label: string) => (
+  // ---- Simulator ribbon (data) ----
+  const simGroups: RibbonGroupDef[] = [
+    {
+      key: "reproduzir", title: "Reproduzir", priority: 1, items: [
+        { icon: <SkipBack size={ICON} />, label: "Início", onClick: reset, disabled: simDisabled, shortcut: "Home", description: "Volta o percurso para o começo." },
+        { icon: <StepBack size={ICON} />, label: "Anterior", onClick: stepBack, disabled: simDisabled, testId: "sim-step-back", shortcut: "←", description: "Um passo atrás (segmento, passe ou forma, conforme o modo)." },
+        { icon: playing ? <Pause size={ICON} /> : atEnd ? <RotateCcw size={ICON} /> : <Play size={ICON} />, label: playing ? "Pausar simulação" : atEnd ? "Reiniciar" : "Simular", onClick: toggle, disabled: simDisabled, testId: "simulate-toggle", primary: true, shortcut: "Espaço", featured: true, description: "Reproduz a usinagem com remoção de material na velocidade escolhida." },
+        { icon: <StepForward size={ICON} />, label: "Próximo", onClick: stepForward, disabled: simDisabled, testId: "sim-step-forward", shortcut: "→", description: "Um passo à frente." },
+        { icon: <SkipForward size={ICON} />, label: "Fim", onClick: toEnd, disabled: simDisabled, shortcut: "End", description: "Pula para o resultado final." },
+      ],
+    },
+    {
+      key: "ajustes", title: "Ajustes", priority: 2, items: [
+        { icon: null, label: "Velocidade", onClick: () => {}, testId: "sim-speed-wrap", custom: (
+          <label className="rb-select"><span>Velocidade</span>
+            <select value={speed} onChange={(e) => setSpeed(Number(e.target.value) as Speed)} data-testid="sim-speed">
+              {SPEEDS.map((sp) => <option key={sp} value={sp}>{sp}×</option>)}
+            </select>
+          </label>
+        ) },
+        { icon: null, label: "Passo", onClick: () => {}, testId: "sim-step-mode-wrap", custom: (
+          <label className="rb-select"><span>Passo</span>
+            <select value={stepMode} onChange={(e) => setStepMode(e.target.value as StepMode)} data-testid="sim-step-mode">
+              <option value="segment">segmento</option>
+              <option value="pass">passe</option>
+              <option value="shape">forma</option>
+            </select>
+          </label>
+        ) },
+      ],
+    },
+    {
+      key: "resultado", title: "Resultado", priority: 2, items: [
+        { icon: <ClipboardCheck size={ICON} />, label: "Verificar", onClick: () => setVerifyOpen(true), disabled: actions.shapes.length === 0, testId: "verify", featured: true, description: "Compara o que a fresa remove com o que cada rebaixo/furo pede: cantos não alcançados, vãos estreitos, corte fora das peças." },
+        { icon: <Link2 size={ICON} />, label: "Copiar link", onClick: () => void actions.shareLink(), disabled: actions.shapes.length === 0, testId: "share-link", description: "Copia um link com o projeto inteiro dentro (sem servidor)." },
+      ],
+    },
+    {
+      key: "vista3d", title: "Vista", priority: 3, items: [
+        { icon: <Maximize size={ICON} />, label: "Ajustar", onClick: () => simCamera?.fit(), disabled: !simCamera, testId: "sim-fit", featured: true, description: "Enquadra a chapa e a peça." },
+        { icon: <ArrowUpFromLine size={ICON} />, label: "Superior", onClick: () => simCamera?.top(), disabled: !simCamera, testId: "sim-top", description: "Vista de cima (como o desenho)." },
+        { icon: <Box size={ICON} />, label: "Isométrica", onClick: () => simCamera?.iso(), disabled: !simCamera, testId: "sim-iso", description: "Vista em perspectiva 3/4." },
+      ],
+    },
+  ];
+
+  // ---- Editor: USINAGEM tab (mirrors the panel for the selected piece) ----
+  const selShape = actions.selectedId ? actions.shapes.find((x) => x.id === actions.selectedId) : undefined;
+  const upd = (patch: Partial<Shape>) => { if (selShape) useProjectStore.getState().updateShape(selShape.id, patch); };
+  const usinagemGroups: RibbonGroupDef[] = [
+    {
+      key: "operacao", title: "Operação", priority: 1, items: [
+        { icon: <Scissors size={ICON} />, label: "Contorno", onClick: () => upd({ operation: "outline" }), disabled: !selShape, active: selShape?.operation === "outline", testId: "op-outline", featured: true, description: "Segue a linha da peça (por fora, por dentro ou na linha)." },
+        { icon: <SquareDashedBottom size={ICON} />, label: "Rebaixo", onClick: () => upd({ operation: "pocket" }), disabled: !selShape, active: selShape?.operation === "pocket", testId: "op-pocket", description: "Remove todo o material de dentro até a profundidade." },
+        { icon: <Drill size={ICON} />, label: "Furação", onClick: () => upd({ operation: "drill" }), disabled: !selShape || selShape.kind !== "circle", active: selShape?.operation === "drill", testId: "op-drill", description: "Só círculos: mergulha no centro, com bicadas se configurado." },
+      ],
+    },
+    {
+      key: "compensacao", title: "Compensação", priority: 2, items: [
+        { icon: <SquareArrowOutUpRight size={ICON} />, label: "Por fora", onClick: () => upd({ side: "outside" }), disabled: !selShape || selShape.operation !== "outline", active: selShape?.operation === "outline" && (selShape.side ?? "on") === "outside", testId: "side-outside", featured: true, description: "Recorte: a peça fica no tamanho desenhado." },
+        { icon: <SquareArrowDownLeft size={ICON} />, label: "Por dentro", onClick: () => upd({ side: "inside" }), disabled: !selShape || selShape.operation !== "outline", active: selShape?.operation === "outline" && selShape.side === "inside", testId: "side-inside", description: "Furo/abertura: o vão fica no tamanho desenhado." },
+        { icon: <Minus size={ICON} />, label: "Na linha", onClick: () => upd({ side: "on" }), disabled: !selShape || selShape.operation !== "outline", active: selShape?.operation === "outline" && (selShape.side ?? "on") === "on", testId: "side-on", description: "Gravação: o centro da fresa passa sobre a linha." },
+        { icon: <Anchor size={ICON} />, label: "Tabs", onClick: () => upd({ tabs: selShape?.tabs ? undefined : { ...DEFAULT_TABS } }), disabled: !selShape || selShape.operation !== "outline", active: !!selShape?.tabs, testId: "tabs-toggle", description: "Pontes que seguram a peça na chapa até o fim do recorte." },
+      ],
+    },
+    {
+      key: "corte-rapido", title: "Corte", priority: 3, items: [
+        { icon: <Spline size={ICON} />, label: "Hélice", onClick: () => useProjectStore.getState().updateSettings({ helixEntry: !settings.helixEntry }), active: settings.helixEntry, testId: "helix-toggle", description: "Entrada em hélice nos rebaixos (sem mergulho vertical)." },
+        { icon: <ListOrdered size={ICON} />, label: settings.orderMode === "auto" ? "Ordem auto" : "Ordem manual", onClick: () => useProjectStore.getState().updateSettings({ orderMode: settings.orderMode === "auto" ? "manual" : "auto" }), testId: "order-toggle", description: "Automática: rebaixos → furos → recortes. Manual: ordem do navegador." },
+        { icon: <Settings2 size={ICON} />, label: "Corte…", onClick: () => useUiStore.getState().setSection("cut"), testId: "goto-cut", description: "Abre a aba Corte do painel (material, fresa, avanços)." },
+        { icon: <Download size={ICON} />, label: "Exportar…", onClick: () => useUiStore.getState().setSection("post"), testId: "goto-post", description: "Abre a aba Exportar do painel (controlador, unidades)." },
+      ],
+    },
+  ];
+  const vistaGroups: RibbonGroupDef[] = [
+    editorGroups.find((g) => g.key === "vista")!,
+    {
+      key: "tela", title: "Tela", priority: 2, items: [
+        { icon: <PanelLeft size={ICON} />, label: panelOpen ? "Ocultar painel" : "Mostrar painel", onClick: togglePanel, active: panelOpen, testId: "panel-toggle-ribbon", description: "Mostra ou esconde o painel lateral." },
+        { icon: theme === "dark" ? <Sun size={ICON} /> : <Moon size={ICON} />, label: theme === "dark" ? "Tema claro" : "Tema escuro", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), testId: "theme-toggle", description: "Alterna claro/escuro (Preferências tem “seguir o sistema”)." },
+      ],
+    },
+  ];
+  const selectGroup: RibbonGroupDef = {
+    key: "selecionar", title: "Selecionar", priority: 0, items: [
+      { icon: <MousePointer2 size={ICON} />, label: "Selecionar", onClick: () => actions.setTool("select"), active: actions.tool === "select", testId: "tool-select", featured: true, shortcut: "Esc", description: "Clique para selecionar; arraste no fundo para laço; Shift+clique acumula." },
+      { icon: <BoxSelect size={ICON} />, label: "Tudo", onClick: () => useProjectStore.getState().selectMany(actions.shapes.filter((x) => !x.hidden).map((x) => x.id)), disabled: actions.shapes.length === 0, testId: "select-all", shortcut: "Ctrl+A", description: "Seleciona todas as peças visíveis." },
+    ],
+  };
+
+  const TABS: Record<View, { id: string; label: string; groups: RibbonGroupDef[] }[]> = {
+    editor: [
+      { id: "formas", label: "Formas", groups: [...editorGroups.filter((g) => g.key !== "vista"), selectGroup] },
+      { id: "usinagem", label: "Usinagem", groups: [...usinagemGroups, selectGroup] },
+      { id: "vista", label: "Vista", groups: [...vistaGroups, selectGroup] },
+    ],
+    simulator: [
+      { id: "reproduzir", label: "Reproduzir", groups: simGroups },
+    ],
+  };
+  const tabs = TABS[view];
+  const activeTab = tabs.find((tb) => tb.id === ribbonTab[view]) ?? tabs[0];
+
+  const wsTab = (id: View, label: string) => (
     <button
       type="button"
       role="tab"
@@ -353,8 +518,9 @@ export function TopBar() {
   );
 
   return (
-    <header className="topbar" role="banner">
-      <div className="topbar-left">
+    <header className={`topbar fusion${ribbonMinimized ? " minimized" : ""}`} role="banner">
+      {/* Row 1: app bar */}
+      <div className="appbar">
         <button
           type="button"
           className="icon-button"
@@ -364,68 +530,60 @@ export function TopBar() {
           title="Painel lateral"
           data-testid="panel-toggle"
         >
-          <PanelLeft size={ICON} />
+          <PanelLeft size={16} />
         </button>
         <ProjectMenu actions={actions} />
-        <nav className="tabs" role="tablist" aria-label="Modo de visualização">
-          {tab("editor", "Desenhar")}
-          {tab("simulator", "Simular")}
+        <ProjectName />
+        <div className="appbar-undo">
+          <button type="button" className="icon-button" onClick={actions.undo} disabled={actions.pastStates === 0} title="Desfazer (Ctrl+Z)" aria-label="Desfazer" data-testid="appbar-undo"><Undo2 size={15} /></button>
+          <button type="button" className="icon-button" onClick={actions.redo} disabled={actions.futureStates === 0} title="Refazer (Ctrl+Y)" aria-label="Refazer" data-testid="appbar-redo"><Redo2 size={15} /></button>
+        </div>
+        <div className="appbar-spacer" />
+        <div className="topbar-right">
+          <RibbonButton icon={<Download size={ICON} />} label="Exportar G-code" onClick={actions.exportGcode} primary testId="export-gcode" />
+        </div>
+      </div>
+
+      {/* Row 2: workspace + context tabs */}
+      <div className="tabrow">
+        <nav className="tabs" role="tablist" aria-label="Espaço de trabalho">
+          {wsTab("editor", "Desenhar")}
+          {wsTab("simulator", "Simular")}
         </nav>
+        <div className="ribbon-tabs" role="tablist" aria-label="Abas da barra">
+          {tabs.map((tb) => (
+            <button
+              key={tb.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab.id === tb.id}
+              className={`ribbon-tab${activeTab.id === tb.id ? " active" : ""}`}
+              onClick={() => { if (activeTab.id === tb.id && ribbonMinimized) setRibbonMinimized(false); setRibbonTab(view, tb.id); }}
+              onDoubleClick={() => setRibbonMinimized(!ribbonMinimized)}
+              data-testid={`ribbon-tab-${tb.id}`}
+              title="Duplo clique minimiza/restaura a barra"
+            >
+              {tb.label}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="icon-button ribbon-min" onClick={() => setRibbonMinimized(!ribbonMinimized)} aria-label={ribbonMinimized ? "Mostrar barra de ferramentas" : "Minimizar barra de ferramentas"} title={ribbonMinimized ? "Mostrar barra" : "Minimizar barra"} data-testid="ribbon-minimize">
+          {ribbonMinimized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+        </button>
       </div>
 
-      {view === "editor" ? (
-        <OverflowRibbon groups={editorGroups} />
-      ) : (
-      <div className="ribbon" role="toolbar" aria-label="Ações">
-        {(
-          <>
-            <RibbonGroup title="Reproduzir">
-              <RibbonButton icon={<SkipBack size={ICON} />} label="Início" onClick={reset} disabled={simDisabled} title="Início (Home)" />
-              <RibbonButton icon={<StepBack size={ICON} />} label="Anterior" onClick={stepBack} disabled={simDisabled} testId="sim-step-back" title="Passo anterior (←)" />
-              <RibbonButton
-                icon={playing ? <Pause size={ICON} /> : atEnd ? <RotateCcw size={ICON} /> : <Play size={ICON} />}
-                label={playing ? "Pausar simulação" : atEnd ? "Reiniciar" : "Simular"}
-                onClick={toggle}
-                disabled={simDisabled}
-                primary
-                testId="simulate-toggle"
-                title="Reproduzir/pausar (espaço)"
-              />
-              <RibbonButton icon={<StepForward size={ICON} />} label="Próximo" onClick={stepForward} disabled={simDisabled} testId="sim-step-forward" title="Próximo passo (→)" />
-              <RibbonButton icon={<SkipForward size={ICON} />} label="Fim" onClick={toEnd} disabled={simDisabled} title="Fim (End)" />
-            </RibbonGroup>
-            <RibbonGroup title="Ajustes">
-              <label className="rb-select">
-                <span>Velocidade</span>
-                <select value={speed} onChange={(e) => setSpeed(Number(e.target.value) as Speed)} data-testid="sim-speed">
-                  {SPEEDS.map((s) => (
-                    <option key={s} value={s}>{s}×</option>
-                  ))}
-                </select>
-              </label>
-              <label className="rb-select">
-                <span>Passo</span>
-                <select value={stepMode} onChange={(e) => setStepMode(e.target.value as StepMode)} data-testid="sim-step-mode">
-                  <option value="segment">segmento</option>
-                  <option value="pass">passe</option>
-                  <option value="shape">forma</option>
-                </select>
-              </label>
-            </RibbonGroup>
-            <RibbonGroup title="Vista">
-              <RibbonButton icon={<Maximize size={ICON} />} label="Ajustar" onClick={() => simCamera?.fit()} disabled={!simCamera} testId="sim-fit" title="Ajustar à peça" />
-              <RibbonButton icon={<ArrowUpFromLine size={ICON} />} label="Vista superior" onClick={() => simCamera?.top()} disabled={!simCamera} testId="sim-top" />
-              <RibbonButton icon={<Box size={ICON} />} label="Isométrica" onClick={() => simCamera?.iso()} disabled={!simCamera} testId="sim-iso" />
-            </RibbonGroup>
-          </>
-        )}
-      </div>
-      )}
+      {/* Row 3: ribbon */}
+      {!ribbonMinimized && <OverflowRibbon key={`${view}-${activeTab.id}`} groups={activeTab.groups} />}
 
-      <div className="topbar-right">
-        <RibbonButton icon={<Download size={ICON} />} label="Exportar G-code" onClick={actions.exportGcode} primary testId="export-gcode" />
-      </div>
       {actions.inputs}
+      {verifyOpen && (
+        <div className="dialog-backdrop" onClick={() => setVerifyOpen(false)} role="presentation">
+          <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="verify-dialog">
+            <VerifyDialog />
+            <button type="button" className="dialog-close" onClick={() => setVerifyOpen(false)}>Fechar</button>
+          </div>
+        </div>
+      )}
       {nestOpen && (
         <div className="dialog-backdrop" onClick={() => setNestOpen(false)} role="presentation">
           <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="nest-dialog">

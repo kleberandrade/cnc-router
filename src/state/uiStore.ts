@@ -24,6 +24,11 @@ interface UiState {
   setDensity: (d: Density) => void;
   textSize: TextSize;
   setTextSize: (t: TextSize) => void;
+  /** Active ribbon tab per workspace (Sprint 22) and minimized state. */
+  ribbonTab: Record<View, string>;
+  setRibbonTab: (view: View, tab: string) => void;
+  ribbonMinimized: boolean;
+  setRibbonMinimized: (m: boolean) => void;
   /** Tour open (first run or from the menu). */
   tourOpen: boolean;
   setTourOpen: (open: boolean) => void;
@@ -121,6 +126,13 @@ export const useUiStore = create<UiState>((set) => ({
     try { localStorage.setItem("oficina-cnc:text", textSize); } catch { /* ignore */ }
     set({ textSize });
     applyPrefs(useUiStore.getState().density, textSize);
+  },
+  ribbonTab: { editor: "formas", simulator: "reproduzir" },
+  setRibbonTab: (view, tab) => set((st) => ({ ribbonTab: { ...st.ribbonTab, [view]: tab }, ribbonMinimized: false })),
+  ribbonMinimized: readPref("oficina-cnc:ribbon-min", ["1", "0"], "0") === "1",
+  setRibbonMinimized: (ribbonMinimized) => {
+    try { localStorage.setItem("oficina-cnc:ribbon-min", ribbonMinimized ? "1" : "0"); } catch { /* ignore */ }
+    set({ ribbonMinimized });
   },
   tourOpen: false,
   setTourOpen: (tourOpen) => set({ tourOpen }),

@@ -21,14 +21,14 @@ test.describe("sprint 18: ribbon overflow and panel tabs", () => {
       if (await more.count()) {
         await more.click();
         await expect(page.locator(".ribbon-menu")).toBeVisible();
-        for (const id of ["nest", "zoom-in", "new-project"]) {
+        for (const id of ["nest", "new-project"]) {
           const inMenu = page.locator(`.ribbon-menu [data-testid="${id}"]`);
           const inRibbon = page.locator(`.rgroup-items [data-testid="${id}"]`);
           expect((await inMenu.count()) + (await inRibbon.count())).toBe(1);
         }
         await page.keyboard.press("Escape");
       } else {
-        await expect(page.getByTestId("zoom-in")).toBeVisible();
+        await expect(page.getByTestId("nest")).toBeVisible();
       }
       // panel tabs: 4, none with clipped text (scrollWidth ≤ clientWidth)
       const tabs = page.locator(".panel-tab");

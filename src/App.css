@@ -1889,3 +1889,172 @@ a.link { color: var(--accent); font-size: var(--fs-md); }
 [data-text="small"] { --fs-xs: 10px; --fs-sm: 10.5px; --fs-md: 11px; --fs-base: 12px; --fs-lg: 13px; }
 [data-text="large"] { --fs-xs: 11.5px; --fs-sm: 12px; --fs-md: 13px; --fs-base: 14.5px; --fs-lg: 16px; }
 @media (max-width: 767px) { .empty-state { display: none; } }
+
+/* ===== Sprint 22: Fusion-style top bar (app bar + workspace/tabs + ribbon) ===== */
+.topbar.fusion {
+  height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+}
+.appbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 34px;
+  padding: 0 var(--s2);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.appbar .icon-button { width: 26px; height: 26px; }
+.appbar .brand-button { height: 26px; font-size: 14px; }
+.appbar-undo { display: flex; gap: 2px; }
+.appbar-undo .icon-button:disabled { opacity: 0.35; cursor: default; }
+.appbar-spacer { flex: 1; }
+.appbar .topbar-right .rb.primary { height: 26px; padding: 0 var(--s3); }
+.appbar .topbar-right .rb-label { font-size: var(--fs-md); }
+.project-name {
+  height: 26px;
+  min-width: 140px;
+  max-width: 320px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 0 var(--s2);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text);
+}
+.project-name:hover { border-color: var(--border); background: var(--surface); }
+.project-name:focus { border-color: var(--accent); background: var(--surface); outline: none; }
+.project-name::placeholder { font-weight: 400; color: var(--text-muted); }
+
+.tabrow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s3);
+  height: 30px;
+  padding: 0 var(--s2);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.tabrow .tabs { margin-bottom: 3px; }
+.tabrow .tab { height: 20px; font-size: var(--fs-sm); padding: 0 var(--s2); }
+.ribbon-tabs { display: flex; gap: 2px; height: 100%; align-items: flex-end; }
+.ribbon-tab {
+  height: 28px;
+  padding: 0 var(--s3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ribbon-tab:hover { color: var(--text); background: var(--surface-2); }
+.ribbon-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.ribbon-min { margin-left: auto; margin-bottom: 3px; width: 22px; height: 22px; }
+
+.topbar.fusion .ribbon {
+  height: 62px;
+  padding: 2px var(--s2) 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.topbar.fusion .rgroup { padding: 2px 6px 0; }
+.topbar.fusion .rgroup:first-child { border-left: none; }
+.topbar.fusion .rgroup-title-wrap { display: flex; justify-content: center; }
+.topbar.fusion .rgroup-title {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 12px;
+}
+.topbar.fusion .rgroup-title:hover, .topbar.fusion .rgroup-title.open { background: var(--surface-2); color: var(--text); }
+.topbar.fusion .rgroup-selecionar { margin-left: auto; border-left: 1px solid var(--border); }
+.rb.primary-action { min-width: 52px; }
+.rb.primary-action .rb-icon svg { width: 22px; height: 22px; }
+.rb-custom { display: inline-flex; align-items: center; }
+.ribbon.compact .rgroup-title-wrap { display: none; }
+.menu-item .menu-label { flex: 1; }
+.menu-item kbd { margin-left: auto; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-muted); }
+
+.rich-tooltip {
+  position: fixed;
+  z-index: 300;
+  width: 260px;
+  background: var(--ink);
+  color: #f7f7f5;
+  border-radius: 8px;
+  padding: var(--s2) var(--s3);
+  font-size: var(--fs-md);
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+[data-theme="dark"] .rich-tooltip { background: #e6ebf1; color: #16202b; }
+.rich-tooltip-head { display: flex; align-items: center; gap: var(--s2); }
+.rich-tooltip-head kbd { margin-left: auto; font-family: var(--font-mono); font-size: var(--fs-xs); opacity: 0.8; border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+.rich-tooltip p { margin: 4px 0 0; opacity: 0.9; }
+
+@media (max-width: 767px) {
+  .topbar.fusion .ribbon, .topbar.fusion .ribbon-tabs, .topbar.fusion .ribbon-min { display: none; }
+  .topbar.fusion .tabrow { height: 34px; align-items: center; }
+  .topbar.fusion .tabrow .tabs { margin: 0; }
+  .topbar.fusion .tabrow .tab { height: 26px; font-size: var(--fs-md); }
+  .appbar { height: 44px; }
+  .project-name { min-width: 0; flex: 1; }
+  .appbar-undo { display: none; }
+}
+@media (max-width: 1100px) { .project-name { max-width: 160px; } }
+
+/* Sprint 22: panel spacing tune-up (tabs like a real tab strip, tighter navigator, less padding) */
+.side-panel .panel-tabs { padding: 0 var(--s2); gap: 0; background: var(--surface-2); }
+.side-panel .panel-tab { height: 34px; border-radius: 0; margin-bottom: -1px; }
+.side-panel .panel-tab.active { background: var(--surface); border-bottom-color: var(--accent); }
+.side-panel .panel-body { padding: var(--s3) var(--s3) var(--s4); gap: var(--s2); }
+.side-panel .panel-heading { display: none; }
+.side-panel .panel-group { gap: var(--s2); padding-top: var(--s2); }
+.side-panel .panel-group:first-of-type { padding-top: 0; }
+.nav-item { padding: 4px 6px; gap: 6px; font-size: var(--fs-md); min-height: 30px; }
+.nav-item .nav-name { padding-right: 4px; }
+.toolbar .nav-item .icon-button { width: 24px; min-width: 24px; height: 24px; min-height: 24px; }
+.nav-list { gap: 3px; margin: 2px 0 var(--s1); }
+.side-panel .nav-search input { padding: 0 var(--s2); }
+.navigator .hint { margin-top: 2px; }
+.app-body { grid-template-columns: 300px 1fr; }
+[data-density="comfortable"] .side-panel .panel-tab { height: 40px; }
+.appbar { height: auto; min-height: 34px; }
+@media (pointer: coarse) {
+  .appbar { min-height: 46px; }
+  .appbar .icon-button, .appbar .brand-button, .appbar .topbar-right .rb.primary { height: 40px; min-height: 40px; }
+  .appbar .icon-button { width: 40px; }
+  .tabrow { height: 40px; }
+  .tabrow .tab { height: 30px; }
+  .ribbon-tab { height: 38px; }
+}
+
+/* Sprint 16: extra operations, verification, share */
+.extra-ops { display: flex; flex-direction: column; gap: var(--s2); border-top: 1px solid var(--border); padding-top: var(--s2); }
+.extra-ops-head { display: flex; align-items: center; justify-content: space-between; }
+.extra-op { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--s2); display: flex; flex-direction: column; gap: var(--s2); background: var(--surface-2); }
+.extra-op .field-row { align-items: end; }
+.danger-link { color: var(--warn); }
+.verify-table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); margin: var(--s2) 0; }
+.verify-table th, .verify-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+.verify-table tr.warn td { color: var(--warn); }
+.verify-warnings { margin: var(--s2) 0 0; padding-left: 18px; font-size: var(--fs-md); color: var(--warn); }

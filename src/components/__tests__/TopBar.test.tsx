@@ -80,3 +80,48 @@ describe("Sobre / Novidades / versão (sprint 19)", () => {
     localStorage.removeItem("oficina-cnc:seen-version");
   });
 });
+
+describe("Fusion top bar (sprint 22)", () => {
+  it("tabs switch groups; usinagem mirrors the selected shape; project name updates the title", async () => {
+    const { useProjectStore } = await import("../../state/store");
+    useProjectStore.getState().newProject();
+    render(<Toolbar />);
+    await userEvent.click(screen.getByTestId("add-rectangle"));
+    await userEvent.click(screen.getByTestId("ribbon-tab-usinagem"));
+    expect(screen.getByTestId("op-outline")).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getByTestId("op-pocket"));
+    expect(useProjectStore.getState().shapes[0].operation).toBe("pocket");
+    await userEvent.click(screen.getByTestId("op-outline"));
+    await userEvent.click(screen.getByTestId("side-on"));
+    expect(useProjectStore.getState().shapes[0].side).toBe("on");
+    await userEvent.click(screen.getByTestId("tabs-toggle"));
+    expect(useProjectStore.getState().shapes[0].tabs).toBeTruthy();
+    await userEvent.click(screen.getByTestId("helix-toggle"));
+    expect(useProjectStore.getState().settings.helixEntry).toBe(true);
+    await userEvent.click(screen.getByTestId("order-toggle"));
+    expect(useProjectStore.getState().settings.orderMode).toBe("manual");
+    await userEvent.click(screen.getByTestId("goto-post"));
+    expect(useUiStore.getState().section).toBe("post");
+    await userEvent.click(screen.getByTestId("ribbon-tab-vista"));
+    await userEvent.click(screen.getByTestId("theme-toggle"));
+    expect(["dark", "light"]).toContain(useUiStore.getState().theme);
+    await userEvent.click(screen.getByTestId("select-all"));
+    expect(useProjectStore.getState().selectedIds.length).toBe(1);
+    // minimize / restore
+    await userEvent.click(screen.getByTestId("ribbon-minimize"));
+    expect(useUiStore.getState().ribbonMinimized).toBe(true);
+    await userEvent.click(screen.getByTestId("ribbon-tab-formas"));
+    expect(useUiStore.getState().ribbonMinimized).toBe(false);
+    // project name
+    const name = screen.getByTestId("project-name") as HTMLInputElement;
+    await userEvent.click(name);
+    await userEvent.type(name, "Minha peça");
+    fireEvent.blur(name);
+    expect(useProjectStore.getState().settings.projectName).toBe("Minha peça");
+    expect(document.title).toBe("Minha peça — Oficina CNC");
+    // app bar undo
+    await userEvent.click(screen.getByTestId("appbar-undo"));
+    expect(screen.getByTestId("appbar-redo")).toBeEnabled();
+    useProjectStore.getState().newProject();
+  });
+});

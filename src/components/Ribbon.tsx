@@ -15,6 +15,16 @@ export interface RibbonItem {
   labelClass?: string;
   /** Sub-items: renders a dropdown button instead of a plain button. */
   menu?: RibbonItem[];
+  /** Rich tooltip: 1–2 lines explaining what the action does. */
+  description?: string;
+  /** Keyboard shortcut shown in tooltips and group menus (e.g. "R", "Ctrl+D"). */
+  shortcut?: string;
+  /** Larger "featured" button (first action of a group, Fusion-style). */
+  featured?: boolean;
+  /** Custom control rendered as-is (selects, readouts); excluded from menus. */
+  custom?: ReactNode;
+  /** Blue call-to-action styling (Exportar, Simular). */
+  primary?: boolean;
 }
 
 export interface RibbonGroupDef {
@@ -25,20 +35,61 @@ export interface RibbonGroupDef {
   items: RibbonItem[];
 }
 
-export function RibbonButton({ icon, label, onClick, disabled, active, testId, title, labelClass, primary }: RibbonItem & { primary?: boolean }) {
+/** Delayed rich tooltip (title + shortcut + description) positioned under the anchor. */
+export function useTooltip(delay = 500) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const timer = useRef<number | null>(null);
+  const show = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setPos({ x: r.left + r.width / 2, y: r.bottom + 6 }), delay);
+  };
+  const hide = () => { if (timer.current) window.clearTimeout(timer.current); timer.current = null; setPos(null); };
+  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+  return { pos, show, hide };
+}
+
+export function RichTooltip({ pos, label, shortcut, description, id }: { pos: { x: number; y: number } | null; label: string; shortcut?: string; description?: string; id: string }) {
+  if (!pos) return null;
+  const left = Math.min(Math.max(8, pos.x - 130), (typeof window !== "undefined" ? window.innerWidth : 1200) - 268);
   return (
-    <button
-      type="button"
-      className={`rb${active ? " active" : ""}${primary ? " primary" : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      title={title ?? label}
-      data-testid={testId}
-    >
-      <span className="rb-icon">{icon}</span>
-      <span className={`rb-label${labelClass ? ` ${labelClass}` : ""}`}>{label}</span>
-    </button>
+    <div className="rich-tooltip" role="tooltip" id={id} style={{ left, top: pos.y }} data-testid="rich-tooltip">
+      <div className="rich-tooltip-head"><strong>{label}</strong>{shortcut && <kbd>{shortcut}</kbd>}</div>
+      {description && <p>{description}</p>}
+    </div>
+  );
+}
+
+let tipSeq = 0;
+
+export function RibbonButton({ icon, label, onClick, disabled, active, testId, title, labelClass, primary, featured, description, shortcut }: RibbonItem) {
+  const tip = useTooltip();
+  const idRef = useRef(`tip-${++tipSeq}`);
+  const rich = !!description;
+  const text = title ?? (shortcut ? `${label} (${shortcut})` : label);
+  return (
+    <>
+      <button
+        type="button"
+        className={`rb${active ? " active" : ""}${primary ? " primary" : ""}${featured ? " primary-action" : ""}`}
+        onClick={onClick}
+        disabled={disabled}
+        aria-pressed={active}
+        title={rich ? undefined : text}
+        aria-label={rich ? text : undefined}
+        aria-describedby={rich && tip.pos ? idRef.current : undefined}
+        onMouseEnter={rich ? (e) => tip.show(e.currentTarget) : undefined}
+        onMouseLeave={rich ? tip.hide : undefined}
+        onFocus={rich ? (e) => tip.show(e.currentTarget) : undefined}
+        onBlur={rich ? tip.hide : undefined}
+        onMouseDown={rich ? tip.hide : undefined}
+        data-testid={testId}
+      >
+        <span className="rb-icon">{icon}</span>
+        <span className={`rb-label${labelClass ? ` ${labelClass}` : ""}`}>{label}</span>
+      </button>
+      {rich && <RichTooltip pos={tip.pos} label={label} shortcut={shortcut} description={description} id={idRef.current} />}
+    </>
   );
 }
 
@@ -61,7 +112,7 @@ function Popover({ open, onClose, children, align = "left" }: { open: boolean; o
   );
 }
 
-function MenuItem({ item, onDone }: { item: RibbonItem; onDone: () => void }) {
+function MenuItem({ item, onDone, suffix = "" }: { item: RibbonItem; onDone: () => void; suffix?: string }) {
   return (
     <button
       type="button"
@@ -70,10 +121,11 @@ function MenuItem({ item, onDone }: { item: RibbonItem; onDone: () => void }) {
       onClick={() => { item.onClick(); onDone(); }}
       disabled={item.disabled}
       title={item.title ?? item.label}
-      data-testid={item.testId}
+      data-testid={item.testId ? `${item.testId}${suffix}` : undefined}
     >
       <span className="menu-icon">{item.icon}</span>
-      {item.title && item.title !== item.label ? item.title : item.label}
+      <span className="menu-label">{item.title && item.title !== item.label && !item.description ? item.title : item.label}</span>
+      {item.shortcut && <kbd>{item.shortcut}</kbd>}
     </button>
   );
 }
@@ -103,13 +155,25 @@ function RibbonDropdown({ item }: { item: RibbonItem }) {
   );
 }
 
+/** A ribbon group: items row + clickable title (▾) that opens the vertical menu of the group (Fusion-style). */
 export function RibbonGroup({ title, items, className }: { title: string; items: RibbonItem[]; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const menuItems = items.filter((it) => !it.custom);
   return (
     <div className={`rgroup${className ? ` ${className}` : ""}`} role="group" aria-label={title}>
       <div className="rgroup-items">
-        {items.map((it, i) => (it.menu ? <RibbonDropdown key={it.testId ?? i} item={it} /> : <RibbonButton key={it.testId ?? i} {...it} />))}
+        {items.map((it, i) => (it.custom ? <span key={it.testId ?? i} className="rb-custom">{it.custom}</span> : it.menu ? <RibbonDropdown key={it.testId ?? i} item={it} /> : <RibbonButton key={it.testId ?? i} {...it} />))}
       </div>
-      <div className="rgroup-title" title={title}>{title}</div>
+      <div className="rb-dropdown rgroup-title-wrap">
+        <button type="button" className={`rgroup-title${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} title={`Menu ${title}`} data-testid={`group-${className?.replace("rgroup-", "") ?? title}`}>
+          {title} <ChevronDown size={9} aria-hidden="true" />
+        </button>
+        <Popover open={open} onClose={() => setOpen(false)}>
+          {menuItems.flatMap((it) => (it.menu ? [{ ...it, menu: undefined, disabled: true, label: `${it.label} ▸` }, ...it.menu] : [it])).map((it, i) => (
+            <MenuItem key={it.testId ?? i} item={it} onDone={() => setOpen(false)} suffix="-gm" />
+          ))}
+        </Popover>
+      </div>
     </div>
   );
 }

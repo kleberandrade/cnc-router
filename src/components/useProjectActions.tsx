@@ -7,8 +7,15 @@ import { tryGenerateGCode } from "../lib/gcode";
 import { findPost } from "../lib/post";
 import type { BooleanOp } from "../lib/boolean";
 import { findExample } from "../content/examples";
+import { buildShareUrl } from "../lib/share";
 import { serializeProject, parseProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
+
+/** Safe file stem from the project name ("Placa furos" → "placa-furos"), default "projeto". */
+export function fileStem(name?: string): string {
+  const slug = (name ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "projeto";
+}
 
 function downloadTextFile(filename: string, content: string, type = "text/plain") {
   const blob = new Blob([content], { type });
@@ -159,7 +166,7 @@ export function useProjectActions() {
   };
 
   const handleSave = () => {
-    downloadTextFile("projeto.oficina-cnc.json", serializeProject(shapes, settings), "application/json");
+    downloadTextFile(`${fileStem(settings.projectName)}.oficina-cnc.json`, serializeProject(shapes, settings), "application/json");
     setNotice({ kind: "info", title: "Projeto salvo." });
   };
 
@@ -174,7 +181,7 @@ export function useProjectActions() {
       return;
     }
     setNotice(null);
-    downloadTextFile(`projeto.${findPost(settings.post).extension}`, result.gcode);
+    downloadTextFile(`${fileStem(settings.projectName)}.${findPost(settings.post).extension}`, result.gcode);
   };
 
   const handleOpenExample = (id: string) => {
@@ -187,6 +194,16 @@ export function useProjectActions() {
     setNotice({ kind: "info", title: `Exemplo "${ex.title}" aberto.`, details: [ex.teaches] });
     useUiStore.getState().setView("editor");
     setTimeout(() => zoomFit(), 0);
+  };
+
+  const handleShareLink = async () => {
+    const { url, length, tooLong } = buildShareUrl(shapes, settings);
+    try {
+      await navigator.clipboard.writeText(url);
+      setNotice({ kind: tooLong ? "warning" : "info", title: tooLong ? `Link copiado, mas é grande (${Math.round(length / 1000)} k caracteres) — alguns apps cortam; prefira salvar o .json.` : "Link do projeto copiado. Quem abrir vê as mesmas peças e configurações." });
+    } catch {
+      window.prompt("Copie o link do projeto:", url);
+    }
   };
 
   const handleNewProject = () => {
@@ -305,6 +322,7 @@ export function useProjectActions() {
     exportGcode: handleExport,
     newProject: handleNewProject,
     openExample: handleOpenExample,
+    shareLink: handleShareLink,
     duplicate: () => selectedId && duplicateShape(selectedId),
     remove: () => useProjectStore.getState().removeSelected(),
     undo,

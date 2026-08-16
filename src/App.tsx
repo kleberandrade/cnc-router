@@ -14,6 +14,7 @@ import { EmptyState } from "./components/EmptyState";
 import { Tour, tourDone } from "./components/Tour";
 import { useProjectStore } from "./state/store";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { readShareHash } from "./lib/share";
 import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 
@@ -32,6 +33,20 @@ function App() {
   const setTourOpen = useUiStore((s) => s.setTourOpen);
   const emptyDismissed = useUiStore((s) => s.emptyDismissed);
   const tool = useUiStore((s) => s.tool);
+  // Shared link (#p=…): load once, then clean the URL.
+  useEffect(() => {
+    const openShared = () => {
+      const shared = readShareHash(window.location.hash);
+      if (!shared) return;
+      useProjectStore.getState().loadProject(shared);
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+      setNotice({ kind: "info", title: `Projeto aberto a partir do link${shared.settings.projectName ? `: ${shared.settings.projectName}` : ""}.` });
+    };
+    openShared();
+    window.addEventListener("hashchange", openShared);
+    return () => window.removeEventListener("hashchange", openShared);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // First visit on a desktop-sized screen: offer the tour once (never on mobile).
   useEffect(() => {
     if (layout === "desktop" && shapeCount === 0 && !tourDone() && !tourOpen) {

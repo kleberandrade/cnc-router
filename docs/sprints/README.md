@@ -73,8 +73,9 @@ Plano em [`fase-4.md`](fase-4.md) (auditoria de UI de 2026-08-16). Ordem: 18 →
 | [19](sprint-19-produto-versao-sobre.md) ✅ | Versão visível (app, G-code, PWA), Sobre com autor/licenças, Novidades | — | P |
 | [20](sprint-20-feedback-vercel.md) ✅ | Sugestões e problemas: formulário → Vercel Function → Vercel Blob | 19 | M |
 | [21](sprint-21-usabilidade-onboarding-a11y.md) ✅ | Estado vazio, exemplos, tour, mensagens, acessibilidade, mobile | 18 | M |
-| [22](sprint-22-ribbon-fusion.md) | Barra superior no estilo Fusion 360 (app bar, workspace + abas, ribbon com menus de grupo, tooltips ricos, nome do projeto) | 18 | M |
-| [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
+| [22](sprint-22-ribbon-fusion.md) ✅ | Barra superior no estilo Fusion 360 (app bar, workspace + abas, ribbon com menus de grupo, tooltips ricos, nome do projeto) | 18 | M |
+| [16](sprint-16-verificacao-operacoes-compartilhar.md) ✅ | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
+| [23](sprint-23-acabamento-ux.md) | Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, histórico (linha do tempo), textos, regras dos agentes, políticas | 22 | G |
 
 ## Fase 5 — Backlog
 

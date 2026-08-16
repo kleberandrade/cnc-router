@@ -9,7 +9,8 @@ import { NumberField } from "./NumberField";
 import { Navigator } from "./Navigator";
 import { ToolLibrary } from "./ToolLibrary";
 import { Notice } from "./Notice";
-import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits } from "../types";
+import type { StockOrigin, MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, CornerType, CornerId, TextAlign, PostId, ExportUnits, ExtraOperation } from "../types";
+import { throughCutDepth } from "../state/store";
 import { helixDiameter } from "../lib/toolpath";
 import { POSTS } from "../lib/post";
 import { FONTS } from "../lib/text";
@@ -68,6 +69,76 @@ function PanelTabs() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** Extra operations on the same geometry (rebaixo + contorno passante…). */
+function ExtraOps({ shape }: { shape: Shape }) {
+  const addExtraOp = useProjectStore((s) => s.addExtraOp);
+  const updateExtraOp = useProjectStore((s) => s.updateExtraOp);
+  const removeExtraOp = useProjectStore((s) => s.removeExtraOp);
+  const stock = useProjectStore((s) => s.settings.stock);
+  const tools = useProjectStore((s) => s.settings.tools);
+  const ops = shape.extraOps ?? [];
+  const suggest = (): Omit<ExtraOperation, "id"> =>
+    shape.operation === "pocket"
+      ? { operation: "outline", side: "outside", depth: throughCutDepth(stock.thickness), cutThrough: true, tabs: { ...DEFAULT_TABS } }
+      : { operation: "pocket", depth: Math.min(shape.depth, Math.max(1, Math.round(stock.thickness / 3))) };
+  return (
+    <div className="extra-ops" data-testid="extra-ops">
+      <div className="extra-ops-head">
+        <span className="panel-group-title">Operações adicionais {ops.length ? `(${ops.length})` : ""}</span>
+        <button type="button" className="link" onClick={() => addExtraOp(shape.id, suggest())} data-testid="extra-op-add">+ adicionar</button>
+      </div>
+      {ops.length === 0 && <p className="hint">Mesma geometria, outra operação — ex.: rebaixo de 4 mm e depois recorte passante. Executadas depois da principal.</p>}
+      {ops.map((op, i) => (
+        <div key={op.id} className="extra-op" data-testid={`extra-op-${i}`}>
+          <div className="field-row">
+            <label>
+              Operação
+              <select value={op.operation} onChange={(e) => updateExtraOp(shape.id, op.id, { operation: e.target.value as ExtraOperation["operation"] })} data-testid={`extra-op-${i}-operation`}>
+                <option value="outline">Contorno</option>
+                <option value="pocket">Rebaixo</option>
+                {shape.kind === "circle" && <option value="drill">Furação</option>}
+              </select>
+            </label>
+            <NumberField label="Profundidade" unit="mm" min={0.1} step={0.5} value={op.depth} testId={`extra-op-${i}-depth`} onChange={(v) => updateExtraOp(shape.id, op.id, { depth: v, cutThrough: false })} />
+          </div>
+          {op.operation === "outline" && (
+            <div className="field-row">
+              <label>
+                Compensação
+                <select value={op.side ?? shape.side ?? "on"} onChange={(e) => updateExtraOp(shape.id, op.id, { side: e.target.value as CutSide })} data-testid={`extra-op-${i}-side`}>
+                  <option value="outside">Por fora</option>
+                  <option value="inside">Por dentro</option>
+                  <option value="on">Na linha</option>
+                </select>
+              </label>
+              <label className="checkbox">
+                <input type="checkbox" checked={!!op.tabs} onChange={(e) => updateExtraOp(shape.id, op.id, { tabs: e.target.checked ? { ...DEFAULT_TABS } : undefined })} />
+                Tabs
+              </label>
+            </div>
+          )}
+          <div className="field-row">
+            <label className="checkbox">
+              <input type="checkbox" checked={!!op.cutThrough} onChange={(e) => updateExtraOp(shape.id, op.id, { cutThrough: e.target.checked, depth: e.target.checked ? throughCutDepth(stock.thickness) : op.depth })} data-testid={`extra-op-${i}-through`} />
+              Cortar através
+            </label>
+            {tools.length > 0 && (
+              <label>
+                Fresa
+                <select value={op.toolId ?? ""} onChange={(e) => updateExtraOp(shape.id, op.id, { toolId: e.target.value || undefined })}>
+                  <option value="">Igual à peça</option>
+                  {tools.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </label>
+            )}
+            <button type="button" className="link danger-link" onClick={() => removeExtraOp(shape.id, op.id)} data-testid={`extra-op-${i}-remove`}>remover</button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -393,6 +464,7 @@ export function SidePanel() {
                 )}
               </>
             )}
+            <ExtraOps shape={selectedShape} />
             <button type="button" className="danger" onClick={() => removeShape(selectedShape.id)}>
               Remover forma
             </button>

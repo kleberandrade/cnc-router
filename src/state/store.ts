@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { temporal, type TemporalState } from "zundo";
 import { useStore } from "zustand";
-import type { Shape, MachineSettings } from "../types";
+import type { Shape, MachineSettings, ExtraOperation } from "../types";
 import { DEFAULT_MACHINE_SETTINGS } from "../types";
 import { generateShapeId } from "../lib/ids";
 import { presetIdForWorkArea } from "../lib/machinePresets";
@@ -95,6 +95,10 @@ interface ProjectState {
   removeSelected: () => void;
   alignSelected: (mode: AlignMode) => void;
   distributeSelected: (mode: DistributeMode) => void;
+  /** Extra operations on a shape (Sprint 16). */
+  addExtraOp: (shapeId: string, op: Omit<ExtraOperation, "id">) => void;
+  updateExtraOp: (shapeId: string, opId: string, patch: Partial<ExtraOperation>) => void;
+  removeExtraOp: (shapeId: string, opId: string) => void;
   /** Boolean between the selected shapes (selection order: first = base). Returns the ids created (empty = nothing to do). */
   booleanSelected: (op: BooleanOp) => string[];
   /** Arrange shapes on the stock (selection when ≥ 2 selected, else all visible unlocked). Returns the nesting result. */
@@ -219,6 +223,19 @@ export const useProjectStore = create<ProjectState>()(
       return { shapes: state.shapes.map((s) => moved.get(s.id) ?? s) };
     }),
 
+  addExtraOp: (shapeId, op) =>
+    set((state) => ({
+      shapes: state.shapes.map((s) => (s.id === shapeId ? { ...s, extraOps: [...(s.extraOps ?? []), { ...op, id: generateShapeId("op") }] } : s)),
+    })),
+  updateExtraOp: (shapeId, opId, patch) =>
+    set((state) => ({
+      shapes: state.shapes.map((s) => (s.id === shapeId ? { ...s, extraOps: (s.extraOps ?? []).map((o) => (o.id === opId ? { ...o, ...patch } : o)) } : s)),
+    })),
+  removeExtraOp: (shapeId, opId) =>
+    set((state) => ({
+      shapes: state.shapes.map((s) => (s.id === shapeId ? { ...s, extraOps: (s.extraOps ?? []).filter((o) => o.id !== opId).length ? (s.extraOps ?? []).filter((o) => o.id !== opId) : undefined } : s)),
+    })),
+
   booleanSelected: (op) => {
     const state = get();
     const sel = state.selectedIds.map((id) => state.shapes.find((s) => s.id === id)).filter((s): s is Shape => !!s && !s.locked);
@@ -259,7 +276,10 @@ export const useProjectStore = create<ProjectState>()(
       const stock = { ...state.settings.stock, ...patch };
       const shapes =
         patch.thickness !== undefined
-          ? state.shapes.map((s) => (s.cutThrough ? { ...s, depth: throughCutDepth(stock.thickness) } : s))
+          ? state.shapes.map((s) => {
+              const extraOps = s.extraOps?.map((op) => (op.cutThrough ? { ...op, depth: throughCutDepth(stock.thickness) } : op));
+              return s.cutThrough || extraOps ? { ...s, depth: s.cutThrough ? throughCutDepth(stock.thickness) : s.depth, extraOps } : s;
+            })
           : state.shapes;
       return { settings: { ...state.settings, stock }, shapes };
     }),

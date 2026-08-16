@@ -4,10 +4,33 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ## [Não publicado]
 
+### Corrigido
+- Import da Function `/api/feedback` com extensão `.js` — o TypeScript da Vercel (`node16`/`nodenext`) recusava `./_lib/feedback-core`.
+- `vercel.json`: removido `memory` (ignorado no Active CPU).
+
 ### Alterado
 - **Tom da UI**: avisos, erros, Sobre, PWA e dicas passam a falar como oficina — curto e concreto, sem tom de manual.
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
+
+## [Planejado — Sprint 23]
+
+- Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, linha do tempo, textos, regras dos agentes, políticas — `docs/sprints/sprint-23-acabamento-ux.md`.
+
+## [0.23.0 — Sprint 16 — Verificação, operações adicionais, link] — 2026-08-16
+
+### Adicionado
+- **Operações adicionais** por peça (Peça → Operações adicionais): a mesma geometria com rebaixo + recorte passante (ou outras combinações), com compensação, tabs, fresa e "cortar através" próprios.
+- **Verificar** (simulador → Resultado): quanto de cada rebaixo/furo/furação não foi alcançado (cantos internos, vãos estreitos), raio mínimo da fresa e corte fora das peças.
+- **Copiar link do projeto**: o projeto inteiro dentro da URL (`#p=…`); abrir o link carrega o projeto.
+
+## [0.22.0 — Sprint 22 — Barra superior no estilo Fusion 360] — 2026-08-16
+
+### Alterado
+- **Barra superior em 3 linhas**: app bar (menu, **nome do projeto** editável, desfazer/refazer, Exportar), abas **Desenhar | Simular** + abas de contexto em caixa alta (FORMAS · USINAGEM · VISTA / REPRODUZIR), ribbon com **rótulo de grupo ▾** que abre o menu do grupo, item destacado, **Selecionar** fixo à direita, **tooltips ricos** (atalho + descrição) e ribbon **minimizável**.
+- Aba **USINAGEM** espelha a peça selecionada (contorno/rebaixo/furação, por fora/por dentro/na linha, tabs) e atalhos de corte (hélice, ordem, abrir Corte/Exportar).
+- Nome do projeto vai para o título da aba, o nome dos arquivos e o cabeçalho do G-code.
+- Painel: abas com visual de abas, navegador mais compacto, menos padding.
 
 ## [0.21.0 — Sprint 21 — Primeiro uso, exemplos, acessibilidade, preferências] — 2026-08-16
 

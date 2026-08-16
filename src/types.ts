@@ -26,6 +26,19 @@ export interface BaseShape {
   locked?: boolean;
   /** Tool from the tool library; undefined = project default tool. */
   toolId?: string;
+  /** Extra operations on the same geometry (e.g. rebaixo 6 mm + contorno passante), machined after the main one. */
+  extraOps?: ExtraOperation[];
+}
+
+/** An additional operation applied to a shape's geometry (Sprint 16). */
+export interface ExtraOperation {
+  id: string;
+  operation: "outline" | "pocket" | "drill";
+  depth: number;
+  side?: CutSide;
+  tabs?: TabSettings;
+  toolId?: string;
+  cutThrough?: boolean;
 }
 
 export type CutSide = "on" | "outside" | "inside";
@@ -169,6 +182,8 @@ export type PostId = "grbl" | "marlin" | "linuxcnc";
 export type ExportUnits = "mm" | "inch";
 
 export interface MachineSettings {
+  /** Project name (file name, G-code header, tab title). Optional. */
+  projectName?: string;
   /** Post-processor (G-code dialect) used on export. */
   post: PostId;
   /** Units of the exported program (G21 mm / G20 inch — coordinates and feeds converted). Editing is always mm. */
