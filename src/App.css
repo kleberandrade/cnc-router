@@ -1819,3 +1819,23 @@ label.checkbox .field-hint {
 .news-entry h3 { margin: var(--s3) 0 var(--s1); font-size: var(--fs-lg); font-family: var(--font-display); }
 .news-entry ul { margin: 0; padding-left: 18px; font-size: var(--fs-base); line-height: 1.45; }
 .news { max-height: 60vh; overflow: auto; }
+
+/* Sprint 20: feedback dialog */
+.feedback { display: flex; flex-direction: column; gap: var(--s3); min-width: 420px; }
+.feedback h2 { display: flex; align-items: center; gap: var(--s2); }
+.feedback label { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-md); }
+.feedback label.pref-row { flex-direction: row; align-items: center; justify-content: space-between; }
+.feedback input[type="text"], .feedback input[type="email"], .feedback textarea, .feedback select {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px var(--s2); font: inherit; font-size: var(--fs-base);
+  background: var(--surface); color: var(--text);
+}
+.feedback textarea { resize: vertical; min-height: 96px; }
+.feedback label.checkbox { flex-direction: row; align-items: flex-start; gap: var(--s2); }
+.feedback .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.feedback-actions { display: flex; align-items: center; gap: var(--s3); }
+.feedback-actions .rb.primary { flex-direction: row; gap: var(--s2); padding: 8px var(--s4); }
+.feedback .mono { font-family: var(--font-mono); font-size: var(--fs-xs); }
+.feedback code { font-family: var(--font-mono); background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+button.link { border: none; background: none; color: var(--accent); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+a.link { color: var(--accent); font-size: var(--fs-md); }
+@media (max-width: 767px) { .feedback { min-width: 0; } }

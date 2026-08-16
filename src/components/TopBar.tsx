@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown, FilePlus, FolderOpen, Save, Download, Upload, Undo2, Redo2, Square, Circle as CircleIcon, Pentagon,
   Copy, Trash2, ZoomIn, ZoomOut, Maximize, PanelLeft, SkipBack, SkipForward, StepBack, StepForward, Play, Pause,
-  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, RectangleHorizontal, Magnet, Settings2, Type,
+  RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon,
 } from "lucide-react";
@@ -15,6 +15,7 @@ import type { StepMode } from "../lib/playback";
 import { useInstallAction } from "../hooks/useInstallAction";
 import { BrandMark } from "./BrandMark";
 import { PRODUCT, AUTHOR, THIRD_PARTY } from "../content/about";
+import { FeedbackDialog } from "./FeedbackDialog";
 import { versionLabel, buildLabel, CHANGELOG, isNewVersion, isFirstRun, markVersionSeen } from "../lib/version";
 
 function RibbonGroup({ title, children }: { title: string; children: ReactNode }) {
@@ -28,7 +29,7 @@ function RibbonGroup({ title, children }: { title: string; children: ReactNode }
 
 function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions> }) {
   const [open, setOpen] = useState(false);
-  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news">(null);
+  const [dialog, setDialog] = useState<null | "shortcuts" | "about" | "prefs" | "news" | "feedback">(null);
   const [hasNews, setHasNews] = useState(false);
   useEffect(() => {
     if (isFirstRun()) markVersionSeen();
@@ -69,15 +70,16 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
       {open && (
         <div className="menu" role="menu" data-testid="project-menu-list">
           {item(<FilePlus size={16} />, "Novo projeto", actions.newProject, "menu-new")}
-          {item(<FolderOpen size={16} />, "Abrir projeto (.json)…", actions.openProject, "menu-open")}
-          {item(<Save size={16} />, "Salvar projeto (.json)", actions.saveProject, "menu-save", "Ctrl+S")}
+          {item(<FolderOpen size={16} />, "Abrir projeto…", actions.openProject, "menu-open")}
+          {item(<Save size={16} />, "Salvar projeto", actions.saveProject, "menu-save", "Ctrl+S")}
           {item(<Upload size={16} />, "Importar SVG / DXF…", actions.importSvg, "menu-import")}
           <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
           <div className="menu-sep" />
           {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
-          {item(<Settings2 size={16} />, "Preferências (tema, mouse)", () => setDialog("prefs"), "menu-prefs")}
+          {item(<Settings2 size={16} />, "Preferências", () => setDialog("prefs"), "menu-prefs")}
           {item(<Keyboard size={16} />, "Atalhos de teclado", () => setDialog("shortcuts"), "menu-shortcuts", "?")}
+          {item(<MessageSquarePlus size={16} />, "Sugestões e problemas…", () => setDialog("feedback"), "menu-feedback")}
           {item(<Sparkles size={16} />, hasNews ? "Novidades desta versão" : "Novidades", openNews, "menu-news", hasNews ? "novo" : undefined)}
           {item(<Info size={16} />, "Sobre", () => setDialog("about"), "menu-about")}
           <div className="menu-sep" />
@@ -87,7 +89,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
       {dialog && (
         <div className="dialog-backdrop" onClick={() => setDialog(null)} role="presentation">
           <div className="dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-testid="dialog">
-            {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : <About />}
+            {dialog === "shortcuts" ? <Shortcuts /> : dialog === "prefs" ? <Preferences /> : dialog === "news" ? <News /> : dialog === "feedback" ? <FeedbackDialog onDone={() => setDialog(null)} /> : <About onFeedback={() => setDialog("feedback")} />}
             <button type="button" className="dialog-close" onClick={() => setDialog(null)}>Fechar</button>
           </div>
         </div>
@@ -147,7 +149,7 @@ function Preferences() {
           <option value="fusion">Fusion — botão do meio move, esquerdo orbita</option>
         </select>
       </label>
-      <p className="hint">Unidades: milímetros. Snap e ordem de usinagem ficam no projeto.</p>
+      <p className="hint">Tudo em milímetros. Snap e ordem de corte ficam no projeto.</p>
     </>
   );
 }
@@ -176,7 +178,7 @@ function NestDialog({ onDone }: { onDone: () => void }) {
   );
 }
 
-function About() {
+function About({ onFeedback }: { onFeedback?: () => void }) {
   return (
     <div className="about" data-testid="about">
       <h2 className="about-title">
@@ -195,7 +197,9 @@ function About() {
         <dt>Licença</dt>
         <dd>{PRODUCT.license}</dd>
       </dl>
-      <p className="hint">Sugestões e problemas: por enquanto pelo e-mail acima (um formulário dentro do app chega na próxima versão). Unidades: milímetros. Origem de trabalho definida pela chapa; o percurso do simulador é o mesmo do G-code exportado.</p>
+      <p className="hint">
+        <button type="button" className="link" onClick={onFeedback} data-testid="about-feedback">Sugestão ou problema? Manda por aqui</button> · Tudo em milímetros. A origem fica na chapa; o que você vê no simulador é o mesmo G-code que sai.
+      </p>
       <details className="about-licenses">
         <summary>Bibliotecas e fontes de terceiros ({THIRD_PARTY.length})</summary>
         <ul>
@@ -274,9 +278,9 @@ export function TopBar() {
     {
       key: "arranjar", title: "Arranjar", priority: 3, items: [
         { icon: <LayoutGrid size={ICON} />, label: "Organizar", onClick: () => setNestOpen(true), disabled: actions.shapes.length === 0, testId: "nest", title: "Organizar as peças na chapa (nesting)" },
-        { icon: <Combine size={ICON} />, label: "Unir", onClick: () => actions.boolean("union"), disabled: sel < 2, testId: "bool-union", title: "União das formas selecionadas" },
+        { icon: <Combine size={ICON} />, label: "Unir", onClick: () => actions.boolean("union"), disabled: sel < 2, testId: "bool-union", title: "Unir as peças selecionadas" },
         { icon: <SquareMinus size={ICON} />, label: "Subtrair", onClick: () => actions.boolean("difference"), disabled: sel < 2, testId: "bool-difference", title: "Subtrair as outras da primeira selecionada" },
-        { icon: <SquareDot size={ICON} />, label: "Intersec.", onClick: () => actions.boolean("intersection"), disabled: sel < 2, testId: "bool-intersection", title: "Interseção das formas selecionadas" },
+        { icon: <SquareDot size={ICON} />, label: "Intersec.", onClick: () => actions.boolean("intersection"), disabled: sel < 2, testId: "bool-intersection", title: "Ficar só com o que se cruza" },
         {
           icon: <AlignIcon size={ICON} />, label: "Alinhar", disabled: sel < 2, testId: "align-menu", title: "Alinhar / distribuir (2+ formas)", onClick: () => {},
           menu: [
@@ -297,14 +301,14 @@ export function TopBar() {
         { icon: <ZoomOut size={ICON} />, label: "Reduzir", onClick: actions.zoomOut, testId: "zoom-out", title: "Reduzir (−)" },
         { icon: <Maximize size={ICON} />, label: `${Math.round(actions.zoom * 100)}%`, onClick: actions.zoomFit, testId: "zoom-fit", title: "Ajustar à mesa (0)", labelClass: "zoom-label" },
         { icon: <ZoomIn size={ICON} />, label: "Ampliar", onClick: actions.zoomIn, testId: "zoom-in", title: "Ampliar (+)" },
-        { icon: <Magnet size={ICON} />, label: "Snap", onClick: actions.toggleSnap, active: actions.snap, testId: "snap-toggle", title: "Snap a chapa/formas (S)" },
+        { icon: <Magnet size={ICON} />, label: "Snap", onClick: actions.toggleSnap, active: actions.snap, testId: "snap-toggle", title: "Snap na chapa e nas peças (S)" },
       ],
     },
     {
       key: "projeto", title: "Projeto", priority: 5, items: [
         { icon: <FilePlus size={ICON} />, label: "Novo", onClick: actions.newProject, testId: "new-project", title: "Novo projeto" },
-        { icon: <FolderOpen size={ICON} />, label: "Abrir", onClick: actions.openProject, testId: "open-project", title: "Abrir projeto (.json)" },
-        { icon: <Save size={ICON} />, label: "Salvar", onClick: actions.saveProject, testId: "save-project", title: "Salvar projeto (.json) — Ctrl+S" },
+        { icon: <FolderOpen size={ICON} />, label: "Abrir", onClick: actions.openProject, testId: "open-project", title: "Abrir projeto" },
+        { icon: <Save size={ICON} />, label: "Salvar", onClick: actions.saveProject, testId: "save-project", title: "Salvar projeto (Ctrl+S)" },
         { icon: <Upload size={ICON} />, label: "Importar", onClick: actions.importSvg, testId: "import-svg", title: "Importar SVG ou DXF" },
       ],
     },

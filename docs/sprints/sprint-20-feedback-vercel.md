@@ -1,27 +1,35 @@
 # Sprint 20 — Sugestões e problemas (Vercel Function + Blob)
 
-**Status:** planejada
+**Status:** concluída — 2026-08-16 · **Versão:** 0.20.0
 **Esforço:** M (3–4 dias)
 **Depende de:** 19
 
 ## Objetivo
 Qualquer pessoa consegue mandar uma sugestão ou reportar um problema de dentro do app, com diagnóstico anexado, sem criar conta; o autor lê tudo no Vercel.
 
-## Arquitetura
-- Front (estático) continua 100 % client-side; ganha um **endpoint** `api/feedback.ts` (Vercel Serverless Function, Node 20) — o app segue funcionando offline; o envio fica desabilitado sem rede com mensagem clara.
-- Armazenamento: **Vercel Blob** (`@vercel/blob`, token `BLOB_READ_WRITE_TOKEN` no projeto Vercel). Cada envio → `feedback/AAAA-MM/<ISO>-<id>.json` (`access: "private"`), com: tipo (sugestão | problema | outro), título, mensagem, e-mail opcional, versão/build/sha, user agent, viewport, tema, resumo do projeto (nº de formas, máquina, chapa, material, pós) e, se o usuário marcar, o projeto inteiro (`.json`, limite 512 kB) e o último erro capturado (`window.onerror`/`unhandledrejection` guardados num buffer).
-- Proteções: honeypot, tamanho máximo do corpo (1 MB), rate limit por IP (`Map` em memória da função + cabeçalho `x-forwarded-for`, 5/min) e `Retry-After`; CORS só do próprio domínio; sem cookies.
-- Leitura pelo autor: `vercel blob ls feedback/` ou dashboard → Storage → Blob; script `scripts/feedback-report.ts` (`vercel blob` API) que baixa e imprime uma tabela; opcional: e-mail (Resend) fica para depois.
-- Sem Vercel Blob configurado (dev local): a função devolve 501 e o app mostra "canal indisponível — envie por e-mail" com `mailto:` pré-preenchido.
+![Formulário](img/sprint-20-feedback.png)
+
+## Arquitetura (implementada)
+- `api/feedback.ts` (Vercel Function, Web `Request`/`Response`) → `api/_lib/feedback-core.ts` (`handleFeedback(req, deps)`: validação, honeypot, rate limit 5/min por IP com `Retry-After`, CORS por lista de origens, corpo ≤ 1 MB, grava via `deps.save`) → **Vercel Blob** privado `feedback/AAAA-MM/<ISO>-<tipo>-<id>.json` (`@vercel/blob` `put`, `access: "private"`). Sem `BLOB_READ_WRITE_TOKEN` → 501.
+- `vercel.json` (`maxDuration 10`, `memory 256`), `.env.example`.
+- Cliente `src/lib/feedback.ts`: `buildDiagnostics` (anônimo), `buildPayload` (honeypot vazio, e-mail opcional, projeto ≤ 512 kB), `sendFeedback` (timeout 12 s; mapeia 501/404 → indisponível, 429 → limite, 4xx → rejeitado, rede) e `mailtoFor`; buffer dos últimos 5 erros (`installErrorCapture` no `main.tsx`).
+- `FeedbackDialog.tsx`: menu → "Sugestões e problemas…", link no Sobre; tipo, título, mensagem, e-mail opcional, anexar diagnóstico (com prévia) / projeto, estados enviando / enviado (id) / erro com `mailto:`, offline recusado com mensagem.
+- `scripts/feedback-report.ts`: lista os envios (tabela ou `--json`). `docs/feedback.md`: ativação, leitura, LGPD, dev local.
 
 ## Tarefas
-- [ ] `api/feedback.ts` + `vercel.json` (functions, maxDuration 10 s) + `.env.example`; testes da função com `vitest` (handler puro, Blob mockado).
-- [ ] `src/lib/feedback.ts` (payload, diagnóstico, buffer de erros, `sendFeedback()` com timeout) e `src/components/FeedbackDialog.tsx` (menu do projeto → "Sugestões e problemas", atalho no Sobre e no rodapé; tipo, título, mensagem, e-mail opcional, checkbox "anexar projeto", checkbox "anexar diagnóstico", pré-visualização do que vai).
-- [ ] Estados: enviando / enviado (id curto para referência) / erro com fallback `mailto:`; offline desabilita com hint.
-- [ ] Docs: `docs/feedback.md` (como ativar o Blob no projeto Vercel, variável, custo do Hobby, como ler/baixar, retenção e LGPD: o que é coletado, e-mail opcional, como pedir remoção).
-- [ ] Testes: unit (payload sem dados sensíveis por padrão, limite de tamanho, buffer de erros), e2e com rota mockada (`page.route('/api/feedback')`) para sucesso/erro/offline.
+- [x] `api/feedback.ts` + core testável + `vercel.json` + `.env.example`.
+- [x] `lib/feedback.ts` + `FeedbackDialog.tsx` + entradas no menu e no Sobre.
+- [x] Estados enviando/enviado/erro/offline com fallback `mailto:`.
+- [x] `docs/feedback.md` (ativar Blob, ler, retenção/LGPD).
+- [x] Testes: 7 do core (validação, 400/405/403/413, honeypot, 429, janela, CORS, 502), 4 do cliente, 3 e2e (sucesso com payload conferido, 501 → e-mail, offline). Total: 284 unitários, 74 e2e.
 
 ## DoD específica
-- Enviar uma sugestão em produção cria um JSON no Blob e o app mostra o id; a função rejeita corpo > 1 MB e 6.º envio no minuto (429).
-- Sem token, o app oferece o `mailto:` — nunca falha em silêncio.
-- `docs/feedback.md` permite ao autor ler os envios em < 5 min.
+- ✅ Função rejeita corpo > 1 MB (413) e o 6.º envio no minuto (429) — testes.
+- ✅ Sem token o app oferece o `mailto:` — nunca falha em silêncio (e2e 501).
+- ✅ `docs/feedback.md` permite ler os envios em < 5 min (dashboard ou script).
+- ⏳ **Enviar em produção cria o JSON no Blob** — depende de criar o Blob store no projeto Vercel (passo 1 do doc) e redeploy; verificar após o deploy.
+
+## Notas de fechamento
+- Rate limit em memória é por instância da função (suficiente contra acidentes; não é proteção forte).
+- `vite preview` não serve `/api` → localmente o formulário cai no e-mail (esperado); `vercel dev` roda a função.
+- E-mail automático ao autor (Resend) fica para quando houver volume.

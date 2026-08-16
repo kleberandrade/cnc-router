@@ -12,5 +12,5 @@ Ler [`AGENTS.md`](../../AGENTS.md) no início de tarefas que toquem código, tes
 - Unidades internas em **mm**.
 - Estado: `useProjectStore` (projeto) e `useSimStore` (simulação).
 - Lógica pura em `src/lib/`; componentes só orquestram.
-- UI em pt-BR; identificadores em inglês.
+- UI em pt-BR; identificadores em inglês. Tom de oficina (ver AGENTS.md).
 - DoD, testes e commits: ver AGENTS.md.

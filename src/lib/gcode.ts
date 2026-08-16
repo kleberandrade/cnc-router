@@ -37,10 +37,10 @@ export function validateSettings(settings: MachineSettings): string[] {
   ];
   for (const [key, label] of positive) {
     const v = settings[key];
-    if (!Number.isFinite(v) || v <= 0) problems.push(`${label} deve ser maior que zero.`);
+    if (!Number.isFinite(v) || v <= 0) problems.push(`${label} precisa ser maior que zero.`);
   }
   if (!Number.isFinite(settings.safeHeight) || settings.safeHeight < 0) {
-    problems.push("Altura segura não pode ser negativa.");
+    problems.push("Altura segura não pode ficar negativa.");
   }
   return problems;
 }
@@ -50,7 +50,7 @@ export function validateShapes(shapes: Shape[]): string[] {
   const problems: string[] = [];
   shapes.forEach((s, i) => {
     if (!Number.isFinite(s.depth) || s.depth <= 0) {
-      problems.push(`Forma ${i + 1}: profundidade de corte deve ser maior que zero.`);
+      problems.push(`Forma ${i + 1}: a profundidade precisa ser maior que zero.`);
     }
   });
   return problems;

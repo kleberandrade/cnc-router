@@ -45,7 +45,7 @@ export function Navigator() {
         <Search size={14} aria-hidden="true" />
         <input type="search" placeholder="Buscar peça…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar peça" data-testid="nav-search" />
       </label>
-      {shapes.length === 0 && <p className="hint">Nenhuma peça ainda.</p>}
+      {shapes.length === 0 && <p className="hint">Ainda não tem peça.</p>}
       <ul className="nav-list" role="listbox" aria-label="Peças (ordem de usinagem)">
         {rows.map(({ s, i, name }) => {
           const selected = selectedIds.includes(s.id);
@@ -104,7 +104,7 @@ export function Navigator() {
           );
         })}
       </ul>
-      <p className="hint">A ordem da lista é a ordem manual de usinagem (Corte → Ordem de usinagem: Manual). Arraste para reordenar.</p>
+      <p className="hint">Essa ordem vale quando Corte → Ordem está em Manual. Arraste para reordenar.</p>
     </div>
   );
 }

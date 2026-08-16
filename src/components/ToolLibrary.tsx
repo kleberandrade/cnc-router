@@ -14,8 +14,8 @@ export function ToolLibrary() {
   return (
     <div className="tool-library" data-testid="tool-library">
       <p className="hint">
-        Fresa padrão: Ø{settings.toolDiameter} mm ({settings.toolType}). Adicione outras fresas e escolha-as por peça; o G-code
-        pausa (M0) a cada troca e o simulador troca o modelo.
+        Fresa padrão: Ø{settings.toolDiameter} mm ({settings.toolType}). Cadastre outras e escolha por peça — o G-code
+        para (M0) na troca e o simulador troca o modelo.
       </p>
       {settings.tools.map((t) => {
         const uses = shapes.filter((s) => s.toolId === t.id).length;

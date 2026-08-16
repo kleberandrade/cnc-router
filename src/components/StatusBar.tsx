@@ -67,7 +67,7 @@ export function StatusBar() {
           </ul>
         </details>
       ) : (
-        <span className="status-item status-ok"><CircleCheck size={13} aria-hidden="true" /> sem avisos</span>
+        <span className="status-item status-ok"><CircleCheck size={13} aria-hidden="true" /> tudo certo</span>
       )}
       <span className="status-item status-version" title={buildLabel()} data-testid="status-version">{versionLabel()}</span>
     </footer>

@@ -10,9 +10,11 @@ No dashboard da Vercel, ative **Web Analytics** e **Speed Insights** (o app já 
 
 ## Sobre o projeto e o autor
 
-**Oficina CNC** é um projeto de **Kleber Andrade** (`pdjkleber@gmail.com`) — idealização, projeto e desenvolvimento — para quem tem uma router hobby ou de pequena oficina e quer sair do desenho para o G-code sem instalar nada. Produção: [oficina-cnc.vercel.app](https://oficina-cnc.vercel.app). No app: menu **Oficina CNC → Sobre** (autor, contato, licenças) e **Novidades** (últimas sprints).
+**Oficina CNC** é um projeto de **Kleber Andrade** (`pdjkleber@gmail.com`) — idealização, projeto e desenvolvimento — para quem tem uma router de hobby ou de pequena oficina e quer ir do desenho ao G-code sem outro programa. Produção: [oficina-cnc.vercel.app](https://oficina-cnc.vercel.app). No app: menu **Oficina CNC → Sobre** (autor, contato, licenças) e **Novidades** (últimas sprints).
 
 **Versionamento:** `package.json` segue as sprints — cada sprint fechada sobe o *minor* (`0.19.0` = Sprint 19), correções sobem o *patch*; a versão, o sha do commit (`VERCEL_GIT_COMMIT_SHA` no deploy) e a data entram no build via `define` do Vite e aparecem no menu, no rodapé, no Sobre e no cabeçalho do G-code. Ao fechar uma sprint: `git tag vX.Y.Z`.
+
+**Sugestões e problemas:** menu **Oficina CNC → Sugestões e problemas…** — vai para uma Vercel Function que guarda o envio no Vercel Blob (privado); sem o Blob configurado o app oferece e-mail. Detalhes em [`docs/feedback.md`](docs/feedback.md).
 
 ## Stack
 
@@ -65,6 +67,9 @@ A auditoria que originou o plano está em [`docs/auditoria.md`](docs/auditoria.m
 ## Arquitetura
 
 ```
+api/
+├─ feedback.ts           # Vercel Function: POST /api/feedback → Vercel Blob (privado)
+└─ _lib/feedback-core.ts # validação, honeypot, rate limit, CORS (testável)
 src/
 ├─ types.ts              # Shape (retângulo c/ cantos, círculo, path c/ ilhas, polígono regular, rasgo, texto), MachineSettings
 ├─ lib/
@@ -78,6 +83,7 @@ src/
 │  ├─ toolModel.ts         # fresa 3D (spindle, pinça, haste, ponta reta/esférica/V)
 │  ├─ gcode.ts             # Segment[] → G-code (via pós-processador) + validação/cabeçalho
 │  ├─ post/index.ts        # pós-processadores GRBL / Marlin / LinuxCNC-Mach3, G20/G21
+│  ├─ feedback.ts          # payload/diagnóstico/envio do formulário de sugestões (fallback mailto)
 │  ├─ boolean.ts           # união/subtração/interseção (Clipper) → path com furos
 │  ├─ nesting.ts           # organizar peças na chapa (MaxRects, rotação 0/90)
 │  ├─ svgImport.ts         # SVG (unidades, viewBox, transform, curvas amostradas) → Shape[] + avisos

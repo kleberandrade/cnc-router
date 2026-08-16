@@ -90,25 +90,25 @@ export function useProjectActions() {
   const handleBoolean = (op: BooleanOp) => {
     const ids = useProjectStore.getState().booleanSelected(op);
     if (ids.length === 0) {
-      setNotice({ kind: "warning", title: op === "intersection" ? "As formas não se sobrepõem — interseção vazia." : "Selecione 2 ou mais formas (a primeira é a base)." });
+      setNotice({ kind: "warning", title: op === "intersection" ? "Essas peças não se cruzam — a interseção ficou vazia." : "Selecione pelo menos duas peças. A primeira é a base." });
       return;
     }
     const label = { union: "União", difference: "Subtração", intersection: "Interseção" }[op];
-    setNotice({ kind: "info", title: `${label}: ${ids.length} forma(s) resultante(s).` });
+    setNotice({ kind: "info", title: `${label}: ${ids.length} peça${ids.length === 1 ? "" : "s"} pronta${ids.length === 1 ? "" : "s"}.` });
   };
 
   const handleNest = (opts: { spacing: number; allowRotate: boolean }) => {
     const st = useProjectStore.getState();
     const result = st.nestOnStock(opts, st.selectedIds.length >= 2 ? st.selectedIds : undefined);
     if (result.placed.length === 0 && result.overflow.length === 0) {
-      setNotice({ kind: "warning", title: "Nada para organizar — adicione peças visíveis e destravadas." });
+      setNotice({ kind: "warning", title: "Não tem peça livre para organizar. Mostre ou destrave alguma." });
       return result;
     }
     if (result.overflow.length > 0) {
       const names = result.overflow.map((id) => st.shapes.find((s) => s.id === id)?.name ?? id);
       setNotice({ kind: "warning", title: `${result.placed.length} peça(s) organizada(s); ${result.overflow.length} não cabem na chapa e ficaram onde estavam.`, details: names });
     } else {
-      setNotice({ kind: "info", title: `${result.placed.length} peça(s) organizada(s) na chapa (${Math.round(result.fill * 100)} % de ocupação).` });
+      setNotice({ kind: "info", title: `${result.placed.length} peça(s) organizada(s) na chapa (${Math.round(result.fill * 100)}% ocupada).` });
     }
     return result;
   };
@@ -130,14 +130,14 @@ export function useProjectActions() {
       const text = await file.text();
       const { shapes: imported, warnings } = isDxf ? parseDxf(text, { depth: stock.thickness }) : parseSvg(text, { depth: stock.thickness });
       addShapes(imported.map((sh) => ({ ...sh, side: "outside" as const })));
-      const details = warnings.filter((w) => !w.startsWith("Nenhuma forma"));
+      const details = warnings.filter((w) => !w.startsWith("Não achei"));
       setNotice({
         kind: imported.length > 0 ? (details.length ? "warning" : "info") : "warning",
-        title: imported.length > 0 ? `${imported.length} forma(s) importada(s) de ${isDxf ? "DXF" : "SVG"}.` : `Nenhuma forma reconhecida nesse ${isDxf ? "DXF" : "SVG"}.`,
+        title: imported.length > 0 ? `Trouxe ${imported.length} peça${imported.length === 1 ? "" : "s"} do ${isDxf ? "DXF" : "SVG"}.` : `Não achei peças nesse ${isDxf ? "DXF" : "SVG"}.`,
         details: details.length ? details : undefined,
       });
     } catch {
-      setNotice({ kind: "error", title: `Não foi possível importar esse arquivo ${isDxf ? "DXF" : "SVG"}.` });
+      setNotice({ kind: "error", title: `Esse ${isDxf ? "DXF" : "SVG"} não abriu. Confira se o arquivo está ok.` });
     } finally {
       e.target.value = "";
     }
@@ -149,7 +149,7 @@ export function useProjectActions() {
     try {
       const project = parseProject(await file.text());
       loadProject(project);
-      setNotice({ kind: "info", title: `Projeto "${file.name}" aberto (${project.shapes.length} forma(s)).` });
+      setNotice({ kind: "info", title: `Abri “${file.name}” — ${project.shapes.length} peça${project.shapes.length === 1 ? "" : "s"}.` });
     } catch (err) {
       setNotice({ kind: "error", title: (err as Error).message });
     } finally {
@@ -159,17 +159,17 @@ export function useProjectActions() {
 
   const handleSave = () => {
     downloadTextFile("projeto.oficina-cnc.json", serializeProject(shapes, settings), "application/json");
-    setNotice({ kind: "info", title: "Projeto salvo (projeto.oficina-cnc.json)." });
+    setNotice({ kind: "info", title: "Projeto salvo." });
   };
 
   const handleExport = () => {
     if (shapes.length === 0) {
-      setNotice({ kind: "warning", title: "Adicione ao menos uma forma antes de exportar." });
+      setNotice({ kind: "warning", title: "Desenhe uma peça antes de exportar." });
       return;
     }
     const result = tryGenerateGCode(shapes, settings);
     if (!result.ok) {
-      setNotice({ kind: "error", title: "Não foi possível gerar o G-code:", details: result.problems });
+      setNotice({ kind: "error", title: "Esse G-code não saiu — confira o que falta:", details: result.problems });
       return;
     }
     setNotice(null);
@@ -177,9 +177,9 @@ export function useProjectActions() {
   };
 
   const handleNewProject = () => {
-    if (shapes.length > 0 && !window.confirm("Começar um novo projeto? As formas atuais serão apagadas.")) return;
+    if (shapes.length > 0 && !window.confirm("Começar do zero? As peças da mesa vão embora.")) return;
     newProject();
-    setNotice({ kind: "info", title: "Novo projeto criado." });
+    setNotice({ kind: "info", title: "Mesa limpa. Projeto novo." });
   };
 
   // Global keyboard shortcuts (ignored while typing in inputs).

@@ -20,11 +20,11 @@ export function parseProject(text: string): { shapes: Shape[]; settings: Machine
   try {
     raw = JSON.parse(text);
   } catch {
-    throw new Error("Arquivo de projeto inválido (não é JSON).");
+    throw new Error("Esse arquivo não parece um JSON.");
   }
   const obj = raw as Partial<ProjectFile> | null;
   if (!obj || typeof obj !== "object" || obj.app !== "oficina-cnc" || !Array.isArray(obj.shapes)) {
-    throw new Error("Este arquivo não é um projeto do Oficina CNC.");
+    throw new Error("Esse arquivo não é um projeto da Oficina CNC.");
   }
   const version = typeof obj.version === "number" ? obj.version : 0;
   return migrateProject({ shapes: obj.shapes, settings: obj.settings }, version);

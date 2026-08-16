@@ -139,10 +139,10 @@ export function SidePanel() {
           <Navigator />
         </Group>
         <h3 className="panel-group-title">{selectedShape ? "Selecionada" : selectedIds.length > 1 ? `${selectedIds.length} selecionadas` : "Nenhuma selecionada"}</h3>
-        {!selectedShape && selectedIds.length < 2 && <p className="hint">Clique numa forma no desenho ou adicione uma pela barra. Shift+clique ou arraste no fundo para selecionar várias.</p>}
+        {!selectedShape && selectedIds.length < 2 && <p className="hint">Clique numa peça no desenho ou crie uma pela barra. Shift+clique ou arraste no fundo para pegar várias.</p>}
         {selectedIds.length > 1 && (
           <>
-            <p className="hint" data-testid="multi-summary">{selectedIds.length} formas selecionadas — use os botões Alinhar/Distribuir da barra, setas para mover, Del para excluir.</p>
+            <p className="hint" data-testid="multi-summary">{selectedIds.length} peças selecionadas — alinhe pela barra, setas para mover, Del para excluir.</p>
             <div className="field-row">
               <button type="button" onClick={() => alignSelected("left")}>Alinhar esq.</button>
               <button type="button" onClick={() => alignSelected("centerX")}>Centralizar</button>
@@ -417,7 +417,7 @@ export function SidePanel() {
           <NumberField label="Z" unit="mm" min={1} step={5} value={workArea.zTravel} testId="work-z" onChange={(v) => setWorkArea({ zTravel: v })} />
         </div>
         </Group>
-        <Group title="Chapa / base" hint="A origem de trabalho (X0 Y0 do G-code) é definida pela chapa.">
+        <Group title="Chapa / base" hint="O X0 Y0 do G-code fica na chapa.">
         <div className="field-row">
           <NumberField label="Largura" unit="mm" min={1} step={10} value={stock.width} testId="stock-width" onChange={(v) => updateStock({ width: v })} />
           <NumberField label="Altura" unit="mm" min={1} step={10} value={stock.height} testId="stock-height" onChange={(v) => updateStock({ height: v })} />
@@ -450,8 +450,8 @@ export function SidePanel() {
                 setNotice({
                   kind: "info",
                   title: hasOverrides
-                    ? "Parâmetros de corte atualizados (campos manuais mantidos) — revise."
-                    : "Parâmetros de corte atualizados para o material — revise.",
+                    ? "Atualizei o corte — os campos manuais ficaram. Confira."
+                    : "Atualizei o corte para o material. Confira.",
                 });
               }
             }}
@@ -487,7 +487,7 @@ export function SidePanel() {
           <button
             type="button"
             className="link"
-            onClick={() => { setMaterial(settings.material, true); setNotice({ kind: "info", title: `Preset ${material.label} restaurado.` }); }}
+            onClick={() => { setMaterial(settings.material, true); setNotice({ kind: "info", title: `Voltei o preset ${material.label}.` }); }}
             data-testid="restore-preset"
           >
             restaurar preset {material.label}

@@ -119,7 +119,7 @@ describe("Toolbar (ActionBar + SidePanel + StatusBar)", () => {
   it("warns inline and does not export when there are no shapes", async () => {
     render(<Toolbar />);
     await userEvent.click(screen.getByTestId("export-gcode"));
-    expect(screen.getByTestId("notice")).toHaveTextContent("Adicione ao menos uma forma antes de exportar.");
+    expect(screen.getByTestId("notice")).toHaveTextContent("Desenhe uma peça antes de exportar.");
   });
 
   it("shows validation problems instead of throwing when settings are invalid", async () => {
@@ -175,7 +175,7 @@ describe("Toolbar (ActionBar + SidePanel + StatusBar)", () => {
     render(<Toolbar />);
     const file = new File(["<svg><rect></svg"], "ruim.svg", { type: "image/svg+xml" });
     await userEvent.upload(screen.getByTestId("svg-file-input") as HTMLInputElement, file);
-    await waitFor(() => expect(screen.getByTestId("notice")).toHaveTextContent("Não foi possível importar esse arquivo SVG."));
+    await waitFor(() => expect(screen.getByTestId("notice")).toHaveTextContent("Esse SVG não abriu"));
   });
 
   it("changing the machine preset updates the work area", () => {

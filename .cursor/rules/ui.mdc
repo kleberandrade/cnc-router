@@ -7,6 +7,7 @@ alwaysApply: false
 # UI
 
 - Textos visíveis em **pt-BR**. Identificadores em inglês.
+- Tom de oficina: curto, concreto, falado (“esse SVG não abriu”, “desenhe uma peça antes”). Sem “não foi possível”, “inválido”, “resultante(s)” nem tom de manual. Sem emoji/gíria.
 - Ícones: `lucide-react`. Sem emoji ou glifo unicode decorativo.
 - Cores, espaçamento e fontes: tokens em `src/index.css` (ver `docs/design-tokens.md`).
 - Avisos: `Notice`. Nunca `alert()` / `window.alert`.

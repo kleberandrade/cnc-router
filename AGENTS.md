@@ -14,6 +14,7 @@ Vite + React + TypeScript. Gerenciador: **npm** (não pnpm; não commitar `pnpm-
 - Lógica pura em `src/lib/` (sem React). Componentes só orquestram.
 - Estado do projeto em `useProjectStore`; simulação em `useSimStore`.
 - Textos de UI em **pt-BR**; identificadores em inglês.
+- **Tom da UI**: falar como alguém da oficina, não como um manual. Frases curtas, concretas, na segunda pessoa implícita (“desenhe”, “esse arquivo não abriu”). Evitar jargão de spec (“não foi possível”, “inválido”, “resultante(s)”, “ao menos uma forma”) e tom burocrático. Sem fofura, sem emoji, sem gíria. Números e unidades ficam; o resto soa falado.
 - Ícones: `lucide-react`. Sem emoji ou glifo unicode decorativo. Avisos via `Notice`, nunca `alert()`.
 - Tokens em `src/index.css`. Wordmark: Bricolage Grotesque (`--font-brand`).
 

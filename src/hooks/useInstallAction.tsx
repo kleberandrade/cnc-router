@@ -8,7 +8,7 @@ export function useInstallAction() {
   const isStandalone = usePwaStore((s) => s.isStandalone);
   const install = usePwaStore((s) => s.install);
   if (isStandalone) return null;
-  if (canInstall) return { label: "Instalar aplicativo", icon: <Download size={16} />, run: () => void install() };
-  if (isIos) return { label: "Instalar: Compartilhar → Adicionar à Tela de Início", icon: <Download size={16} />, run: () => {} };
+  if (canInstall) return { label: "Instalar o app", icon: <Download size={16} />, run: () => void install() };
+  if (isIos) return { label: "No iPhone: Compartilhar → Adicionar à Tela de Início", icon: <Download size={16} />, run: () => {} };
   return null;
 }

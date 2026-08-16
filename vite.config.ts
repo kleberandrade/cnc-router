@@ -57,7 +57,7 @@ export default defineConfig({
       manifest: {
         name: 'Oficina CNC',
         short_name: 'Oficina CNC',
-        description: 'Editor 2D com importação SVG/DXF, gerador de G-code GRBL e simulador 3D para router CNC — 100% no navegador, instalável como PWA.',
+        description: 'Desenhe, simule e exporte G-code no navegador — sem instalar nada.',
         lang: 'pt-BR',
         start_url: '/',
         scope: '/',
@@ -100,6 +100,9 @@ export default defineConfig({
         // Playwright e2e + smoke suite instead of unit tests. See README.
         'src/components/Editor.tsx',
         'src/components/Simulator.tsx',
+        // thin Vercel wiring around api/_lib/feedback-core.ts (needs @vercel/blob + env)
+        'api/feedback.ts',
+        'scripts/',
       ],
       thresholds: {
         lines: 80,

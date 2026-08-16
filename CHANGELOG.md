@@ -2,6 +2,19 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [Não publicado]
+
+### Alterado
+- **Tom da UI**: avisos, erros, Sobre, PWA e dicas passam a falar como oficina — curto e concreto, sem tom de manual.
+- Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
+- Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
+
+## [0.20.0 — Sprint 20 — Sugestões e problemas] — 2026-08-16
+
+### Adicionado
+- **Sugestões e problemas** (menu Oficina CNC e Sobre): formulário com tipo, título, mensagem, e-mail opcional, diagnóstico anônimo (versão, navegador, resumo do projeto, últimos erros) e projeto anexável (≤ 512 kB); referência curta ao enviar; fallback por e-mail quando o canal não está ativo ou falha; offline avisa.
+- `api/feedback.ts` (Vercel Function) grava JSON privado no **Vercel Blob** (`feedback/AAAA-MM/…`), com validação, honeypot, rate limit 5/min por IP e CORS; `scripts/feedback-report.ts` lista os envios; `docs/feedback.md` (ativar, ler, LGPD).
+
 ## [0.19.0 — Sprint 19 — Versão, Sobre e Novidades] — 2026-08-16
 
 ### Adicionado

@@ -166,9 +166,9 @@ export function parseSvg(svgText: string, options: SvgImportOptions = {}): SvgIm
   const flipY = options.flipY ?? true;
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgText, "image/svg+xml");
-  if (doc.querySelector("parsererror")) throw new Error("Arquivo SVG inválido");
+  if (doc.querySelector("parsererror")) throw new Error("Esse SVG não parece válido");
   const root = doc.documentElement;
-  if (!root || root.tagName.toLowerCase() !== "svg") throw new Error("Arquivo SVG inválido");
+  if (!root || root.tagName.toLowerCase() !== "svg") throw new Error("Esse SVG não parece válido");
 
   const warnings: string[] = [];
   const { scale, heightUU, note } = rootScale(root);
@@ -282,7 +282,7 @@ export function parseSvg(svgText: string, options: SvgImportOptions = {}): SvgIm
 
   if (curves > 0) warnings.push(`${curves} elemento(s) com curvas foram aproximados por segmentos (tolerância ${options.tolerance ?? 0.1} mm).`);
   if (skipped > 0) warnings.push(`${skipped} elemento(s) não suportados (texto, imagem, use) foram ignorados — converta texto em curvas antes de exportar.`);
-  if (shapes.length === 0) warnings.push("Nenhuma forma reconhecida no SVG.");
+  if (shapes.length === 0) warnings.push("Não achei peças nesse SVG.");
   return { shapes, warnings };
 }
 

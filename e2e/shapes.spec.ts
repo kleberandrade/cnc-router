@@ -101,7 +101,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
     await page.mouse.down();
     await page.mouse.move(ox + 2 * scale, oyBottom - 2 * scale, { steps: 8 });
     await page.mouse.up();
-    await expect(page.getByTestId("multi-summary")).toContainText("2 formas");
+    await expect(page.getByTestId("multi-summary")).toContainText("2 peças");
     await alignClick(page, "align-left");
     await page.getByTestId("shape-x").waitFor({ state: "detached" });
     // both now share minX = 10 → delete both

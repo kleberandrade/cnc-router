@@ -24,7 +24,7 @@ export interface PostProcessor {
 const grbl: PostProcessor = {
   id: "grbl",
   label: "GRBL (1.1 / grblHAL)",
-  description: "Comentários com ';', M3/M5 para o spindle, M0 para a troca de fresa, M2 no fim. Padrão para routers hobby (3018, 6040, Shapeoko).",
+  description: "Comentários com ';', M3/M5 no spindle, M0 na troca de fresa, M2 no fim. Serve para a maioria das routers hobby (3018, 6040, Shapeoko).",
   extension: "gcode",
   comment: (t) => `; ${t}`,
   preamble: () => [],
@@ -41,7 +41,7 @@ const grbl: PostProcessor = {
 const marlin: PostProcessor = {
   id: "marlin",
   label: "Marlin (2.x, modo CNC)",
-  description: "Comentários com ';', M3/M5 (Marlin com SPINDLE_LASER_ENABLE), M0 com mensagem no LCD para a troca, M400 + M84 no fim. Sem G28 (não faz homing sozinho).",
+  description: "Comentários com ';', M3/M5 (precisa de SPINDLE_LASER_ENABLE), M0 com aviso no LCD na troca, M400 + M84 no fim. Sem G28 — não faz homing sozinho.",
   extension: "gcode",
   comment: (t) => `; ${t}`,
   preamble: () => ["M117 Oficina CNC ; mensagem no LCD"],
@@ -59,7 +59,7 @@ const marlin: PostProcessor = {
 const linuxcnc: PostProcessor = {
   id: "linuxcnc",
   label: "LinuxCNC / Mach3 / Mach4",
-  description: "Comentários entre parênteses, G17 G40 G49 G64 no preâmbulo, (MSG,…) + M0 na troca de fresa, M30 no fim. Também serve para Mach3/4 e controladores industriais.",
+  description: "Comentários entre parênteses, G17 G40 G49 G64 no começo, (MSG,…) + M0 na troca, M30 no fim. Também roda em Mach3/4.",
   extension: "ngc",
   comment: (t) => `(${t.replace(/[()]/g, "")})`,
   preamble: () => ["G17 (plano XY)", "G40 (sem compensacao de raio)", "G49 (sem compensacao de comprimento)", "G64 P0.01 (trajetoria continua)"],

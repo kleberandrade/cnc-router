@@ -1,8 +1,8 @@
 /** Product and author facts shown in "Sobre", README and the G-code header. Keep in one place. */
 export const PRODUCT = {
   name: "Oficina CNC",
-  tagline: "Editor 2D, gerador de G-code e simulador 3D para router CNC — 100 % no navegador.",
-  audience: "Feito para quem tem uma router hobby ou de pequena oficina (3018, 3040, 6040, 6090, 1010, 1325…) e quer sair do desenho para o G-code sem instalar nada.",
+  tagline: "Desenhe, simule e exporte G-code no navegador — sem instalar nada.",
+  audience: "Para quem tem uma router de hobby ou de pequena oficina (3018, 3040, 6040…) e quer ir do desenho ao G-code sem outro programa.",
   url: "https://oficina-cnc.vercel.app",
   repository: "", // preencher se o repositório for público
   license: "Todos os direitos reservados © 2026 Kleber Andrade. Uso pessoal e educacional livre; o código-fonte pode ser aberto no futuro.",

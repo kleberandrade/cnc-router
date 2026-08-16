@@ -49,7 +49,7 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
     issues.push({
       level: "warning",
       code: "stock-outside-table",
-      message: "A chapa está parcialmente fora da área útil da máquina.",
+      message: "A chapa ficou um pouco fora da área útil.",
     });
   }
   if (stock.thickness > workArea.zTravel) {
@@ -78,7 +78,7 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
       issues.push({
         level: "error",
         code: "shape-outside-table",
-        message: `${label} está fora da área útil da máquina (${workArea.width} × ${workArea.height} mm).`,
+        message: `${label} está fora da área útil (${workArea.width} × ${workArea.height} mm).`,
         shapeId: shape.id,
       });
     } else if (b.minX < sb.minX - EPS || b.minY < sb.minY - EPS || b.maxX > sb.maxX + EPS || b.maxY > sb.maxY + EPS) {
@@ -97,7 +97,7 @@ export function validateProject(shapes: Shape[], settings: MachineSettings): Iss
         issues.push({
           level: "warning",
           code: "drill-larger-than-tool",
-          message: `${label}: furo Ø${round2(shape.radius * 2)} mm maior que a fresa Ø${settings.toolDiameter} mm — a furação usa o Ø da fresa; para o tamanho exato use contorno "por dentro".`,
+          message: `${label}: furo Ø${round2(shape.radius * 2)} mm maior que a fresa Ø${settings.toolDiameter} mm — a furação usa o Ø da fresa; para o tamanho certo, use contorno "por dentro".`,
           shapeId: shape.id,
         });
       }

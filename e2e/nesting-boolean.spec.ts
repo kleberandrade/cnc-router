@@ -9,7 +9,7 @@ test.describe("sprint 15: booleanas e nesting", () => {
     await page.getByTestId("section-toggle-shape").click();
     await page.keyboard.press("Control+a");
     await ribbonClick(page, "bool-union");
-    await expect(page.getByTestId("notice")).toContainText("União: 1 forma");
+    await expect(page.getByTestId("notice")).toContainText("União: 1 peça");
     await expect(page.locator('[data-testid^="nav-item-"]')).toHaveCount(1);
     // undo restores both
     await page.getByTestId("undo").click();
@@ -26,7 +26,7 @@ test.describe("sprint 15: booleanas e nesting", () => {
     await page.getByTestId("shape-radius").fill("5"); await page.getByTestId("shape-radius").press("Enter");
     await page.keyboard.press("Control+a");
     await ribbonClick(page, "bool-difference");
-    await expect(page.getByTestId("notice")).toContainText("Subtração: 1 forma");
+    await expect(page.getByTestId("notice")).toContainText("Subtração: 1 peça");
     await page.getByTestId("section-toggle-shape").click();
     await expect(page.locator('[data-testid^="nav-item-"]')).toHaveCount(1);
   });

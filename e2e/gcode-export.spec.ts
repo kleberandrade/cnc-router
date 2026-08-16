@@ -25,7 +25,7 @@ test.describe("G-code export flow", () => {
 
     await page.getByTestId("export-gcode").click();
     await expect(page.getByTestId("notice")).toContainText(
-      "Adicione ao menos uma forma"
+      "Desenhe uma peça antes de exportar"
     );
   });
 

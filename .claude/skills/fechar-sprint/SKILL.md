@@ -5,7 +5,7 @@ description: Fecha uma sprint do Oficina CNC pela DoD global. Use when the user 
 
 # Fechar sprint
 
-Seguir a DoD em [`AGENTS.md`](../../../AGENTS.md) e [`docs/sprints/README.md`](../../../docs/sprints/README.md). Não marcar concluída se algum item falhar.
+Seguir a DoD em [`AGENTS.md`](../../../AGENTS.md) e [`docs/sprints/README.md`](../../../docs/sprints/README.md). Não marcar concluída se algum item falhar. Textos novos de UI no tom de oficina (AGENTS.md).
 
 ## Checklist
 

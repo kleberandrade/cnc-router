@@ -1,0 +1,26 @@
+---
+description: Tom dos textos de UI — oficina, não manual
+globs: src/components/**/*.tsx,src/content/**/*.ts,src/lib/projectFile.ts,src/lib/validate.ts,src/lib/gcode.ts,src/lib/svgImport.ts,src/lib/dxfImport.ts,src/lib/post/**/*.ts
+alwaysApply: false
+---
+
+# Tom da UI
+
+Falar como quem está na oficina. Frases curtas e concretas.
+
+```
+// ruim
+"Não foi possível gerar o G-code:"
+"Adicione ao menos uma forma antes de exportar."
+"N forma(s) resultante(s)."
+
+// bom
+"Esse G-code não saiu — confira o que falta:"
+"Desenhe uma peça antes de exportar."
+"União: 1 peça pronta."
+```
+
+- Segunda pessoa implícita: “desenhe”, “abra”, “esse arquivo”.
+- Sem jargão de spec (“inválido”, “não foi possível”, “ao menos”).
+- Sem fofura, emoji ou gíria.
+- Números, mm e nomes técnicos (G-code, snap, fresa) ficam.

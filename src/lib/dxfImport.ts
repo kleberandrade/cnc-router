@@ -114,7 +114,7 @@ export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImpor
   const tol = options.tolerance ?? 0.1;
   const parser = new DxfParser();
   const dxf = parser.parseSync(text);
-  if (!dxf) throw new Error("Arquivo DXF inválido");
+  if (!dxf) throw new Error("Esse DXF não parece válido");
   const { scale, note } = insunitsToMm(dxf.header?.$INSUNITS as number | undefined);
   const warnings: string[] = [];
   if (note) warnings.push(note);
@@ -206,6 +206,6 @@ export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImpor
   };
   walk(dxf.entities ?? [], IDENT);
   if (skipped > 0) warnings.push(`${skipped} entidade(s) não suportadas (texto, cotas, hachuras…) foram ignoradas.`);
-  if (shapes.length === 0) warnings.push("Nenhuma forma reconhecida no DXF.");
+  if (shapes.length === 0) warnings.push("Não achei peças nesse DXF.");
   return { shapes, warnings };
 }

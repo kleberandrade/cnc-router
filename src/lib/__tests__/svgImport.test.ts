@@ -93,11 +93,11 @@ describe("parseSvg", () => {
   it("skips rects with zero size and warns when nothing is found", () => {
     const { shapes, warnings } = parseSvg(`<svg xmlns="http://www.w3.org/2000/svg"><rect x="1" y="2"/></svg>`);
     expect(shapes).toHaveLength(0);
-    expect(warnings.join(" ")).toMatch(/Nenhuma forma/);
+    expect(warnings.join(" ")).toMatch(/Não achei peças/);
   });
 
   it("throws on invalid XML", () => {
-    expect(() => parseSvg("<svg><rect></svg")).toThrow(/inválido/);
+    expect(() => parseSvg("<svg><rect></svg")).toThrow(/não parece válido/);
     expect(() => parseSvgToShapes("<svg><rect></svg")).toThrow();
   });
 
