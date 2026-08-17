@@ -22,7 +22,7 @@ test.describe("sprint 25: importar imagem (silhueta e relevo), exemplos de image
     await page.getByTestId("project-menu").click();
     const chooser2 = page.waitForEvent("filechooser");
     await page.getByTestId("menu-import").click();
-    await (await chooser2).setFiles({ name: "relevo.png", mimeType: "image/png", buffer: readFileSync("public/examples/relevo-oficina.png") });
+    await (await chooser2).setFiles({ name: "relevo.png", mimeType: "image/png", buffer: png });
     await page.getByTestId("ii-mode-relief").click();
     await page.getByTestId("ii-apply").click();
     await expect(page.getByTestId("notice")).toContainText("Relevo importado");
@@ -36,8 +36,8 @@ test.describe("sprint 25: importar imagem (silhueta e relevo), exemplos de image
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
-    await page.getByTestId("gallery-relevo-oficina").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await page.getByTestId("gallery-pratinho-relevo").click();
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
     await page.getByTestId("section-toggle-cut").click();
     await expect(page.getByTestId("pocket-strategy")).toHaveValue("contour");
     await page.getByTestId("pocket-icons-zigzag").click();

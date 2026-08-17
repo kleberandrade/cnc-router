@@ -81,13 +81,6 @@ async function fromImage(url: string, widthMm: number, settings: MachineSettings
   const shapes = mm.map((r, i): PathShape => ({ id: `ex-img-${i}`, kind: "path", points: r.outer, holes: r.holes.length ? r.holes : undefined, closed: true, depth: 3, operation: "pocket" }));
   return { shapes: decorate(shapes), settings };
 }
-/** 2.5D relief from a bundled grayscale image. */
-async function fromRelief(url: string, id: string, widthMm: number, depthMax: number, settings: MachineSettings, extra: Partial<ReliefShape> = {}): Promise<Project> {
-  const gray = await loadPgm(url);
-  const shape: ReliefShape = { id, kind: "relief", x: 20, y: 20, width: widthMm, height: Math.round((widthMm * gray.h) / gray.w * 100) / 100, cols: gray.w, rows: gray.h, data: encodeGrid(gray.data), depthMax, depth: depthMax, operation: "pocket", name: "Relevo", ...extra };
-  return { shapes: [shape], settings };
-}
-
 export const EXAMPLES: Example[] = [
   {
     id: "placa-furos", category: "basico", difficulty: 1, tags: ["recorte", "furacao", "rebaixo"],
@@ -106,19 +99,19 @@ export const EXAMPLES: Example[] = [
   {
     id: "tabua-carnes", category: "cozinha", difficulty: 2, tags: ["recorte", "rebaixo", "texto"],
     title: "Tábua de carnes",
-    description: "Tábua 380 × 240 × 30 em pinus: cantos arredondados, alça com rasgo, canaleta para o suco e nome gravado.",
+    description: "Tábua 380 × 210 × 30 em pinus: cantos arredondados, alça com rasgo afastada da canaleta do suco e nome gravado.",
     teaches: "Chapa grossa (30 mm), rasgo por dentro para a alça, rebaixo em moldura (retângulo com furo por subtração), texto gravado com uma segunda fresa (troca de ferramenta), tabs.",
     build: () => {
-      const outerR: Shape = { id: "ex-c-out", kind: "rectangle", x: 30, y: 30, width: 300, height: 190, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 14 } };
-      const innerR: Shape = { id: "ex-c-in", kind: "rectangle", x: 38, y: 38, width: 284, height: 174, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 8 } };
+      const outerR: Shape = { id: "ex-c-out", kind: "rectangle", x: 32, y: 32, width: 276, height: 186, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 14 } };
+      const innerR: Shape = { id: "ex-c-in", kind: "rectangle", x: 40, y: 40, width: 260, height: 170, rotation: 0, depth: 4, operation: "pocket", corners: { type: "fillet", size: 8 } };
       const groove = booleanShapes("difference", [outerR, innerR], () => "ex-canaleta")[0];
       groove.name = "Canaleta do suco";
       return {
         settings: base({ material: "pine", toolDiameter: 6, stepover: 3.6, passDepth: 4, feedRate: 1800, plungeRate: 600, spindleSpeed: 16000, stock: { ...DEFAULT_MACHINE_SETTINGS.stock, width: 420, height: 280, thickness: 30 }, workArea: { width: 600, height: 400, zTravel: 80 }, tools: [{ id: "ex-v", name: "V 60° gravação", type: "vbit", diameter: 3, vbitAngle: 60 }] }),
         shapes: [
           groove,
-          { id: "ex-c-nome", kind: "text", x: 180, y: 118, text: "CHURRASCO", fontId: "inter-bold", size: 22, rotation: 0, align: "center", letterSpacing: 3, depth: 2, operation: "pocket", name: "Nome gravado", toolId: "ex-v" },
-          { id: "ex-c-alca", kind: "slot", x: 342, y: 125, length: 60, width: 22, rotation: 90, depth: thru(30), operation: "outline", side: "inside", cutThrough: true, name: "Alça (rasgo)" },
+          { id: "ex-c-nome", kind: "text", x: 170, y: 118, text: "CHURRASCO", fontId: "inter-bold", size: 22, rotation: 0, align: "center", letterSpacing: 3, depth: 2, operation: "pocket", name: "Nome gravado", toolId: "ex-v" },
+          { id: "ex-c-alca", kind: "slot", x: 362, y: 125, length: 60, width: 22, rotation: 90, depth: thru(30), operation: "outline", side: "inside", cutThrough: true, name: "Alça (rasgo)" },
           { id: "ex-c-tabua", kind: "rectangle", x: 20, y: 20, width: 380, height: 210, rotation: 0, depth: thru(30), operation: "outline", side: "outside", cutThrough: true, name: "Tábua", corners: { type: "fillet", size: 20 }, tabs: { count: 6, width: 10, height: 4 } },
         ],
       };
@@ -231,23 +224,28 @@ export const EXAMPLES: Example[] = [
   },
   {
     id: "suporte-celular", category: "encaixe", difficulty: 2, tags: ["encaixe", "recorte", "nesting"],
-    title: "Suporte de celular (encaixe em cruz)",
-    description: "Base com rasgo e apoio inclinado com rasgo — as duas peças se cruzam e travam. Rasgo = espessura da chapa + 0,2 mm de folga.",
-    teaches: "Folga de encaixe (rasgo do tamanho da chapa não entra), duas peças que se cruzam, recorte para o cabo, peças já organizadas.",
+    title: "Suporte de celular (2 peças)",
+    description: "O clássico em MDF de 6 mm: encosto 90 × 170 com rasgo lateral e prateleira 80 × 95 com rasgo e passagem do cabo. Os rasgos se cruzam (um aberto de cada lado) e o encosto inclina sozinho.",
+    teaches: "Encaixe em cruz com rasgos abertos em lados opostos, folga = espessura + 0,2 mm, inclinação dada pela posição do rasgo, peças já organizadas. Dica: importe uma imagem e vaze o desenho no encosto.",
     build: () => {
-      const settings = base({ material: "mdf", toolDiameter: 3, stepover: 1.8, passDepth: 3 });
-      const t = slotFor(settings.stock.thickness); // 12.2
-      const baseW = 90, baseH = 70, standW = 80, standH = 110;
-      const basePart: Shape = { id: "ex-sc-base", kind: "rectangle", x: 0, y: 0, width: baseW, height: baseH, rotation: 0, corners: { type: "fillet", size: 6 }, depth: thru(12), operation: "outline", side: "outside", cutThrough: true, name: "Base", tabs: { count: 4, width: 8, height: 3 } };
-      const baseSlot: Shape = { id: "ex-sc-base-slot", kind: "rectangle", x: baseW / 2 - t / 2, y: 20, width: t, height: baseH / 2, rotation: 0, depth: thru(12), operation: "outline", side: "inside", cutThrough: true, name: `Rasgo da base (${t} mm)` };
-      const stand: PathShape = poly("ex-sc-stand", [[0, 0], [standW, 0], [standW, standH - 30], [standW - 12, standH], [12, standH], [0, standH - 30]], { depth: thru(12), operation: "outline", side: "outside", cutThrough: true, name: "Apoio", tabs: { count: 4, width: 8, height: 3 } });
-      const standSlot: Shape = { id: "ex-sc-stand-slot", kind: "rectangle", x: standW / 2 - t / 2, y: 0, width: t, height: baseH / 2, rotation: 0, depth: thru(12), operation: "outline", side: "inside", cutThrough: true, name: `Rasgo do apoio (${t} mm)` };
-      const cable: Shape = { id: "ex-sc-cable", kind: "slot", x: standW / 2, y: standH - 32, length: 24, width: 12, rotation: 0, depth: thru(12), operation: "outline", side: "inside", cutThrough: true, name: "Passagem do cabo" };
-      const parts = nested([basePart, stand], settings, 8);
-      const off = (id: string, ref: { x: number; y: number }, kids: Shape[]) => { const a = parts.find((p) => p.id === id) as { x: number; y: number }; return kids.map((k) => ({ ...k, x: (k as { x: number }).x + a.x - ref.x, y: (k as { y: number }).y + a.y - ref.y }) as Shape); };
-      const standAfter = parts.find((p) => p.id === "ex-sc-stand") as PathShape;
-      const [sx, sy] = standAfter.points[0];
-      return { settings, shapes: [...off("ex-sc-base", basePart as { x: number; y: number }, [baseSlot]), ...[standSlot, cable].map((k) => ({ ...k, x: (k as { x: number }).x + sx, y: (k as { y: number }).y + sy }) as Shape), ...parts] };
+      const settings = base({ material: "mdf", toolDiameter: 3, stepover: 1.8, passDepth: 3, stock: { ...DEFAULT_MACHINE_SETTINGS.stock, thickness: 6 } });
+      const t = slotFor(settings.stock.thickness); // 6.2
+      // Encosto: rasgo horizontal a 25 mm da base, aberto no lado direito, 50 mm de comprimento (a prateleira entra por aí).
+      const bw = 90, bh = 170, sh = 25, bslot = 50, r = 6;
+      const back = poly("ex-sc-encosto", [
+        [r, 0], [bw - r, 0], [bw, r], [bw, sh], [bw - bslot, sh], [bw - bslot, sh + t], [bw, sh + t], [bw, bh - r], [bw - r, bh], [r, bh], [0, bh - r], [0, r],
+      ], { depth: thru(6), operation: "outline", side: "outside", cutThrough: true, name: `Encosto (rasgo ${t} mm, aberto à direita)`, tabs: { count: 4, width: 6, height: 2 } });
+      // Prateleira: 80 de largura × 95 de fundo; rasgo a 45 mm da borda de trás, aberto no lado esquerdo, 35 mm — completa os 85 mm da largura útil.
+      const pw = 80, pd = 95, rear = 45, pslot = 35;
+      const shelf = poly("ex-sc-prateleira", [
+        [0, r], [r, 0], [pw - r, 0], [pw, r], [pw, pd - r], [pw - r, pd], [r, pd], [0, pd - r],
+        [0, rear + t], [pslot, rear + t], [pslot, rear], [0, rear],
+      ], { depth: thru(6), operation: "outline", side: "outside", cutThrough: true, name: `Prateleira (rasgo ${t} mm, aberto à esquerda)`, tabs: { count: 4, width: 6, height: 2 } });
+      const cable: Shape = { id: "ex-sc-cabo", kind: "slot", x: pw / 2, y: pd - 16, length: 30, width: 8, rotation: 0, depth: thru(6), operation: "outline", side: "inside", cutThrough: true, name: "Passagem do cabo" };
+      const parts = nested([back, shelf], settings, 8);
+      const shelfAfter = parts.find((p) => p.id === "ex-sc-prateleira") as PathShape;
+      const [sx, sy] = shelfAfter.points[0]; // primeiro ponto = (0, r) da prateleira original
+      return { settings, shapes: [{ ...cable, x: cable.x + sx, y: cable.y + sy - r } as Shape, ...parts] };
     },
   },
   {
@@ -356,11 +354,30 @@ export const EXAMPLES: Example[] = [
     ]),
   },
   {
-    id: "relevo-oficina", category: "decoracao", difficulty: 3, tags: ["relevo", "importacao"],
-    title: "Relevo em 2,5D (imagem)",
-    description: "Cúpula com ondas usinada em raster a partir de uma imagem em tons de cinza: branco fica na superfície, preto desce 4 mm.",
-    teaches: "Relevo por heightmap: fresa esférica, passo fino entre linhas, desbaste em passes e acabamento — leva mais tempo que um rebaixo comum.",
-    build: () => fromRelief("/examples/relevo-oficina.pgm", "ex-relief", 150, 4, base({ material: "mdf", toolDiameter: 3, toolType: "ball", stepover: 1, passDepth: 2, feedRate: 1200 }), { name: "Relevo da oficina", lineStep: 1 }),
+    id: "pratinho-relevo", category: "cozinha", difficulty: 3, tags: ["relevo", "recorte"],
+    title: "Pratinho côncavo (relevo 2,5D)",
+    description: "Prato Ø150 em pinus de 30 mm com o centro escavado em curva suave (8 mm no meio, borda plana de 12 mm) e recorte redondo — para petiscos, chaves ou moedas.",
+    teaches: "Relevo por heightmap gerado por fórmula (não precisa de imagem): fresa esférica, desbaste em passes e acabamento raster; depois o recorte por fora com tabs.",
+    build: () => {
+      const settings = base({ material: "pine", toolDiameter: 6, toolType: "ball", stepover: 1.5, passDepth: 3, feedRate: 1500, plungeRate: 500, spindleSpeed: 16000, stock: { ...DEFAULT_MACHINE_SETTINGS.stock, width: 300, height: 200, thickness: 30 }, workArea: { width: 600, height: 400, zTravel: 80 } });
+      const D = 150, cx = 150, cy = 100, rim = 12, depthMax = 8;
+      const cols = 150, rows = 150, grid = new Uint8Array(cols * rows);
+      const rIn = D / 2 - rim;
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const dx = ((c + 0.5) / cols - 0.5) * D, dy = ((r + 0.5) / rows - 0.5) * D, d = Math.hypot(dx, dy);
+        // perfil em cosseno: fundo suave, sobe até a borda; branco (255) = superfície, preto (0) = fundo
+        const k = d >= rIn ? 0 : 0.5 * (1 + Math.cos((Math.PI * d) / rIn)); // 1 no centro → 0 na borda interna
+        grid[r * cols + c] = Math.round(255 * (1 - k));
+      }
+      const dish: ReliefShape = { id: "ex-pr-relevo", kind: "relief", x: cx - D / 2, y: cy - D / 2, width: D, height: D, cols, rows, data: encodeGrid(grid), depthMax, depth: depthMax, operation: "pocket", name: "Concavidade (8 mm)", lineStep: 1.5 };
+      return {
+        settings,
+        shapes: [
+          dish,
+          { id: "ex-pr-disco", kind: "circle", x: cx, y: cy, radius: D / 2, depth: thru(30), operation: "outline", side: "outside", cutThrough: true, name: "Prato", tabs: { count: 6, width: 10, height: 4 } },
+        ],
+      };
+    },
   },
   {
     id: "placa-pata", category: "importado", difficulty: 1, tags: ["importacao", "rebaixo", "furacao", "recorte"],

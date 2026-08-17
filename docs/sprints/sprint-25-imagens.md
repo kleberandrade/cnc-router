@@ -52,6 +52,7 @@ lib/relief.ts: reliefToolpath(shape, settings, tool): Segment[]
 ![Engrenagens](img/sprint-25-engrenagens.png)
 
 ## Como ficou
+- (v0.27.1) O exemplo "Relevo em 2,5D (imagem)" foi substituído pelo **Pratinho côncavo**, com o heightmap gerado por fórmula; `relevo-oficina.*` saíram.
 - Exemplos embarcados usam **PGM** (cinza binário) em `public/examples/*.pgm` — o mesmo pipeline do diálogo, sem decodificador de PNG no Node (os testes constroem todos os exemplos). Os PNGs equivalentes ficam ao lado para quem quiser testar o "Importar".
 - Relevo mantém a grade ≤ 400 px de largura; a peça é tratada pela caixa envolvente no navegador/nesting.
 - Estratégia de rebaixo é do projeto (painel Corte), não da peça.
@@ -60,7 +61,7 @@ lib/relief.ts: reliefToolpath(shape, settings, tool): Segment[]
 ![Importar imagem](img/sprint-25-importar.png)
 ![Galeria](img/sprint-25-galeria.png)
 ![Raposa vetorizada](img/sprint-25-raposa.png)
-![Relevo no simulador](img/sprint-25-relevo-sim.png)
+
 
 ## DoD específica
 - PNG preto e branco de um logotipo vira peças com furos em ≤ 2 s (1000 × 1000 px) e recorta/grava sem cortes fora (verificação 0 mm²).

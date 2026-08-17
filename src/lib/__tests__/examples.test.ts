@@ -48,7 +48,7 @@ describe("exemplos", () => {
     const fox = await findExample("placa-raposa")!.build();
     expect(fox.shapes.some((s) => s.kind === "path" && (s.holes?.length ?? 0) >= 3)).toBe(true);
     expect(fox.shapes.filter((s) => s.operation === "pocket").length).toBeGreaterThanOrEqual(2);
-    const relief = await findExample("relevo-oficina")!.build();
+    const relief = await findExample("pratinho-relevo")!.build();
     expect(relief.shapes[0].kind).toBe("relief");
     const pata = await findExample("placa-pata")!.build();
     expect(pata.shapes.filter((s) => s.operation === "pocket").length).toBeGreaterThanOrEqual(5);
@@ -70,9 +70,8 @@ describe("sprint 26: encaixes, tags, nesting", () => {
   });
   it("suporte: rasgos = espessura + 0,2; caixa: 5 peças dentro da chapa sem sobreposição; dobradiça ≥ 50 rasgos; gabarito 12 furos", async () => {
     const sc = await findExample("suporte-celular")!.build();
-    const slots = sc.shapes.filter((s) => s.name?.startsWith("Rasgo"));
-    expect(slots).toHaveLength(2);
-    expect(slots.every((s) => s.kind === "rectangle" && s.width === 12.2)).toBe(true);
+    expect(sc.shapes).toHaveLength(3);
+    expect(sc.shapes.filter((s) => s.name?.includes("rasgo 6.2 mm"))).toHaveLength(2);
     const cx = await findExample("caixa-dedos")!.build();
     expect(cx.shapes).toHaveLength(5);
     const dv = await findExample("dobradica-viva")!.build();

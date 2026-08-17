@@ -20,7 +20,7 @@ test.describe("sprint 26: exemplos de encaixe, filtro na galeria, aviso de folga
     await page.getByTestId("menu-examples").click();
     await page.getByTestId("gallery-suporte-celular").click();
     await page.getByTestId("ask-ok").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("5 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("3 forma(s)");
     await page.getByTestId("tab-simulator").click();
     await expect(page.getByTestId("simulate-toggle")).toBeEnabled();
   });

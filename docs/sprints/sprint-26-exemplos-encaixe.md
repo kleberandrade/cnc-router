@@ -68,3 +68,12 @@ function fingerJointEdge(len: number, thickness: number, count: number, clearanc
 - Bandeja: Verificação sem "não alcançado" nos bolsões e sem sobrecorte nas paredes.
 - Galeria: chips filtram, contagem bate, filtro + busca compõem, 0 violações axe.
 - e2e novo `sprint26.spec.ts`; specs anteriores continuam passando (nº de cards ≥ 11 vira ≥ 15).
+## Ajuste pós-sprint (v0.27.1)
+- **Tábua de carnes**: alça afastada da canaleta (canaleta 276 × 186 a partir de x = 32; alça em x = 362, ~40 mm de margem).
+- **Suporte de celular** refeito no modelo clássico de 2 peças em MDF 6 mm (referência enviada pelo autor): **encosto** 90 × 170 com rasgo horizontal a 25 mm da base aberto à direita (50 mm) e **prateleira** 80 × 95 com rasgo a 45 mm da borda de trás aberto à esquerda (35 mm) + passagem do cabo; os rasgos se cruzam e o encosto inclina sozinho até a prateleira tocar a mesa. Largura dos rasgos = `slotFor(6) = 6,2`. Antes os rasgos eram fechados no meio das peças e não montavam.
+- **Relevo em 2,5D (imagem)** saiu (não tinha uso). No lugar, **Pratinho côncavo (relevo 2,5D)**: prato Ø150 em pinus 30 mm com concavidade em cosseno (8 mm) gerada por fórmula + recorte — mesmo recurso, peça útil. `relevo-oficina.pgm/png` saíram do repositório.
+
+![Suporte de celular](img/sprint-26-suporte-celular.png)
+![Pratinho](img/sprint-26-pratinho-relevo.png)
+![Pratinho no simulador](img/sprint-26-pratinho-sim.png)
+

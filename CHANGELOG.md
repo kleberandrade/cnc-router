@@ -14,6 +14,15 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
 
+## [0.27.1] — 2026-08-16
+
+### Corrigido
+- **Suporte de celular**: refeito no modelo clássico de 2 peças (encosto com rasgo lateral + prateleira com rasgo do outro lado e passagem do cabo, MDF 6 mm) — antes os rasgos eram fechados e as peças não montavam.
+- **Tábua de carnes**: alça afastada da canaleta do suco.
+
+### Alterado
+- Exemplo "Relevo em 2,5D (imagem)" deu lugar ao **Pratinho côncavo (relevo 2,5D)** — mesmo recurso, peça útil (prato Ø150 com concavidade de 8 mm gerada por fórmula).
+
 ## [0.27.0 — Sprint 26 — Exemplos de encaixe e uso diário] — 2026-08-16
 
 ### Adicionado
