@@ -1,30 +1,19 @@
 import { versionLabel, buildLabel } from "../lib/version";
-import { useMemo } from "react";
 import { AlertTriangle, CircleCheck, OctagonAlert, Clock, Layers, Ruler } from "lucide-react";
 import { useProjectStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
-import { validateProject } from "../lib/validate";
-import { buildToolpath } from "../lib/toolpath";
-import { estimateTime, formatDuration } from "../lib/timing";
+import { formatDuration } from "../lib/timing";
+import { useDerived } from "../state/derived";
 
 export function StatusBar() {
   const shapes = useProjectStore((s) => s.shapes);
   const settings = useProjectStore((s) => s.settings);
   const select = useProjectStore((s) => s.select);
   const setSection = useUiStore((s) => s.setSection);
-  const fontsVersion = useUiStore((s) => s.fontsVersion);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const issues = useMemo(() => validateProject(shapes, settings), [shapes, settings, fontsVersion]);
-  const estimatedTime = useMemo(() => {
-    if (shapes.length === 0) return 0;
-    try {
-      return estimateTime(buildToolpath(shapes, settings).segments, { rapidRate: settings.rapidRate, accel: settings.accel }).total;
-    } catch {
-      return 0;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shapes, settings, fontsVersion]);
+  // Validation and time come from the derived store (computed off the click path — Sprint 27).
+  const issues = useDerived((d) => d.issues);
+  const estimatedTime = useDerived((d) => d.time);
+  const status = useDerived((d) => d.status);
 
   const errors = issues.filter((i) => i.level === "error").length;
   const warnings = issues.length - errors;
@@ -36,7 +25,7 @@ export function StatusBar() {
         <Ruler size={13} aria-hidden="true" /> Mesa {workArea.width}×{workArea.height} · Chapa {stock.width}×{stock.height}×{stock.thickness} mm
       </span>
       <span className="status-item" data-testid="status-shapes"><Layers size={13} aria-hidden="true" /> {shapes.length} forma(s)</span>
-      <span className="status-item" data-testid="toolbar-estimate"><Clock size={13} aria-hidden="true" /> tempo estimado {formatDuration(estimatedTime)}</span>
+      <span className={`status-item${status === "computing" ? " status-computing" : ""}`} data-testid="toolbar-estimate" data-status={status}><Clock size={13} aria-hidden="true" /> tempo estimado {formatDuration(estimatedTime)}</span>
       {issues.length > 0 ? (
         <details className="status-issues" data-testid="issues">
           <summary className={`status-item ${errors ? "issue-error" : "issue-warning"}`} data-testid="issues-summary">

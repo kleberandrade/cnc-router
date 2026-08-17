@@ -5,6 +5,7 @@ import { useProjectStore } from "../state/store";
 import { useSimStore } from "../state/simStore";
 import { useUiStore } from "../state/uiStore";
 import { buildToolpath, workOriginOffset, type Segment } from "../lib/toolpath";
+import { useDerived } from "../state/derived";
 import { estimateTime, formatDuration, type Timing } from "../lib/timing";
 import { positionAt, segmentIndexAt } from "../lib/playback";
 import { boundariesFor } from "../lib/playback";
@@ -81,13 +82,16 @@ export function Simulator() {
   const [carveMs, setCarveMs] = useState(0);
 
   const fontsVersion = useUiStore((s) => s.fontsVersion);
+  // Segments come from the derived store when it already has them for this project (computed in the worker);
+  // otherwise (first paint before the worker answers) fall back to a local build.
+  const derivedSegments = useDerived((d) => (d.status === "ready" ? d.segments : null));
   const { segments, timing, gcodeLines } = useMemo(() => {
-    const tp = shapes.length ? buildToolpath(shapes, settings) : { segments: [] as Segment[], shapeCount: 0, warnings: [] };
-    const timing: Timing = estimateTime(tp.segments, { rapidRate: settings.rapidRate, accel: settings.accel });
-    const gcodeLines = tp.segments.map((s) => segmentsToGCode([{ ...s, comment: undefined }])[0] ?? "");
-    return { segments: tp.segments, timing, gcodeLines };
+    const segs = derivedSegments ?? (shapes.length ? buildToolpath(shapes, settings).segments : ([] as Segment[]));
+    const timing: Timing = estimateTime(segs, { rapidRate: settings.rapidRate, accel: settings.accel });
+    const gcodeLines = segs.map((s) => segmentsToGCode([{ ...s, comment: undefined }])[0] ?? "");
+    return { segments: segs, timing, gcodeLines };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shapes, settings, fontsVersion]);
+  }, [derivedSegments, shapes, settings, fontsVersion]);
 
   const boundaries = useMemo(() => boundariesFor(segments, timing, stepMode), [segments, timing, stepMode]);
   useEffect(() => { configure(timing.total, boundaries); }, [timing.total, boundaries, configure]);

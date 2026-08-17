@@ -82,3 +82,16 @@ describe("sprint 26: encaixes, tags, nesting", () => {
     expect(dp.shapes.filter((s) => s.tabs).length).toBe(2);
   });
 });
+
+describe("sprint 27: miniaturas pré-geradas", () => {
+  it("public/examples/thumbs.json está atualizado (npm run gen:thumbs)", async () => {
+    const { thumbsHash } = await import("../thumbs");
+    const json = JSON.parse(readFileSync("public/examples/thumbs.json", "utf8")) as Record<string, { hash: string; paths: unknown[] }>;
+    for (const ex of EXAMPLES) {
+      const p = await ex.build();
+      expect(json[ex.id], `${ex.id} falta em thumbs.json`).toBeTruthy();
+      expect(json[ex.id].hash, `${ex.id} desatualizado — rode npm run gen:thumbs`).toBe(thumbsHash(p.shapes));
+      expect(json[ex.id].paths.length).toBeGreaterThan(0);
+    }
+  }, 30_000);
+});

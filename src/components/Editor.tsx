@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Rect, Circle, Line, Text, Group, Transformer, Image as KonvaImage } from "react-konva";
 import { reliefGrid } from "../lib/relief";
 import type { ReliefShape } from "../types";
 import type Konva from "konva";
 import { useProjectStore, generateShapeId, translateShape } from "../state/store";
 import { useUiStore } from "../state/uiStore";
-import { validateProject, shapeIssueLevel } from "../lib/validate";
+import { shapeIssueLevel } from "../lib/validate";
 import { boundingBox, shapeToPoints, rotatePoint } from "../lib/geometry";
 import { gridStepFor, fitScale, RULER, PADDING, snapBox, buildSnapTargets } from "../lib/editorMath";
 import { InlineDimensions } from "./InlineDimensions";
@@ -13,6 +13,7 @@ import { useTheme } from "../hooks/useTheme";
 import { textToPolygons } from "../lib/text";
 import type { Shape } from "../types";
 import { originPoint } from "../lib/toolpath";
+import { useDerived } from "../state/derived";
 import type { Point } from "../lib/geometry";
 
 const LIGHT = {
@@ -200,7 +201,7 @@ export function Editor() {
     tr.getLayer()?.batchDraw();
   }, [selectedIds, shapes, scale, pan]);
 
-  const issues = useMemo(() => validateProject(shapes, settings), [shapes, settings]);
+  const issues = useDerived((d) => d.issues);
   const grid = gridStepFor(scale);
 
   const strokeFor = (shape: Shape) => {
@@ -400,15 +401,18 @@ export function Editor() {
         }}
         onTouchEnd={(e) => { if (e.evt.touches.length < 2) pinch.current = null; }}
       >
-        <Layer>
+        {/* Static background (table, grid, stock, origin) in its own layer: it only redraws on pan/zoom/stock changes, not on every shape edit (Sprint 27). Background clicks hit the Stage. */}
+        <Layer listening={false}>
           <Rect name="table" x={ox} y={oy} width={workArea.width * scale} height={tablePxH} fill={COLORS.table} stroke={COLORS.tableBorder} strokeWidth={1.5} />
           {gridLines}
-          <Rect x={stockPxX} y={stockPxY} width={stock.width * scale} height={stock.height * scale} fill={COLORS.stock} stroke={COLORS.stockBorder} strokeWidth={1} dash={[6, 3]} listening={false} name="stock" />
-          <Group listening={false}>
+          <Rect x={stockPxX} y={stockPxY} width={stock.width * scale} height={stock.height * scale} fill={COLORS.stock} stroke={COLORS.stockBorder} strokeWidth={1} dash={[6, 3]} name="stock" />
+          <Group>
             <Line points={[originPxX - 8, originPxY, originPxX + 8, originPxY]} stroke={COLORS.origin} strokeWidth={1.5} />
             <Line points={[originPxX, originPxY - 8, originPxX, originPxY + 8]} stroke={COLORS.origin} strokeWidth={1.5} />
             <Text x={originPxX + 6} y={originPxY - 14} text="0,0" fontSize={10} fill={COLORS.origin} />
           </Group>
+        </Layer>
+        <Layer>
 
           {shapes.map((shape) => {
             const isSelected = selectedIds.includes(shape.id);

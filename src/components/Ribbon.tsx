@@ -203,7 +203,12 @@ export function OverflowRibbon({ groups, label = "Ações" }: { groups: RibbonGr
     return () => ro.disconnect();
   }, []);
 
+  // Re-measure only when the set of groups, the width or the mode change — not on every parent render (Sprint 27).
+  const keysSig = groups.map((g) => g.key).join("|");
+  const groupsRef = useRef(groups);
+  groupsRef.current = groups;
   useLayoutEffect(() => {
+    const groups = groupsRef.current;
     const el = ref.current;
     if (!el) return;
     const cache = compact ? widths.current.compact : widths.current.full;
@@ -240,7 +245,8 @@ export function OverflowRibbon({ groups, label = "Ações" }: { groups: RibbonGr
     const next = new Set(keys.filter((k) => !visible.includes(k)));
     const same = next.size === hidden.size && [...next].every((k) => hidden.has(k));
     if (!same) setHidden(next);
-  }, [groups, available, hidden, compact]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keysSig, available, hidden, compact]);
 
   const hiddenGroups = groups.filter((g) => hidden.has(g.key));
   return (

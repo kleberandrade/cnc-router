@@ -372,7 +372,7 @@ export function TopBar() {
     },
     {
       key: "arranjar", title: "Arranjar", priority: 3, items: [
-        { icon: <LayoutGrid size={ICON} />, label: "Organizar", onClick: () => setNestOpen(true), disabled: actions.shapes.length === 0, testId: "nest", featured: true , description: "Arruma as peças na chapa (caixas envolventes, maiores primeiro, giro de 90° opcional)." },
+        { icon: <LayoutGrid size={ICON} />, label: "Organizar", onClick: () => setNestOpen(true), disabled: actions.shapeCount === 0, testId: "nest", featured: true , description: "Arruma as peças na chapa (caixas envolventes, maiores primeiro, giro de 90° opcional)." },
         { icon: <Combine size={ICON} />, label: "Unir", onClick: () => actions.boolean("union"), disabled: sel < 2, testId: "bool-union" , description: "Une as peças selecionadas numa só; herda os parâmetros da primeira." },
         { icon: <SquareMinus size={ICON} />, label: "Subtrair", onClick: () => actions.boolean("difference"), disabled: sel < 2, testId: "bool-difference" , description: "Subtrai as outras peças da primeira selecionada — cria furos/ilhas." },
         { icon: <SquareDot size={ICON} />, label: "Intersec.", onClick: () => actions.boolean("intersection"), disabled: sel < 2, testId: "bool-intersection" , description: "Mantém só a área comum às peças selecionadas." },
@@ -442,8 +442,8 @@ export function TopBar() {
     },
     {
       key: "resultado", title: "Resultado", priority: 2, items: [
-        { icon: <ClipboardCheck size={ICON} />, label: "Verificar", onClick: () => setVerifyOpen(true), disabled: actions.shapes.length === 0, testId: "verify", featured: true, description: "Compara o que a fresa remove com o que cada rebaixo/furo pede: cantos não alcançados, vãos estreitos, corte fora das peças." },
-        { icon: <Link2 size={ICON} />, label: "Copiar link", onClick: () => void actions.shareLink(), disabled: actions.shapes.length === 0, testId: "share-link", description: "Copia um link com o projeto inteiro dentro (sem servidor)." },
+        { icon: <ClipboardCheck size={ICON} />, label: "Verificar", onClick: () => setVerifyOpen(true), disabled: actions.shapeCount === 0, testId: "verify", featured: true, description: "Compara o que a fresa remove com o que cada rebaixo/furo pede: cantos não alcançados, vãos estreitos, corte fora das peças." },
+        { icon: <Link2 size={ICON} />, label: "Copiar link", onClick: () => void actions.shareLink(), disabled: actions.shapeCount === 0, testId: "share-link", description: "Copia um link com o projeto inteiro dentro (sem servidor)." },
       ],
     },
     {
@@ -456,7 +456,7 @@ export function TopBar() {
   ];
 
   // ---- Editor: USINAGEM tab (mirrors the panel for the selected piece) ----
-  const selShape = actions.selectedId ? actions.shapes.find((x) => x.id === actions.selectedId) : undefined;
+  const selShape = useProjectStore((s) => (s.selectedId ? s.shapes.find((x) => x.id === s.selectedId) : undefined));
   const upd = (patch: Partial<Shape>) => { if (selShape) useProjectStore.getState().updateShape(selShape.id, patch); };
   const usinagemGroups: RibbonGroupDef[] = [
     {
@@ -495,7 +495,7 @@ export function TopBar() {
   const selectGroup: RibbonGroupDef = {
     key: "selecionar", title: "Selecionar", priority: 0, items: [
       { icon: <MousePointer2 size={ICON} />, label: "Selecionar", onClick: () => actions.setTool("select"), active: actions.tool === "select", testId: "tool-select", featured: true, shortcut: "Esc", description: "Clique para selecionar; arraste no fundo para laço; Shift+clique acumula." },
-      { icon: <BoxSelect size={ICON} />, label: "Tudo", onClick: () => useProjectStore.getState().selectMany(actions.shapes.filter((x) => !x.hidden).map((x) => x.id)), disabled: actions.shapes.length === 0, testId: "select-all", shortcut: "Ctrl+A", description: "Seleciona todas as peças visíveis." },
+      { icon: <BoxSelect size={ICON} />, label: "Tudo", onClick: () => useProjectStore.getState().selectMany(useProjectStore.getState().shapes.filter((x) => !x.hidden).map((x) => x.id)), disabled: actions.shapeCount === 0, testId: "select-all", shortcut: "Ctrl+A", description: "Seleciona todas as peças visíveis." },
     ],
   };
 

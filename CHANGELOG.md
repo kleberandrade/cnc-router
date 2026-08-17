@@ -14,7 +14,16 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Regra de copy para agentes em `AGENTS.md`, `.cursor/rules/copy.mdc` e `ui.mdc` (Claude lê via `CLAUDE.md` → `AGENTS.md`).
 - Testes: stub de `localStorage` no setup (Node 25 expõe um `localStorage` experimental sem `setItem`).
 
+## [0.28.0 — Sprint 27 — INP e responsividade no celular] — 2026-08-16
+
+### Alterado
+- **Toques mais rápidos**: validação, percurso e tempo estimado agora são calculados num Web Worker, fora do clique (com cache por projeto); a galeria usa miniaturas pré-geradas (`thumbs.json`) em vez de construir os 14 exemplos ao abrir; a barra superior não re-renderiza a cada peça; a grade/mesa do editor fica numa camada estática; o simulador vira um chunk próprio pré-carregado quando o navegador está ocioso. Com CPU 4× mais lenta, os toques principais caíram de até 670 ms para menos de 200 ms.
+- Diagnóstico: `?vitals=1` na URL mostra INP/LCP/CLS com atribuição no console.
+
 ## [0.27.1] — 2026-08-16
+
+### Planejado
+- Sprint 27: INP e responsividade no celular (Speed Insights: INP 816 ms no mobile) — `docs/sprints/sprint-27-inp-mobile.md`.
 
 ### Corrigido
 - **Suporte de celular**: refeito no modelo clássico de 2 peças (encosto com rasgo lateral + prateleira com rasgo do outro lado e passagem do cabo, MDF 6 mm) — antes os rasgos eram fechados e as peças não montavam.

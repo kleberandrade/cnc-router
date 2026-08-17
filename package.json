@@ -1,10 +1,12 @@
 {
   "name": "cnc-router",
   "private": true,
-  "version": "0.27.1",
+  "version": "0.28.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "gen:thumbs": "tsx scripts/gen-thumbs.ts",
+    "prebuild": "tsx scripts/gen-thumbs.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -33,6 +35,7 @@
     "react-konva": "^19.2.5",
     "svg-path-properties": "^2.0.2",
     "three": "^0.185.1",
+    "web-vitals": "^5.3.0",
     "zundo": "^2.3.0",
     "zustand": "^5.0.15"
   },

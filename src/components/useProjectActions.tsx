@@ -33,7 +33,10 @@ function downloadTextFile(filename: string, content: string, type = "text/plain"
  * Renders nothing but the hidden file inputs; the TopBar consumes the returned handlers.
  */
 export function useProjectActions() {
-  const shapes = useProjectStore((s) => s.shapes);
+  // Only the count is subscribed: the full list is read on demand inside handlers, so adding/moving a shape
+  // does not re-render every consumer of this hook (TopBar, ribbon…) — Sprint 27.
+  const shapeCount = useProjectStore((s) => s.shapes.length);
+  const getShapes = () => useProjectStore.getState().shapes;
   const selectedId = useProjectStore((s) => s.selectedId);
   const settings = useProjectStore((s) => s.settings);
   const addShape = useProjectStore((s) => s.addShape);
@@ -172,16 +175,16 @@ export function useProjectActions() {
   };
 
   const handleSave = () => {
-    downloadTextFile(`${fileStem(settings.projectName)}.oficina-cnc.json`, serializeProject(shapes, settings), "application/json");
+    downloadTextFile(`${fileStem(settings.projectName)}.oficina-cnc.json`, serializeProject(getShapes(), settings), "application/json");
     setNotice({ kind: "info", title: "Projeto salvo." });
   };
 
   const handleExport = () => {
-    if (shapes.length === 0) {
+    if (shapeCount === 0) {
       setNotice({ kind: "warning", title: "Desenhe uma peça antes de exportar." });
       return;
     }
-    const result = tryGenerateGCode(shapes, settings);
+    const result = tryGenerateGCode(getShapes(), settings);
     if (!result.ok) {
       setNotice({ kind: "error", title: "Esse G-code não saiu — confira o que falta:", details: result.problems });
       return;
@@ -193,7 +196,7 @@ export function useProjectActions() {
   const handleOpenExample = async (id: string) => {
     const ex = findExample(id);
     if (!ex) return;
-    if (shapes.length > 0 && !(await confirmDialog({ title: `Abrir o exemplo "${ex.title}"?`, message: "As peças que estão na mesa serão substituídas. Se quiser guardar, salve o projeto antes.", confirmLabel: "Abrir exemplo" }))) return;
+    if (shapeCount > 0 && !(await confirmDialog({ title: `Abrir o exemplo "${ex.title}"?`, message: "As peças que estão na mesa serão substituídas. Se quiser guardar, salve o projeto antes.", confirmLabel: "Abrir exemplo" }))) return;
     const { shapes: exShapes, settings: exSettings } = await ex.build();
     useProjectStore.getState().loadProject({ shapes: exShapes, settings: exSettings });
     setSection("shape");
@@ -203,7 +206,7 @@ export function useProjectActions() {
   };
 
   const handleShareLink = async () => {
-    const { url, length, tooLong } = buildShareUrl(shapes, settings);
+    const { url, length, tooLong } = buildShareUrl(getShapes(), settings);
     try {
       await navigator.clipboard.writeText(url);
       setNotice({ kind: tooLong ? "warning" : "info", title: tooLong ? `Link copiado, mas é grande (${Math.round(length / 1000)} k caracteres) — alguns apps cortam; prefira salvar o .json.` : "Link do projeto copiado. Quem abrir vê as mesmas peças e configurações." });
@@ -213,7 +216,7 @@ export function useProjectActions() {
   };
 
   const handleNewProject = async () => {
-    if (shapes.length > 0 && !(await confirmDialog({ title: "Começar do zero?", message: "As peças da mesa vão embora. Se quiser guardar, salve o projeto antes.", confirmLabel: "Novo projeto", danger: true }))) return;
+    if (shapeCount > 0 && !(await confirmDialog({ title: "Começar do zero?", message: "As peças da mesa vão embora. Se quiser guardar, salve o projeto antes.", confirmLabel: "Novo projeto", danger: true }))) return;
     newProject();
     setNotice({ kind: "info", title: "Mesa limpa. Projeto novo." });
   };
@@ -285,7 +288,7 @@ export function useProjectActions() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tool, shapes, settings]);
+  }, [tool, shapeCount, settings]);
 
   const inputs = (
     <>
@@ -300,7 +303,7 @@ export function useProjectActions() {
 
   return {
     inputs,
-    shapes,
+    shapeCount,
     selectedId,
     selectedIds,
     snap,

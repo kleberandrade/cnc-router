@@ -20,7 +20,9 @@ import { readShareHash } from "./lib/share";
 import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 
-const Simulator = lazy(() => import("./components/Simulator").then((m) => ({ default: m.Simulator })));
+// Simulator (Three.js) is its own chunk: loaded on first "Simular", prefetched when the browser is idle (Sprint 27).
+const loadSimulator = () => import("./components/Simulator");
+const Simulator = lazy(() => loadSimulator().then((m) => ({ default: m.Simulator })));
 
 function App() {
   const view = useUiStore((s) => s.view);
@@ -57,6 +59,13 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout]);
+
+  // Prefetch the simulator chunk when idle so the first tap on "Simular" doesn't pay the download.
+  useEffect(() => {
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const run = () => { void loadSimulator(); };
+    if (idle) idle(run, { timeout: 3000 }); else setTimeout(run, 1500);
+  }, []);
 
   // Tablet: the side panel becomes an overlay drawer, closed by default.
   useEffect(() => {
@@ -106,7 +115,7 @@ function App() {
       )}
       <StatusBar />
       <Analytics />
-      <SpeedInsights />
+      <SpeedInsights route={view === "editor" ? "/editor" : "/simulador"} />
     </div>
   );
 }

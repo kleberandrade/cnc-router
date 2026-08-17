@@ -75,6 +75,8 @@ Plano em [`fase-4.md`](fase-4.md) (auditoria de UI de 2026-08-16). Ordem: 18 →
 | [21](sprint-21-usabilidade-onboarding-a11y.md) ✅ | Estado vazio, exemplos, tour, mensagens, acessibilidade, mobile | 18 | M |
 | [22](sprint-22-ribbon-fusion.md) ✅ | Barra superior no estilo Fusion 360 (app bar, workspace + abas, ribbon com menus de grupo, tooltips ricos, nome do projeto) | 18 | M |
 | [16](sprint-16-verificacao-operacoes-compartilhar.md) ✅ | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
+| [27](sprint-27-inp-mobile.md) ✅ | INP e responsividade no celular: medir (web-vitals + e2e mobile), miniaturas pré-geradas, percurso/validação em Web Worker, menus com memo, prefetch do simulador | 24, 25, 26 | M |
+| [27](sprint-27-inp-mobile.md) | INP e responsividade no celular: medir (web-vitals + e2e mobile), miniaturas pré-geradas, percurso/validação em Web Worker, menus com memo, prefetch do simulador | 24, 25, 26 | M |
 | [26](sprint-26-exemplos-encaixe.md) ✅ | Exemplos de encaixe e uso diário (suporte de celular, caixa finger joint, dobradiça viva, bandeja, descanso de panela, gabarito 32; saem porta-lápis, letreiro e gato), folga de encaixe, filtro por "o que ensina" na galeria | 24, 25 | M |
 | [26](sprint-26-exemplos-encaixe.md) | Exemplos de encaixe e uso diário (suporte de celular, caixa finger joint, dobradiça viva, bandeja, descanso de panela, gabarito 32; saem porta-lápis e gato), folga de encaixe, filtro por "o que ensina" na galeria | 24, 25 | M |
 | [25](sprint-25-imagens.md) ✅ | Importar imagem (PNG/JPG): silhueta vetorizada e relevo por heightmap; contorno paralelo nos rebaixos | 24 | G |

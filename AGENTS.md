@@ -22,6 +22,7 @@ Vite + React + TypeScript. Gerenciador: **npm** (não pnpm; não commitar `pnpm-
 
 - Unidades internas em **mm**; a UI mostra o sufixo da unidade.
 - Lógica pura em `src/lib/` (sem React). Componentes só orquestram.
+- **Dados derivados** (validação, percurso, tempo) vêm de `useDerived(selector)` (`state/derived.ts`, calculados no worker `workers/derived.worker.ts`); componentes não chamam `buildToolpath`/`validateProject` no render nem em handlers. Exemplos novos/alterados: rode `npm run gen:thumbs` (miniaturas em `public/examples/thumbs.json`; teste falha se estiver velho). Latência de toque: `e2e/inp.spec.ts` (< 200 ms com CPU 4×).
 - Estado do projeto em `useProjectStore` (persistido; `PROJECT_SCHEMA_VERSION` + `migrateProject` a cada mudança de forma/config); UI em `useUiStore`; simulação em `useSimStore`.
 - Operações por peça: principal em `shape.operation/side/tabs/depth`; extras em `shape.extraOps` (expandidas em `lib/expand.ts` — percurso/G-code/simulador não sabem da diferença). Texto também expande em polígonos ali.
 - Textos de UI em **pt-BR**; identificadores em inglês.

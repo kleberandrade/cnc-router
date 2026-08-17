@@ -14,6 +14,8 @@ import { initPwa } from './lib/pwa'
 import { loadEmbeddedFonts, onFontsChanged } from './lib/text'
 import { useUiStore, initUiPrefs } from './state/uiStore'
 import { installErrorCapture } from "./lib/feedback";
+import { initVitals, vitalsDebugEnabled } from "./lib/vitals";
+import { startDerived } from "./state/derived";
 
 installErrorCapture();
 initUiPrefs();
@@ -21,6 +23,8 @@ initUiPrefs();
 initPwa()
 onFontsChanged(() => useUiStore.getState().bumpFonts())
 void loadEmbeddedFonts()
+startDerived()
+if (vitalsDebugEnabled()) initVitals({ debug: true })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
