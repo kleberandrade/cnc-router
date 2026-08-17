@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não publicado]
 
 ### Corrigido
+- `tsx` como `devDependency` — o `prebuild` (`gen:thumbs`) quebrava na Vercel com `tsx: command not found`.
 - Import da Function `/api/feedback` com extensão `.js` — o TypeScript da Vercel (`node16`/`nodenext`) recusava `./_lib/feedback-core`.
 - `vercel.json`: removido `memory` (ignorado no Active CPU).
 
