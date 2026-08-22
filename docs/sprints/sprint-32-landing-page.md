@@ -76,3 +76,5 @@ A landing é **estática e separada do app** — não um componente React dentro
 ## Depois da sprint (nota)
 
 Post de lançamento no LinkedIn com os updates das Sprints 28–32 — texto + imagem preparados à parte (o link vai no primeiro comentário, não no corpo do post).
+
+Ajuste pós-Sprint 33 (2026-08-22): a landing ganhou a seção "A peça aguenta?" com a captura da estação Resistência (mão francesa em conjunto), âncora "Resistência" na navbar, pergunta nova no FAQ (visível e no JSON-LD) e descrições/OG atualizadas com a análise de resistência.

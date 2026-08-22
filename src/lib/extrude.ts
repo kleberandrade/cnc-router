@@ -38,6 +38,11 @@ const signedArea = (pts: Point[]): number => {
  */
 export function extrudeShape(shape: Shape, thickness: number, h?: number): ExtrudedMesh {
   const { outer, holes } = loopsOf(shape);
+  return extrudeRegion(outer, holes, thickness, h);
+}
+
+/** Extrusão de um contorno + furos crus — é como o conjunto colado (Sprint 33) vira 3D. */
+export function extrudeRegion(outer: Point[], holes: Point[][], thickness: number, h?: number): ExtrudedMesh {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const p of outer) { minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]); minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]); }
   const step = h ?? Math.max(1, Math.max(maxX - minX, maxY - minY) / 40);

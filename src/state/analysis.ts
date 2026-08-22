@@ -5,6 +5,8 @@ import { shapeToPoints, boundingBox, type Point } from "../lib/geometry";
 
 import { runFemJob, type FemJob, type AnalysisResultData } from "../lib/fem/job";
 import { shelfBeam, type BeamResult } from "../lib/fem/beam";
+import { glueParts, GLUE_TOL } from "../lib/fem/assembly";
+import { shapeRegions, type Region } from "../lib/boolean";
 import type { PathShape, Shape } from "../types";
 export type { FemJob, AnalysisResultData } from "../lib/fem/job";
 
@@ -15,11 +17,14 @@ export type { FemJob, AnalysisResultData } from "../lib/fem/job";
  */
 
 export type AnalysisMode = "inplane" | "shelf";
+export type AnalysisScope = "part" | "assembly";
 export type LoadDir = "down" | "up" | "left" | "right";
 
 
 interface AnalysisState {
   mode: AnalysisMode;
+  /** Peça única (como sempre) ou o conjunto de peças encostadas, coladas (Sprint 33). */
+  scope: AnalysisScope;
   shapeId: string | null;
   /** Lados apoiados / carregados (ids de `partSides`). */
   supports: number[];
@@ -39,6 +44,7 @@ interface AnalysisState {
   shelfResult: (BeamResult & { utilization: number; widthUsed: number }) | null;
 
   setMode: (m: AnalysisMode) => void;
+  setScope: (s: AnalysisScope) => void;
   setShape: (id: string | null) => void;
   setTool: (t: "support" | "load") => void;
   toggleSide: (side: number) => void;
@@ -53,6 +59,7 @@ interface AnalysisState {
 
 export const useAnalysisStore = create<AnalysisState>()((set, get) => ({
   mode: "inplane",
+  scope: "part",
   shapeId: null,
   supports: [],
   loads: [],
@@ -67,7 +74,12 @@ export const useAnalysisStore = create<AnalysisState>()((set, get) => ({
   shelfLoadKg: 20,
   shelfLoadType: "distributed",
   shelfResult: null,
-  setMode: (mode) => set({ mode }),
+  // a prateleira é um conceito de chapa única: mudar para ela volta o escopo (lados mudam de dono)
+  setMode: (mode) =>
+    mode === "shelf" && get().scope === "assembly"
+      ? set({ mode, scope: "part", supports: [], loads: [], result: null, status: "idle", error: null })
+      : set({ mode }),
+  setScope: (scope) => set({ scope, supports: [], loads: [], result: null, status: "idle", error: null }),
   setShape: (shapeId) => set({ shapeId, supports: [], loads: [], result: null, status: "idle", error: null }),
   setTool: (tool) => set({ tool }),
   toggleSide: (side) => {
@@ -99,6 +111,26 @@ export function analysisGeometry(shape: Shape): { outer: Point[]; holes: Point[]
   return { outer: shapeToPoints(shape), holes: shape.kind === "path" ? (shape as PathShape).holes ?? [] : [] };
 }
 
+/** Peças visíveis coladas (folga até 0,5 mm conta como encostado): uma região por grupo conectado. */
+export function assemblyRegions(shapes: Shape[] = analyzableShapes()): Region[] {
+  return glueParts(shapes.flatMap(shapeRegions), GLUE_TOL);
+}
+
+/** Geometria que a análise vai malhar, pelo escopo atual — ou o motivo de não dar. */
+export function analysisTarget(): { outer: Point[]; holes: Point[][] } | { error: string } {
+  const st = useAnalysisStore.getState();
+  if (st.scope === "assembly") {
+    const regions = assemblyRegions();
+    if (regions.length === 0) return { error: "Desenhe ou importe uma peça fechada antes de analisar." };
+    if (regions.length > 1)
+      return { error: `As peças formam ${regions.length} grupos separados. Encoste as peças: folga de até ${GLUE_TOL.toLocaleString("pt-BR")} mm fecha como colado.` };
+    return regions[0];
+  }
+  const shape = useProjectStore.getState().shapes.find((s) => s.id === st.shapeId);
+  if (!shape) return { error: "Escolha uma peça para analisar." };
+  return analysisGeometry(shape);
+}
+
 const G = 9.81;
 const DIR: Record<LoadDir, { fx: number; fy: number }> = {
   down: { fx: 0, fy: -1 }, up: { fx: 0, fy: 1 }, left: { fx: -1, fy: 0 }, right: { fx: 1, fy: 0 },
@@ -108,9 +140,9 @@ const DIR: Record<LoadDir, { fx: number; fy: number }> = {
 /** Monta o job a partir do estado atual (null quando falta apoio, carga ou peça). */
 export function buildJob(): FemJob | null {
   const st = useAnalysisStore.getState();
-  const shape = useProjectStore.getState().shapes.find((s) => s.id === st.shapeId);
-  if (!shape || st.supports.length === 0 || st.loads.length === 0 || st.loadKg <= 0) return null;
-  const { outer, holes } = analysisGeometry(shape);
+  const target = analysisTarget();
+  if ("error" in target || st.supports.length === 0 || st.loads.length === 0 || st.loadKg <= 0) return null;
+  const { outer, holes } = target;
   const settings = useProjectStore.getState().settings;
   const material = findMaterial(settings.material);
   const b = boundingBox(outer);
@@ -137,6 +169,11 @@ const hasWorker = typeof Worker !== "undefined" && !inTest && import.meta.env.MO
 
 /** Dispara a análise no plano (worker; síncrona nos testes). */
 export function runAnalysis(): void {
+  const target = analysisTarget();
+  if ("error" in target) {
+    useAnalysisStore.setState({ status: "error", error: target.error });
+    return;
+  }
   const job = buildJob();
   if (!job) {
     useAnalysisStore.setState({ status: "error", error: "Marque pelo menos um lado apoiado e um lado com carga (e uma carga > 0)." });

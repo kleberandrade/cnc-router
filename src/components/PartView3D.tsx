@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { extrudeShape } from "../lib/extrude";
+import { extrudeRegion, extrudeShape } from "../lib/extrude";
+import type { Point } from "../lib/geometry";
 import { materialLook } from "../lib/materials";
 import { useProjectStore } from "../state/store";
 import type { Shape } from "../types";
@@ -7,8 +8,9 @@ import type { Shape } from "../types";
 /**
  * Peça pronta em 3D (Sprint 31): a extrusão limpa do desenho — sem chapa, sem fresa.
  * O Three.js entra pelo mesmo chunk do simulador (import dinâmico); arrastar gira a peça.
+ * Com `geometry`, extruda esse contorno em vez da peça — é como o conjunto colado aparece (Sprint 33).
  */
-export function PartView3D({ shape }: { shape: Shape }) {
+export function PartView3D({ shape, geometry }: { shape: Shape; geometry?: { outer: Point[]; holes: Point[][] } }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const material = useProjectStore((s) => s.settings.material);
 
@@ -34,7 +36,7 @@ export function PartView3D({ shape }: { shape: Shape }) {
       scene.add(sun);
 
       const thickness = useProjectStore.getState().settings.stock.thickness;
-      const data = extrudeShape(shape, thickness);
+      const data = geometry ? extrudeRegion(geometry.outer, geometry.holes, thickness) : extrudeShape(shape, thickness);
       const geo = new THREE.BufferGeometry();
       geo.setAttribute("position", new THREE.BufferAttribute(data.positions, 3));
       geo.setAttribute("normal", new THREE.BufferAttribute(data.normals, 3));
@@ -87,7 +89,7 @@ export function PartView3D({ shape }: { shape: Shape }) {
     });
 
     return () => { disposed = true; cleanup?.(); };
-  }, [shape, material]);
+  }, [shape, material, geometry]);
 
   return <div ref={hostRef} className="part-view-3d" data-testid="part-view-3d" role="img" aria-label="Peça pronta em 3D — arraste para girar" />;
 }

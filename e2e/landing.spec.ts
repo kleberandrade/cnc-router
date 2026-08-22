@@ -15,6 +15,7 @@ test.describe("sprint 32: landing page", () => {
     // seções essenciais presentes
     await expect(page.getByText("Três passos, nenhuma instalação")).toBeVisible();
     await expect(page.getByText("Folha técnica que vai para o lado da máquina")).toBeVisible();
+    await expect(page.getByText("A peça aguenta? A análise de resistência responde")).toBeVisible();
     await expect(page.getByText("Para quem é (e o que não é)")).toBeVisible();
     // footer com legal e contato
     await expect(page.locator("footer")).toContainText("Privacidade");

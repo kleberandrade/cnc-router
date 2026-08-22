@@ -9,7 +9,7 @@ const bracket: RectangleShape = {
 
 const reset = () =>
   useAnalysisStore.setState({
-    mode: "inplane", shapeId: "b1", supports: [], loads: [], loadKg: 10, loadDir: "down",
+    mode: "inplane", scope: "part", shapeId: "b1", supports: [], loads: [], loadKg: 10, loadDir: "down",
     tool: "support", status: "idle", error: null, result: null, shelfResult: null,
     shelfSpan: 800, shelfLoadKg: 20, shelfLoadType: "distributed",
   });
@@ -69,6 +69,33 @@ describe("state/analysis", () => {
     expect(useAnalysisStore.getState().result).toBeTruthy();
     useAnalysisStore.getState().setLoadKg(50);
     expect(useAnalysisStore.getState().result).toBeNull();
+  });
+
+  it("escopo Conjunto: peças encostadas coladas viram um job só; afastadas explicam em vez de rodar", () => {
+    const second: RectangleShape = { ...bracket, id: "b2", x: 200, y: 0, width: 100 }; // encostada em x=200
+    useProjectStore.setState({ shapes: [bracket, second] });
+    useAnalysisStore.getState().setScope("assembly");
+    useAnalysisStore.setState({ supports: [3], loads: [1], loadKg: 10 });
+    const job = buildJob()!;
+    expect(job).toBeTruthy();
+    const xs = job.outer.map((p) => p[0]);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(300, 0); // 200 + 100 coladas
+
+    // afastando a segunda peça: grupos separados, mensagem clara, sem conta
+    useProjectStore.setState({ shapes: [bracket, { ...second, x: 260 }] });
+    runAnalysis();
+    const st = useAnalysisStore.getState();
+    expect(st.status).toBe("error");
+    expect(st.error).toContain("grupos separados");
+  });
+
+  it("mudar para a prateleira volta o escopo para Peça (os lados mudam de dono)", () => {
+    useAnalysisStore.getState().setScope("assembly");
+    useAnalysisStore.setState({ supports: [1] });
+    useAnalysisStore.getState().setMode("shelf");
+    const st = useAnalysisStore.getState();
+    expect(st.scope).toBe("part");
+    expect(st.supports).toEqual([]);
   });
 
   it("prateleira: flecha, limite vão/300 e utilização com a largura menor da peça", () => {

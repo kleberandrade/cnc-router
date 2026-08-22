@@ -1,10 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useProjectStore } from "../state/store";
 import {
-  useAnalysisStore, analysisGeometry, runAnalysis, runShelf, type LoadDir,
+  useAnalysisStore, analysisGeometry, assemblyRegions, runAnalysis, runShelf, type LoadDir,
 } from "../state/analysis";
 import { boundarySides } from "../lib/fem/mesh";
-import { boundingBox, type Point } from "../lib/geometry";
+import { GLUE_TOL } from "../lib/fem/assembly";
+import { boundingBox, shapeToPoints, type Point } from "../lib/geometry";
 import { findMaterial } from "../lib/materials";
 import { NumberField } from "./NumberField";
 
@@ -50,7 +51,12 @@ export function AnalysisWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shape?.id]);
 
-  const geo = useMemo(() => (shape ? analysisGeometry(shape) : null), [shape]);
+  // no escopo Conjunto, a geometria é o grupo colado; mais de um grupo = nada para malhar (a UI explica)
+  const regions = useMemo(() => (st.scope === "assembly" ? assemblyRegions(candidates) : []), [st.scope, candidates]);
+  const geo = useMemo(() => {
+    if (st.scope === "assembly") return regions.length === 1 ? regions[0] : null;
+    return shape ? analysisGeometry(shape) : null;
+  }, [st.scope, regions, shape]);
   // lados da peça: contorno + furos, com polilinha própria para desenhar/clicar
   const sideShapes = useMemo(() => {
     if (!geo) return [];
@@ -120,6 +126,21 @@ export function AnalysisWorkspace() {
         ctx.closePath(); ctx.stroke();
       }
     }
+    // no conjunto, as linhas das peças originais mostram onde estão as juntas
+    if (st.scope === "assembly") {
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(canvas).color;
+      ctx.globalAlpha = 0.35;
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      for (const s of candidates) {
+        const pts = shapeToPoints(s);
+        ctx.beginPath();
+        pts.forEach((p, i) => { if (i === 0) ctx.moveTo(tx(p[0]), ty(p[1])); else ctx.lineTo(tx(p[0]), ty(p[1])); });
+        ctx.closePath(); ctx.stroke();
+      }
+      ctx.restore();
+    }
     // lados marcados por cima (sempre visíveis)
     for (const s of sideShapes) {
       const isSup = st.supports.includes(s.side);
@@ -132,7 +153,7 @@ export function AnalysisWorkspace() {
       s.pts.forEach((p, i) => { if (i === 0) ctx.moveTo(tx(p[0]), ty(p[1])); else ctx.lineTo(tx(p[0]), ty(p[1])); });
       ctx.stroke();
     }
-  }, [geo, sideShapes, st.supports, st.loads, st.result, st.showDeformed]);
+  }, [geo, sideShapes, st.supports, st.loads, st.result, st.showDeformed, st.scope, candidates]);
 
   const pickSide = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -173,12 +194,20 @@ export function AnalysisWorkspace() {
   return (
     <section className="workspace analysis-ws" data-testid="analysis-workspace">
       <aside className="analysis-panel">
-        <label>
-          Peça
-          <select value={shape.id} onChange={(e) => st.setShape(e.target.value)} data-testid="an-shape">
-            {candidates.map((s, i) => <option key={s.id} value={s.id}>{s.name ?? `${s.kind} ${i + 1}`}</option>)}
-          </select>
-        </label>
+        {st.mode === "inplane" && candidates.length > 1 && (
+          <div className="an-mode" role="radiogroup" aria-label="O que analisar">
+            <button type="button" role="radio" aria-checked={st.scope === "part"} className={`choice-icon${st.scope === "part" ? " active" : ""}`} onClick={() => st.setScope("part")} data-testid="an-scope-part">Uma peça</button>
+            <button type="button" role="radio" aria-checked={st.scope === "assembly"} className={`choice-icon${st.scope === "assembly" ? " active" : ""}`} onClick={() => st.setScope("assembly")} data-testid="an-scope-assembly">Conjunto</button>
+          </div>
+        )}
+        {st.scope === "part" && (
+          <label>
+            Peça
+            <select value={shape.id} onChange={(e) => st.setShape(e.target.value)} data-testid="an-shape">
+              {candidates.map((s, i) => <option key={s.id} value={s.id}>{s.name ?? `${s.kind} ${i + 1}`}</option>)}
+            </select>
+          </label>
+        )}
         <div className="an-mode" role="radiogroup" aria-label="Tipo de análise">
           <button type="button" role="radio" aria-checked={st.mode === "inplane"} className={`choice-icon${st.mode === "inplane" ? " active" : ""}`} onClick={() => st.setMode("inplane")} data-testid="an-mode-inplane">No plano da chapa</button>
           <button type="button" role="radio" aria-checked={st.mode === "shelf"} className={`choice-icon${st.mode === "shelf" ? " active" : ""}`} onClick={() => st.setMode("shelf")} data-testid="an-mode-shelf">Prateleira (flexão)</button>
@@ -186,7 +215,11 @@ export function AnalysisWorkspace() {
 
         {st.mode === "inplane" ? (
           <>
-            <p className="hint">Clique nos lados da peça para marcar. Azul = apoiado, laranja = onde a carga entra.</p>
+            <p className="hint">
+              {st.scope === "assembly"
+                ? "Peças encostadas contam como coladas: o cálculo roda no conjunto. Clique nos lados: azul = apoiado, laranja = onde a carga entra."
+                : "Clique nos lados da peça para marcar. Azul = apoiado, laranja = onde a carga entra."}
+            </p>
             <div className="an-mode" role="radiogroup" aria-label="Ferramenta">
               <button type="button" role="radio" aria-checked={st.tool === "support"} className={`choice-icon${st.tool === "support" ? " active" : ""}`} onClick={() => st.setTool("support")} data-testid="an-tool-support">Apoiar</button>
               <button type="button" role="radio" aria-checked={st.tool === "load"} className={`choice-icon${st.tool === "load" ? " active" : ""}`} onClick={() => st.setTool("load")} data-testid="an-tool-load">Carregar</button>
@@ -242,14 +275,19 @@ export function AnalysisWorkspace() {
 
         <p className="an-disclaimer" data-testid="an-disclaimer">
           Números orientativos: madeira varia de chapa para chapa e o modelo é simplificado.
-          Para estrutura de verdade, procure um engenheiro.
+          {st.scope === "assembly" && " No conjunto, a junta vale como cola ideal: parafuso ou encaixe com folga aguentam menos."}
+          {" "}Para estrutura de verdade, procure um engenheiro.
         </p>
       </aside>
       <div className="analysis-stage">
         {st.mode === "inplane" ? (
-          view3d ? (
+          st.scope === "assembly" && !geo ? (
+            <p className="drawing-empty" data-testid="an-scope-warn">
+              As peças formam {regions.length} grupos separados. Encoste as peças no desenho: folga de até {GLUE_TOL.toLocaleString("pt-BR")} mm fecha como colado.
+            </p>
+          ) : view3d ? (
             <Suspense fallback={<p className="hint" role="status">Montando a peça em 3D…</p>}>
-              <PartView3D shape={shape} />
+              <PartView3D shape={shape} geometry={st.scope === "assembly" && geo ? geo : undefined} />
             </Suspense>
           ) : (
             <canvas ref={canvasRef} width={900} height={620} className="an-canvas" data-testid="an-canvas" onClick={pickSide} aria-label="Peça com apoios, cargas e resultado" />
@@ -257,7 +295,7 @@ export function AnalysisWorkspace() {
         ) : (
           <ShelfSketch span={st.shelfSpan} thickness={settings.stock.thickness} deflection={st.shelfResult?.deflection ?? 0} />
         )}
-        {st.mode === "inplane" && (
+        {st.mode === "inplane" && !(st.scope === "assembly" && !geo) && (
           <div className="an-stage-tools">
             <button type="button" className={`rb${view3d ? "" : " active"}`} onClick={() => setView3d(false)} data-testid="an-view-2d">Análise</button>
             <button type="button" className={`rb${view3d ? " active" : ""}`} onClick={() => setView3d(true)} data-testid="an-view-3d">Peça em 3D</button>

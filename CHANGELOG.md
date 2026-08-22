@@ -2,6 +2,14 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [0.34.0 — Sprint 33 — Resistência no conjunto] — 2026-08-22
+
+### Adicionado
+- **Análise no conjunto**: na estação Resistência, o alternador "Uma peça | Conjunto" faz as peças encostadas no desenho valerem como um corpo só (juntas coladas) — apoios e cargas vão nos lados do conjunto e o mapa de tensão mostra as linhas das peças por cima, para as juntas ficarem visíveis. Folga de até 0,5 mm (a folga típica de encaixe) ainda conta como encostado. Validado: duas chapas coladas se comportam como a peça única equivalente.
+- Peças afastadas não rodam por engano: a estação mostra quantos grupos separados existem e explica como fechar.
+- A vista "Peça em 3D" no conjunto extruda a região colada inteira.
+- O aviso orientativo ganhou a frase da junta: no conjunto, a junta vale como cola ideal — parafuso ou encaixe com folga aguentam menos.
+
 ## [0.33.0 — Sprint 31 — Resistência] — 2026-08-22
 
 ### Adicionado
