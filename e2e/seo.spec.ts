@@ -41,6 +41,12 @@ test.describe("SEO", () => {
     await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /router CNC de bancada/);
     // a landing não pode carregar o bundle do app
     expect(await page.locator('script[type="module"]').count()).toBe(0);
+    // dados estruturados: aplicação + FAQ
+    const ld = page.locator('script[type="application/ld+json"]');
+    await expect(ld).toHaveCount(2);
+    const types = await ld.allTextContents();
+    expect(types.join(" ")).toContain('"SoftwareApplication"');
+    expect(types.join(" ")).toContain('"FAQPage"');
   });
 
   test("document title follows the active view", async ({ page }) => {

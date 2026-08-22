@@ -6,10 +6,16 @@ test.describe("sprint 32: landing page", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Oficina CNC/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("veja o corte antes");
+    // navbar fixa com navegação por seção
+    const nav = page.getByTestId("landing-nav");
+    await expect(nav).toBeVisible();
+    await nav.getByText("Folha técnica").click();
+    await expect(page).toHaveURL(/#folha-tecnica$/);
+    expect(await page.locator("header.top").evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
     // seções essenciais presentes
     await expect(page.getByText("Três passos, nenhuma instalação")).toBeVisible();
     await expect(page.getByText("Folha técnica que vai para o lado da máquina")).toBeVisible();
-    await expect(page.getByText("Para quem é — e o que não é")).toBeVisible();
+    await expect(page.getByText("Para quem é (e o que não é)")).toBeVisible();
     // footer com legal e contato
     await expect(page.locator("footer")).toContainText("Privacidade");
     await expect(page.locator("footer")).toContainText("pdjkleber@gmail.com");
