@@ -10,3 +10,4 @@ alwaysApply: false
 - Nova lógica ganha `src/lib/__tests__/<nome>.test.ts`.
 - Se alterar `toolpath.ts` ou `gcode.ts`: gerar/atualizar sample em `docs/samples/` (cabeçalho, unidades, multi-passe, retorno ao safe height).
 - Unidades em mm. Sem `any` novo.
+- Importar DXF/SVG passa sempre pelo `ImportVectorDialog` (`uiStore.vectorFile`): nada entra na chapa sem prévia. Heurística de geometria na importação precisa de escape visível (a chave "inferir furos" é o modelo) — não adivinhe em silêncio. Fontes do usuário ficam em IndexedDB (`lib/userFonts.ts`) e não entram no `.json` nem no link.

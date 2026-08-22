@@ -84,7 +84,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
-    exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**'],
+    exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**', '**/_to_delete/**', '**/_sync/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
@@ -105,10 +105,10 @@ export default defineConfig({
         'scripts/',
       ],
       thresholds: {
-        lines: 80,
+        lines: 82,
+        statements: 82,
         functions: 80,
-        branches: 75,
-        statements: 80,
+        branches: 77,
       },
     },
   },

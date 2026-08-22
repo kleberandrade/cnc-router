@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { readFileSync } from "node:fs";
-import { registerFont, textToPolygons, nestLoops, isFontLoaded, _resetFonts } from "../text";
+import { registerFont, textToPolygons, nestLoops, isFontLoaded, explodeText, _resetFonts } from "../text";
 import { expandShape } from "../expand";
 import { buildToolpath } from "../toolpath";
 import { generateGCode } from "../gcode";
@@ -88,5 +88,51 @@ describe("pocket with islands", () => {
     for (const s of feeds) for (const p of [s.from, s.to]) expect(distToHole(p)).toBeGreaterThanOrEqual(2 - 0.06);
     // island wall pass touches x = 23 or 37
     expect(feeds.some((s) => Math.abs(s.to[0] - 23) < 1e-6 || Math.abs(s.to[0] - 37) < 1e-6)).toBe(true);
+  });
+});
+
+describe("explodeText", () => {
+  it("vira contornos fechados, com os vazios do glifo como holes", () => {
+    const parts = explodeText(text({ text: "O" }));
+    expect(parts).toHaveLength(1);
+    expect(parts[0].kind).toBe("path");
+    expect(parts[0].closed).toBe(true);
+    expect(parts[0].holes).toHaveLength(1);
+    // mesma geometria que o expand usa para usinar
+    expect(parts[0].points).toEqual(textToPolygons(text({ text: "O" }))[0].outer);
+  });
+
+  it("preserva profundidade, operação, lado, tabs e extraOps", () => {
+    const src = text({
+      text: "AB", depth: 7, operation: "pocket", side: "inside",
+      tabs: { count: 3, width: 6, height: 2 },
+      extraOps: [{ id: "op-1", operation: "outline", depth: 12, side: "outside" }],
+    });
+    const parts = explodeText(src);
+    expect(parts.length).toBeGreaterThanOrEqual(2);
+    for (const p of parts) {
+      expect(p.depth).toBe(7);
+      expect(p.operation).toBe("pocket");
+      expect(p.side).toBe("inside");
+      expect(p.tabs).toEqual({ count: 3, width: 6, height: 2 });
+      expect(p.extraOps?.[0]).toMatchObject({ operation: "outline", depth: 12, side: "outside" });
+    }
+    // ids proprios: nem as peças nem as operações extras podem repetir id
+    const ids = parts.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const opIds = parts.flatMap((p) => p.extraOps?.map((o) => o.id) ?? []);
+    expect(new Set(opIds).size).toBe(opIds.length);
+  });
+
+  it("sem fonte carregada não devolve nada", () => {
+    expect(explodeText(text({ fontId: "nao-existe", text: "" }))).toEqual([]);
+  });
+
+  it("o contorno explodido usina igual ao texto original", () => {
+    const src = text({ text: "O", side: "outside" });
+    const before = buildToolpath([src], { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 1 });
+    const after = buildToolpath(explodeText(src), { ...DEFAULT_MACHINE_SETTINGS, toolDiameter: 1 });
+    expect(after.shapeCount).toBe(before.shapeCount);
+    expect(after.segments.length).toBe(before.segments.length);
   });
 });

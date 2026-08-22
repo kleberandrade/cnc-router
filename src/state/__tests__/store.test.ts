@@ -6,7 +6,9 @@ import {
   PROJECT_STORAGE_KEY,
 } from "../store";
 import { DEFAULT_MACHINE_SETTINGS } from "../../types";
-import type { CircleShape } from "../../types";
+import type { CircleShape, TextShape } from "../../types";
+import { readFileSync } from "node:fs";
+import { registerFont, _resetFonts } from "../../lib/text";
 
 const makeCircle = (id: string): CircleShape => ({
   id,
@@ -200,5 +202,42 @@ describe("navigator & tool library (sprint 11)", () => {
     S().removeTool("t");
     expect(S().settings.tools).toEqual([]);
     expect(S().shapes[0].toolId).toBeUndefined();
+  });
+});
+
+describe("explodeTextShape", () => {
+  beforeEach(() => {
+    useProjectStore.getState().newProject();
+    _resetFonts();
+    const buf = readFileSync("public/fonts/Inter-Regular.ttf");
+    registerFont("inter", buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+  });
+
+  const addText = (over: Partial<TextShape> = {}) => {
+    const t: TextShape = {
+      id: "t1", kind: "text", x: 20, y: 20, text: "Oi", fontId: "inter", size: 20,
+      rotation: 0, align: "left", letterSpacing: 0, depth: 2, operation: "outline", ...over,
+    };
+    useProjectStore.setState({ shapes: [t], selectedId: t.id, selectedIds: [t.id] });
+    return t;
+  };
+
+  it("troca o texto pelos contornos, no mesmo lugar da lista", () => {
+    const t = addText();
+    useProjectStore.setState({ shapes: [{ ...t }, { id: "depois", kind: "circle", x: 0, y: 0, radius: 5, depth: 1, operation: "outline" }] });
+    const ids = useProjectStore.getState().explodeTextShape("t1");
+    expect(ids.length).toBeGreaterThan(0);
+    const shapes = useProjectStore.getState().shapes;
+    expect(shapes.some((s) => s.kind === "text")).toBe(false);
+    // os contornos entram na posição do texto, antes do círculo que já estava depois dele
+    expect(shapes[shapes.length - 1].id).toBe("depois");
+    expect(useProjectStore.getState().selectedIds).toEqual(ids);
+  });
+
+  it("não explode texto travado nem forma que não é texto", () => {
+    addText({ locked: true });
+    expect(useProjectStore.getState().explodeTextShape("t1")).toEqual([]);
+    useProjectStore.setState({ shapes: [{ id: "c1", kind: "circle", x: 0, y: 0, radius: 5, depth: 1, operation: "outline" }] });
+    expect(useProjectStore.getState().explodeTextShape("c1")).toEqual([]);
   });
 });

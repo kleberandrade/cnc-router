@@ -60,7 +60,7 @@ Plano em [`fase-3.md`](fase-3.md) (backlog da Sprint 12 convertido).
 | [13](sprint-13-ilhas-e-texto.md) ✅ | Pockets com ilhas e texto → contorno | — | G |
 | [14](sprint-14-entrada-furacao-tempo-pos.md) ✅ | Hélice, furação, tempo com aceleração, G20 + pós-processadores | — | M |
 | [15](sprint-15-nesting-e-booleanas.md) ✅ | Nesting e booleanas | 13 | G |
-| [16](sprint-16-verificacao-operacoes-compartilhar.md) | Verificação de sobrecorte, múltiplas operações, compartilhar por link — **movida para o fim da Fase 4** | 13, 14 | M |
+| [16](sprint-16-verificacao-operacoes-compartilhar.md) ✅ | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
 | [17](sprint-17-web-serial-sender.md) | Enviar para a máquina (Web Serial/GRBL) — **movida para a Fase 5 (backlog)** | 14 | G |
 
 ## Fase 4 — Usabilidade, UI/UX e produto
@@ -74,17 +74,20 @@ Plano em [`fase-4.md`](fase-4.md) (auditoria de UI de 2026-08-16). Ordem: 18 →
 | [20](sprint-20-feedback-vercel.md) ✅ | Sugestões e problemas: formulário → Vercel Function → Vercel Blob | 19 | M |
 | [21](sprint-21-usabilidade-onboarding-a11y.md) ✅ | Estado vazio, exemplos, tour, mensagens, acessibilidade, mobile | 18 | M |
 | [22](sprint-22-ribbon-fusion.md) ✅ | Barra superior no estilo Fusion 360 (app bar, workspace + abas, ribbon com menus de grupo, tooltips ricos, nome do projeto) | 18 | M |
-| [16](sprint-16-verificacao-operacoes-compartilhar.md) ✅ | Verificação de sobrecorte, múltiplas operações, compartilhar por link | 13, 14 | M |
 | [27](sprint-27-inp-mobile.md) ✅ | INP e responsividade no celular: medir (web-vitals + e2e mobile), miniaturas pré-geradas, percurso/validação em Web Worker, menus com memo, prefetch do simulador | 24, 25, 26 | M |
-| [27](sprint-27-inp-mobile.md) | INP e responsividade no celular: medir (web-vitals + e2e mobile), miniaturas pré-geradas, percurso/validação em Web Worker, menus com memo, prefetch do simulador | 24, 25, 26 | M |
 | [26](sprint-26-exemplos-encaixe.md) ✅ | Exemplos de encaixe e uso diário (suporte de celular, caixa finger joint, dobradiça viva, bandeja, descanso de panela, gabarito 32; saem porta-lápis, letreiro e gato), folga de encaixe, filtro por "o que ensina" na galeria | 24, 25 | M |
-| [26](sprint-26-exemplos-encaixe.md) | Exemplos de encaixe e uso diário (suporte de celular, caixa finger joint, dobradiça viva, bandeja, descanso de panela, gabarito 32; saem porta-lápis e gato), folga de encaixe, filtro por "o que ensina" na galeria | 24, 25 | M |
 | [25](sprint-25-imagens.md) ✅ | Importar imagem (PNG/JPG): silhueta vetorizada e relevo por heightmap; contorno paralelo nos rebaixos | 24 | G |
 | [24](sprint-24-exemplos.md) ✅ | Exemplos úteis (tábua de carnes, casa e oficina, animal por SVG), biblioteca com categorias/galeria, ilustrações nas opções, notice compacto | 21, 23 | M |
-| [24](sprint-24-exemplos.md) | Exemplos úteis (tábua de carnes, escudos, animal por SVG), biblioteca com categorias/galeria, ilustrações nas opções, notice compacto | 21, 23 | M |
 | [23](sprint-23-acabamento-ux.md) ✅ | Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, histórico (linha do tempo), textos, regras dos agentes, políticas | 22 | G |
-| [23](sprint-23-acabamento-ux.md) | Acabamento de UX: diálogos próprios, origem visual, materiais no 3D, histórico (linha do tempo), textos, regras dos agentes, políticas | 22 | G |
 
 ## Fase 5 — Backlog
 
 [`fase-5.md`](fase-5.md): Web Serial (Sprint 17), NFP, G2/G3, fontes do usuário, DXF com furos, i18n…
+
+| Sprint | Tema | Depende de | Esforço |
+|---|---|---|---|
+| [28](sprint-28-traga-seu-desenho.md) ✅ | Traga seu desenho: furos inferidos no DXF (por camada, com guarda de moldura), diálogo de importação, fontes .ttf/.otf do usuário e "Explodir texto" | 13, 25 | M/G |
+| [29](sprint-29-imprimir-e-entrada-rapida.md) ✅ | Imprimir: folha de oficina e desenho técnico 2D com cotas (escala 1:1 como gabarito); arrastar/colar arquivo; rota do Speed Insights; e2e mobile e folga de cobertura | 27, 28 | G |
+| [30](sprint-30-estacoes-e-folha-na-tela.md) ✅ | Estações de trabalho (dropdown estilo Fusion: Desenhar · Simular · Folha técnica), folha técnica na tela com prévia navegável e Baixar SVG, thresholds 82/77, smoke completo | 29 | G |
+| [31](sprint-31-resistencia.md) | Resistência: peça pronta em 3D (extrusão), FEA 2D plane-stress em Worker com von Mises, flexão de prateleira por viga, estação própria, validação contra casos analíticos | 30 | G/GG |
+| [32](sprint-32-landing-page.md) | Landing page estática em `/` (cover, três passos, folha técnica, exemplos, FAQ, footer), app move para `/app/` com redirects de links antigos e PWA preservada | 30 | M |

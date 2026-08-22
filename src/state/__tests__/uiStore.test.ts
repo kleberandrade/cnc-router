@@ -54,3 +54,30 @@ describe("uiStore theme & mouse", () => {
     S().setTheme("system");
   });
 });
+
+describe("uiStore — diálogos e arquivos pendentes (Sprints 28/29)", () => {
+  it("vectorFile e galleryOpen guardam e limpam", () => {
+    const st = useUiStore.getState();
+    const file = new File(["<svg/>"], "p.svg");
+    st.setVectorFile({ file, text: "<svg/>" });
+    expect(useUiStore.getState().vectorFile?.text).toBe("<svg/>");
+    st.setVectorFile(null);
+    expect(useUiStore.getState().vectorFile).toBeNull();
+
+    st.setGalleryOpen(true);
+    expect(useUiStore.getState().galleryOpen).toBe(true);
+    st.setGalleryOpen(false);
+  });
+
+  it("ids antigos do painel caem na aba certa", () => {
+    const st = useUiStore.getState();
+    st.setSection("navigator");
+    expect(useUiStore.getState().section).toBe("shape");
+    st.setSection("material");
+    expect(useUiStore.getState().section).toBe("cut");
+    st.setSection("stock");
+    expect(useUiStore.getState().section).toBe("machine");
+    st.setSection("tools");
+    expect(useUiStore.getState().section).toBe("cut");
+  });
+});

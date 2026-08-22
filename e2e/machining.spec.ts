@@ -65,11 +65,12 @@ test.describe("machining quality (sprint 06)", () => {
       <rect x="0" y="0" width="188.97638" height="113.38583"/>
       <path d="M 200,200 C 200,150 300,150 300,200 Z"/></svg>`;
     await page.getByTestId("svg-file-input").setInputFiles({ name: "peca.svg", mimeType: "image/svg+xml", buffer: Buffer.from(svg) });
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
-    await expect(page.getByTestId("notice")).toContainText("curvas");
+    await expect(page.getByTestId("import-warnings")).toContainText("curvas");
+    await page.getByTestId("import-confirm").click();
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 peças");
     // select the rect: first shape → check size in the panel via keyboard? use store through UI: open shape section shows summary
     await page.getByTestId("undo").click(); // remove both
     await page.getByTestId("redo").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 peças");
   });
 });

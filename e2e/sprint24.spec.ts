@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 
 test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", () => {
   test.slow();
@@ -12,15 +13,15 @@ test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", ()
     expect(await page.locator(".ex-card").count()).toBeGreaterThanOrEqual(11);
     await expect(page.locator(".ex-thumb path").first()).toBeVisible();
     await page.getByTestId("gallery-placa-pata").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("8 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("8 peças");
     await expect(page.getByTestId("notice")).toContainText("pata de cachorro");
     // gallery again, replacing the project asks first
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
     await page.getByTestId("gallery-tabua-carnes").click();
     await page.getByTestId("ask-ok").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("4 forma(s)");
-    await page.getByTestId("tab-simulator").click();
+    await expect(page.getByTestId("status-shapes")).toHaveText("4 peças");
+    await gotoWorkspace(page, "simulator");
     await expect(page.getByTestId("simulate-toggle")).toBeEnabled();
   });
 

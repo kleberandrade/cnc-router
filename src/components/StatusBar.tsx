@@ -24,7 +24,7 @@ export function StatusBar() {
       <span className="status-item">
         <Ruler size={13} aria-hidden="true" /> Mesa {workArea.width}×{workArea.height} · Chapa {stock.width}×{stock.height}×{stock.thickness} mm
       </span>
-      <span className="status-item" data-testid="status-shapes"><Layers size={13} aria-hidden="true" /> {shapes.length} forma(s)</span>
+      <span className="status-item" data-testid="status-shapes"><Layers size={13} aria-hidden="true" /> {shapes.length} {shapes.length === 1 ? "peça" : "peças"}</span>
       <span className={`status-item${status === "computing" ? " status-computing" : ""}`} data-testid="toolbar-estimate" data-status={status}><Clock size={13} aria-hidden="true" /> tempo estimado {formatDuration(estimatedTime)}</span>
       {issues.length > 0 ? (
         <details className="status-issues" data-testid="issues">

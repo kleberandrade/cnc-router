@@ -100,7 +100,7 @@ export function ImportImageDialog({ file, onDone }: { file: File; onDone: () => 
       if (shapes.length === 0) { setNotice({ kind: "warning", title: "Nenhum contorno encontrado — mexa no limiar ou inverta." }); return; }
       addShapes(shapes);
       select(shapes[shapes.length - 1].id);
-      setNotice({ kind: "info", title: `${shapes.length} contorno(s) importados de ${file.name}.`, details: [`limiar ${threshold}, ${widthMm} mm de largura`] });
+      setNotice({ kind: "info", title: `${shapes.length} ${shapes.length === 1 ? "contorno veio" : "contornos vieram"} de ${file.name}.`, details: [`limiar ${threshold}, ${widthMm} mm de largura`] });
     } else {
       // relief: keep ≤ 400 px wide grid
       const k = Math.min(1, 400 / gray.w);
@@ -150,7 +150,7 @@ export function ImportImageDialog({ file, onDone }: { file: File; onDone: () => 
               <NumberField label="Gama (curva)" min={0.3} max={3} step={0.1} value={gamma} onChange={setGamma} testId="ii-gamma" hint="< 1 aprofunda os meios-tons; > 1 suaviza" />
             </>
           )}
-          {traced && <p className="hint" data-testid="ii-count">{traced.regions.length} contorno(s), {traced.regions.reduce((n, r) => n + r.holes.length, 0)} furo(s)</p>}
+          {traced && <p className="hint" data-testid="ii-count">{traced.regions.length} {traced.regions.length === 1 ? "contorno" : "contornos"}, {traced.regions.reduce((n, r) => n + r.holes.length, 0)} {traced.regions.reduce((n, r) => n + r.holes.length, 0) === 1 ? "furo" : "furos"}</p>}
         </div>
       </div>
       <div className="dialog-actions" style={{ padding: 0 }}>

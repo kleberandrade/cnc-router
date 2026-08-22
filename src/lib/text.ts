@@ -1,7 +1,8 @@
 import opentype from "opentype.js";
-import type { TextShape } from "../types";
+import type { PathShape, TextShape } from "../types";
 import type { Point } from "./geometry";
 import { rotatePoint } from "./geometry";
+import { generateShapeId } from "./ids";
 
 export interface FontDef { id: string; label: string; url: string }
 
@@ -65,7 +66,8 @@ export interface GlyphPolys {
   holes: Point[][];
 }
 
-function signedArea(poly: Point[]): number {
+/** Signed area of a closed polygon (positive = counter-clockwise). */
+export function signedArea(poly: Point[]): number {
   let a = 0;
   for (let i = 0; i < poly.length; i++) {
     const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length];
@@ -74,7 +76,8 @@ function signedArea(poly: Point[]): number {
   return a / 2;
 }
 
-function pointInPoly(p: Point, poly: Point[]): boolean {
+/** Even-odd point-in-polygon test. */
+export function pointInPoly(p: Point, poly: Point[]): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const [xi, yi] = poly[i], [xj, yj] = poly[j];
@@ -182,4 +185,34 @@ export function textToPolygons(shape: TextShape, tol = 0.1): GlyphPolys[] {
     }
   }
   return out;
+}
+
+/**
+ * Convert a text shape into editable closed paths — one per glyph outline, counters as `holes`.
+ *
+ * After exploding, the geometry no longer depends on the font: it can be edited point by point,
+ * used in boolean operations, shared by link and opened on a machine that never had the font
+ * installed. Returns `[]` while the font is still loading.
+ */
+export function explodeText(shape: TextShape, tol = 0.1): PathShape[] {
+  const polys = textToPolygons(shape, tol);
+  const base = shape.name ?? (shape.text.trim() || "Texto");
+  return polys.map((g, i) => ({
+    id: generateShapeId("path"),
+    kind: "path",
+    points: g.outer,
+    holes: g.holes.length ? g.holes : undefined,
+    closed: true,
+    depth: shape.depth,
+    operation: shape.operation,
+    side: shape.side ?? "outside",
+    tabs: shape.tabs,
+    cutThrough: shape.cutThrough,
+    hidden: shape.hidden,
+    locked: shape.locked,
+    toolId: shape.toolId,
+    // fresh ids: the same extra operation now lives on several shapes
+    extraOps: shape.extraOps?.map((op) => ({ ...op, id: generateShapeId("op") })),
+    name: polys.length > 1 ? `${base} ${i + 1}` : base,
+  } satisfies PathShape));
 }

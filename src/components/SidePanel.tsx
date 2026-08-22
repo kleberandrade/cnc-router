@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useProjectStore } from "../state/store";
 import { useUiStore, type PanelSection } from "../state/uiStore";
 import { MACHINE_PRESETS, CUSTOM_PRESET_ID, findMachinePreset } from "../lib/machinePresets";
@@ -15,8 +15,12 @@ import type { MaterialId, CutParamKey, Shape, CutSide, OrderMode, ToolType, Corn
 import { throughCutDepth } from "../state/store";
 import { helixDiameter } from "../lib/toolpath";
 import { POSTS } from "../lib/post";
-import { FONTS } from "../lib/text";
+import { FONTS, isFontLoaded, onFontsChanged } from "../lib/text";
+import { addUserFont, fontDisplayName } from "../lib/userFonts";
 import { DEFAULT_TABS } from "../types";
+
+/** Sentinel value in the font dropdown that opens the file picker instead of selecting a font. */
+const LOAD_FONT = "__load__";
 
 interface SectionProps {
   id: PanelSection;
@@ -164,7 +168,7 @@ function shapeSummary(shape: Shape): string {
     case "slot": return `rasgo ${shape.length}×${shape.width}`;
     case "text": return `texto "${shape.text.slice(0, 10)}" ${shape.size} mm`;
     case "relief": return `relevo ${shape.width}×${shape.height} (${shape.cols}×${shape.rows} px, ${shape.depthMax} mm)`;
-    default: return `polígono (${shape.points.length} pts${shape.holes?.length ? `, ${shape.holes.length} furo(s)` : ""})`;
+    default: return `polígono (${shape.points.length} pts${shape.holes?.length ? `, ${shape.holes.length} ${shape.holes.length === 1 ? "furo" : "furos"}` : ""})`;
   }
 }
 
@@ -195,6 +199,16 @@ export function SidePanel() {
   const hasOverrides = Object.values(settings.overrides).some(Boolean);
 
   const selectedBox = useMemo(() => (selectedShape ? boundingBox(shapeToPoints(selectedShape)) : null), [selectedShape]);
+
+  const fontInputRef = useRef<HTMLInputElement>(null);
+  // re-render when a font finishes loading, so the missing-font hint and the list stay honest
+  const [fontTick, setFontTick] = useState(0);
+  useEffect(() => onFontsChanged(() => setFontTick((n) => n + 1)), []);
+  const fontLoaded = useMemo(
+    () => selectedShape?.kind !== "text" || isFontLoaded(selectedShape.fontId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedShape, fontTick]
+  );
 
   const handlePresetChange = (id: string) => {
     if (id === CUSTOM_PRESET_ID) { updateSettings({ machinePreset: CUSTOM_PRESET_ID }); return; }
@@ -346,10 +360,18 @@ export function SidePanel() {
                 <div className="field-row">
                   <label>
                     Fonte
-                    <select value={selectedShape.fontId} onChange={(e) => updateShape(selectedShape.id, { fontId: e.target.value })} data-testid="text-font">
+                    <select
+                      value={selectedShape.fontId}
+                      onChange={(e) => {
+                        if (e.target.value === LOAD_FONT) fontInputRef.current?.click();
+                        else updateShape(selectedShape.id, { fontId: e.target.value });
+                      }}
+                      data-testid="text-font"
+                    >
                       {FONTS.map((f) => (
                         <option key={f.id} value={f.id}>{f.label}</option>
                       ))}
+                      <option value={LOAD_FONT}>Carregar fonte…</option>
                     </select>
                   </label>
                   <label>
@@ -370,6 +392,39 @@ export function SidePanel() {
                 <NumberField label="Rotação" unit="°" min={-360} max={360} step={5} value={selectedShape.rotation} testId="shape-rotation"
                   onChange={(v) => updateShape(selectedShape.id, { rotation: v })} />
                 <p className="hint">Letras com furos (a, o, e) mantêm o miolo. Para gravar, use contorno "na linha" com fresa V; para recortar, "por fora".</p>
+                <button
+                  type="button" className="link" data-testid="explode-text"
+                  onClick={() => {
+                    const ids = useProjectStore.getState().explodeTextShape(selectedShape.id);
+                    setNotice(ids.length === 0
+                      ? { kind: "warning", title: "A fonte ainda não carregou — espere um instante e tente de novo." }
+                      : { kind: "info", title: `Texto virou ${ids.length} ${ids.length === 1 ? "contorno" : "contornos"}. Dá para editar ponto a ponto, e não depende mais da fonte.` });
+                  }}
+                >
+                  Explodir em contornos
+                </button>
+                <p className="hint">Explodir solta a peça da fonte: o desenho passa a ser contorno editável, entra nas booleanas e vai junto no arquivo e no link.</p>
+                {!fontLoaded && (
+                  <p className="hint" data-testid="text-font-missing">
+                    A fonte "{fontDisplayName(selectedShape.fontId)}" não está aqui — o texto está saindo na Inter. Carregue o arquivo de novo em Fonte, ou explode o texto em contornos.
+                  </p>
+                )}
+                <input
+                  ref={fontInputRef} type="file" accept=".ttf,.otf,font/ttf,font/otf" style={{ display: "none" }}
+                  data-testid="font-file-input"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    try {
+                      const { id, label } = await addUserFont(file.name, await file.arrayBuffer());
+                      updateShape(selectedShape.id, { fontId: id });
+                      setNotice({ kind: "info", title: `Fonte ${label} carregada. Fica salva aqui no navegador, mas não vai junto no arquivo nem no link — para levar o texto, explode em contornos.` });
+                    } catch {
+                      setNotice({ kind: "error", title: `${file.name} não abriu como fonte. Precisa ser .ttf ou .otf.` });
+                    }
+                  }}
+                />
               </>
             )}
             {selectedShape.kind === "slot" && (

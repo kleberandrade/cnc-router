@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Eye, EyeOff, Lock, LockOpen, Square, Circle as CircleIcon, Pentagon, Hexagon, RectangleHorizontal, ArrowUp, ArrowDown, Search, Type, Mountain } from "lucide-react";
 import { useProjectStore } from "../state/store";
+import { useDerived } from "../state/derived";
+import { formatDuration } from "../lib/timing";
 import { useUiStore } from "../state/uiStore";
 import type { Shape } from "../types";
 
@@ -39,6 +41,7 @@ export function Navigator() {
   }, [shapes, query]);
 
   const toolName = (s: Shape) => (s.toolId ? settings.tools.find((t) => t.id === s.toolId)?.name : undefined);
+  const timePerShape = useDerived((d) => d.timePerShape);
 
   return (
     <div className="navigator" data-testid="navigator">
@@ -88,6 +91,9 @@ export function Navigator() {
                 </span>
               )}
               {toolName(s) && <span className="nav-tool">{toolName(s)}</span>}
+              {timePerShape[s.id] !== undefined && !s.hidden && (
+                <span className="nav-time" data-testid={`nav-time-${i}`}>{formatDuration(timePerShape[s.id])}</span>
+              )}
               <button type="button" className={`icon-button${s.hidden ? "" : " on"}`} title={s.hidden ? "Mostrar (voltar a usinar)" : "Ocultar (não usinar/exportar)"} aria-pressed={!!s.hidden} aria-label={s.hidden ? "Mostrar" : "Ocultar"} onClick={(e) => { e.stopPropagation(); updateShape(s.id, { hidden: !s.hidden }); }} data-testid={`nav-eye-${i}`}>
                 {s.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>

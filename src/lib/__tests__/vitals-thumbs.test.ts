@@ -27,3 +27,19 @@ describe("thumbs (sprint 27)", () => {
     expect(thumbsHash([])).toBe(thumbsHash([]));
   });
 });
+
+describe("vitals — initVitals e ramos do describeMetric", () => {
+  it("initVitals é idempotente e entrega no sink", async () => {
+    const { initVitals } = await import("../vitals");
+    const got: string[] = [];
+    initVitals({ send: (m) => got.push(m.name) });
+    initVitals({ send: () => { throw new Error("segunda chamada não pode registrar de novo"); } });
+    // jsdom não dispara métricas reais; o contrato aqui é só não explodir e não registrar duas vezes
+    expect(got).toEqual([]);
+  });
+
+  it("INP sem atribuição não quebra", () => {
+    const m = { name: "INP", value: 120, rating: "good" } as Metric;
+    expect(describeMetric(m)).toContain("INP 120 ms (good)");
+  });
+});

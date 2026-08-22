@@ -8,7 +8,7 @@ export const TOUR_STEPS: TourStep[] = [
   { target: '[data-testid="add-rectangle"]', title: "Barra de ações", text: "Criar formas, modificar, arranjar e ver. O que não couber fica no menu Mais ▾. Atalhos nos tooltips (R, C, T…)." },
   { target: ".panel-tabs", title: "Painel", text: "Peça (lista e medidas), Máquina (área útil e chapa), Corte (fresa e parâmetros) e Exportar (controlador e unidades).", section: "shape" },
   { target: ".editor-canvas", title: "Mesa e chapa", text: "A área clara é a chapa; a origem X0 Y0 do G-code fica no canto dela. Arraste formas, use as alças e as cotas inline." },
-  { target: '[data-testid="tab-simulator"]', title: "Simular", text: "Veja a fresa percorrer o caminho com remoção de material, tempo estimado e passo a passo antes de rodar na máquina." },
+  { target: '[data-testid="workspace-menu"]', title: "Estações", text: "Troque aqui entre Desenhar, Simular (a fresa percorrendo o caminho) e a Folha técnica para imprimir." },
   { target: '[data-testid="export-gcode"]', title: "Exportar G-code", text: "Gera o programa para o seu controlador (GRBL, Marlin, LinuxCNC). O cabeçalho traz máquina, chapa, ferramentas e tempo." },
 ];
 

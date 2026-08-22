@@ -1,15 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useProjectStore, generateShapeId, undo, redo, useTemporalStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
-import { parseSvg } from "../lib/svgImport";
-import { parseDxf } from "../lib/dxfImport";
+import { importFile, openProjectFromText } from "./importEntry";
 import { tryGenerateGCode } from "../lib/gcode";
 import { findPost } from "../lib/post";
 import type { BooleanOp } from "../lib/boolean";
 import { findExample } from "../content/examples";
 import { buildShareUrl } from "../lib/share";
 import { confirmDialog, promptDialog } from "./Dialog";
-import { serializeProject, parseProject } from "../lib/projectFile";
+import { serializeProject } from "../lib/projectFile";
 import type { RectangleShape, CircleShape, RegularPolygonShape, SlotShape, TextShape } from "../types";
 
 /** Safe file stem from the project name ("Placa furos" → "placa-furos"), default "projeto". */
@@ -40,10 +39,8 @@ export function useProjectActions() {
   const selectedId = useProjectStore((s) => s.selectedId);
   const settings = useProjectStore((s) => s.settings);
   const addShape = useProjectStore((s) => s.addShape);
-  const addShapes = useProjectStore((s) => s.addShapes);
   const duplicateShape = useProjectStore((s) => s.duplicateShape);
   const newProject = useProjectStore((s) => s.newProject);
-  const loadProject = useProjectStore((s) => s.loadProject);
   const pastStates = useTemporalStore((s) => s.pastStates.length);
   const futureStates = useTemporalStore((s) => s.futureStates.length);
 
@@ -118,9 +115,9 @@ export function useProjectActions() {
     }
     if (result.overflow.length > 0) {
       const names = result.overflow.map((id) => st.shapes.find((s) => s.id === id)?.name ?? id);
-      setNotice({ kind: "warning", title: `${result.placed.length} peça(s) organizada(s); ${result.overflow.length} não cabem na chapa e ficaram onde estavam.`, details: names });
+      setNotice({ kind: "warning", title: `${result.placed.length} peça${result.placed.length === 1 ? "" : "s"} organizada${result.placed.length === 1 ? "" : "s"}; ${result.overflow.length} não ${result.overflow.length === 1 ? "cabe" : "cabem"} na chapa e ${result.overflow.length === 1 ? "ficou" : "ficaram"} onde ${result.overflow.length === 1 ? "estava" : "estavam"}.`, details: names });
     } else {
-      setNotice({ kind: "info", title: `${result.placed.length} peça(s) organizada(s) na chapa (${Math.round(result.fill * 100)}% ocupada).` });
+      setNotice({ kind: "info", title: `${result.placed.length} peça${result.placed.length === 1 ? "" : "s"} organizada${result.placed.length === 1 ? "" : "s"} na chapa (${Math.round(result.fill * 100)}% ocupada).` });
     }
     return result;
   };
@@ -136,42 +133,16 @@ export function useProjectActions() {
 
   const handleSvgFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
-    if (/^image\/(png|jpe?g|webp|bmp|gif)$/i.test(file.type) || /\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name)) {
-      useUiStore.getState().setImageFile(file);
-      e.target.value = "";
-      return;
-    }
-    const isDxf = /\.dxf$/i.test(file.name);
-    try {
-      const text = await file.text();
-      const { shapes: imported, warnings } = isDxf ? parseDxf(text, { depth: stock.thickness }) : parseSvg(text, { depth: stock.thickness });
-      addShapes(imported.map((sh) => ({ ...sh, side: "outside" as const })));
-      const details = warnings.filter((w) => !w.startsWith("Não achei"));
-      setNotice({
-        kind: imported.length > 0 ? (details.length ? "warning" : "info") : "warning",
-        title: imported.length > 0 ? `Trouxe ${imported.length} peça${imported.length === 1 ? "" : "s"} do ${isDxf ? "DXF" : "SVG"}.` : `Não achei peças nesse ${isDxf ? "DXF" : "SVG"}.`,
-        details: details.length ? details : undefined,
-      });
-    } catch {
-      setNotice({ kind: "error", title: `Esse ${isDxf ? "DXF" : "SVG"} não abriu. Confira se o arquivo está ok.` });
-    } finally {
-      e.target.value = "";
-    }
+    await importFile(file);
   };
 
   const handleJsonFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
-    try {
-      const project = parseProject(await file.text());
-      loadProject(project);
-      setNotice({ kind: "info", title: `Abri “${file.name}” — ${project.shapes.length} peça${project.shapes.length === 1 ? "" : "s"}.` });
-    } catch (err) {
-      setNotice({ kind: "error", title: (err as Error).message });
-    } finally {
-      e.target.value = "";
-    }
+    await openProjectFromText(await file.text(), file.name);
   };
 
   const handleSave = () => {
@@ -243,6 +214,12 @@ export function useProjectActions() {
       if (mod && e.key.toLowerCase() === "s") {
         e.preventDefault();
         handleSave();
+        return;
+      }
+      if (mod && e.key.toLowerCase() === "p") {
+        // takes over the browser print: what makes sense to print here are the sheets, not a screenshot of the app
+        e.preventDefault();
+        useUiStore.getState().setView("drawing");
         return;
       }
       if (typing) return;

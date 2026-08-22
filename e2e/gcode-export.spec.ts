@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 
 test.describe("G-code export flow", () => {
   test("adding a rectangle enables export and downloads a .gcode file", async ({
@@ -47,7 +48,7 @@ test.describe("G-code export flow", () => {
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
     await page.reload();
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await expect(page.getByTestId("simulate-toggle")).toBeEnabled();
   });
 
@@ -56,7 +57,7 @@ test.describe("G-code export flow", () => {
   }) => {
     await page.goto("/");
     await page.getByTestId("add-circle").click();
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
 
     const toggle = page.getByTestId("simulate-toggle");
     await expect(toggle).toBeEnabled();
@@ -77,7 +78,7 @@ test.describe("time estimate (sprint 03)", () => {
     const fs = await import("node:fs/promises");
     const text = await fs.readFile(path as string, "utf8");
     expect(text).toMatch(/; tempo estimado: \d+/);
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await expect(page.getByTestId("sim-total")).not.toHaveText("00:00");
   });
 });

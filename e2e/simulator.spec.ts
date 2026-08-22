@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 
 test.describe("simulator player (sprint 04)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
   });
 
   test("shows total time and plays: elapsed time advances", async ({ page }) => {

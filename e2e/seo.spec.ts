@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 
 test.describe("SEO", () => {
   test("serves canonical, Open Graph, JSON-LD and brand icon", async ({ page, request }) => {
@@ -35,7 +36,7 @@ test.describe("SEO", () => {
   test("document title follows the active view", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Desenhar — Oficina CNC");
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await expect(page).toHaveTitle("Simular — Oficina CNC");
   });
 });

@@ -5,7 +5,7 @@ import {
   RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, BookOpen, Compass,
   Link2, ClipboardCheck, Scissors, SquareDashedBottom, Drill, SquareArrowOutUpRight, SquareArrowDownLeft, Minus, Anchor, Spline, ListOrdered, Sun, Moon, MousePointer2, BoxSelect, ChevronUp, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
-  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon,
+  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon, Printer, PencilRuler, FileText, FileDown, Layers,
 } from "lucide-react";
 import { OverflowRibbon, RibbonButton, ICON, type RibbonGroupDef } from "./Ribbon";
 import { useProjectActions } from "./useProjectActions";
@@ -21,6 +21,9 @@ import { FeedbackDialog } from "./FeedbackDialog";
 import { EXAMPLES } from "../content/examples";
 import { ExamplesGallery } from "./ExamplesGallery";
 import { ImportImageDialog } from "./ImportImageDialog";
+import { ImportVectorDialog } from "./ImportVectorDialog";
+import { useSheetsStore, printSheets } from "../state/sheets";
+import { standaloneSvg } from "../lib/sheet";
 import { resetTour } from "./Tour";
 import { verifyProject } from "../lib/verify";
 import { Dialog } from "./Dialog";
@@ -84,6 +87,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<Compass size={16} />, "Tour rápido", () => { resetTour(); useUiStore.getState().setTourOpen(true); }, "menu-tour")}
           <div className="menu-sep" />
           {item(<Download size={16} />, "Exportar G-code", actions.exportGcode, "menu-export")}
+          {item(<Printer size={16} />, "Imprimir…", () => useUiStore.getState().setView("drawing"), "menu-print", "Ctrl+P")}
           <div className="menu-sep" />
           {installAction && item(installAction.icon, installAction.label, installAction.run, "menu-install")}
           {item(<Settings2 size={16} />, "Preferências (tema, mouse)", () => setDialog("prefs"), "menu-prefs")}
@@ -301,10 +305,14 @@ function News() {
 function ProjectName() {
   const name = useProjectStore((s) => s.settings.projectName ?? "");
   const updateSettings = useProjectStore((s) => s.updateSettings);
+  const titleView = useUiStore((s) => (s.view === "simulator" ? "Simular" : s.view === "drawing" ? "Folha técnica" : "Desenhar"));
   const [draft, setDraft] = useState<string | null>(null);
   useEffect(() => {
-    document.title = `${name.trim() || "Sem nome"} — Oficina CNC`;
-  }, [name]);
+    // Duas features disputavam o título da aba: o nome do projeto (Sprint 22) e a vista (SEO).
+    // Projeto com nome ganha — é o que identifica a aba entre várias. Sem nome, a vista é mais
+    // útil que "Sem nome", e é o que o e2e de SEO espera.
+    document.title = `${name.trim() || titleView} — Oficina CNC`;
+  }, [name, titleView]);
   return (
     <input
       className="project-name"
@@ -322,11 +330,57 @@ function ProjectName() {
   );
 }
 
+const WORKSPACES: { id: View; label: string; icon: React.ReactNode; desc: string }[] = [
+  { id: "editor", label: "Desenhar", icon: <PencilRuler size={15} />, desc: "Peças, medidas e operações na chapa." },
+  { id: "simulator", label: "Simular", icon: <Play size={15} />, desc: "A fresa percorrendo o caminho, com remoção de material." },
+  { id: "drawing", label: "Folha técnica", icon: <FileText size={15} />, desc: "Folha de oficina e desenhos cotados — ver, imprimir, baixar." },
+];
+
+/** Dropdown de estações de trabalho (estilo Fusion, Sprint 30). */
+function WorkspaceMenu({ view, setView }: { view: View; setView: (v: View) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("mousedown", close);
+    window.addEventListener("keydown", esc);
+    return () => { window.removeEventListener("mousedown", close); window.removeEventListener("keydown", esc); };
+  }, [open]);
+  const active = WORKSPACES.find((w) => w.id === view) ?? WORKSPACES[0];
+  return (
+    <div className="ws-menu" ref={ref}>
+      <button type="button" className="ws-button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} data-testid="workspace-menu">
+        {active.icon}
+        <span>{active.label}</span>
+        <ChevronDown size={13} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="menu ws-list" role="menu" data-testid="workspace-list">
+          {WORKSPACES.map((w) => (
+            <button
+              key={w.id} type="button" role="menuitemradio" aria-checked={view === w.id}
+              className={`menu-item${view === w.id ? " active" : ""}`}
+              onClick={() => { setOpen(false); setView(w.id); }}
+              data-testid={`ws-${w.id}`}
+            >
+              {w.icon}<span className="ws-item-text"><strong>{w.label}</strong><small>{w.desc}</small></span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TopBar() {
   const actions = useProjectActions();
   const [nestOpen, setNestOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const imageFile = useUiStore((s) => s.imageFile);
+  const vectorFile = useUiStore((s) => s.vectorFile);
+  const setVectorFile = useUiStore((s) => s.setVectorFile);
   const setImageFile = useUiStore((s) => s.setImageFile);
   const view = useUiStore((s) => s.view);
   const setView = useUiStore((s) => s.setView);
@@ -499,6 +553,35 @@ export function TopBar() {
     ],
   };
 
+  const sheetOpts = useSheetsStore();
+  const sheetPage = sheetOpts.pages[sheetOpts.current];
+  const downloadSvg = () => {
+    const svg = sheetPage ? standaloneSvg(sheetPage) : null;
+    if (!svg) return;
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${sheetPage.title.replace(/[^\p{L}\p{N}]+/gu, "-").toLowerCase()}.svg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const sheetGroups: RibbonGroupDef[] = [
+    {
+      key: "saida", title: "Saída", priority: 1, items: [
+        { icon: <Printer size={ICON} />, label: "Imprimir", onClick: () => printSheets(), disabled: sheetOpts.pages.length === 0, testId: "sheet-print", primary: true, featured: true, shortcut: "Ctrl+P", description: "Manda as folhas para a impressora, em A4 preto no branco." },
+        { icon: <FileDown size={ICON} />, label: "Baixar SVG", onClick: downloadSvg, disabled: !sheetPage?.svg, testId: "sheet-download-svg", description: "Salva a página atual em SVG vetorial — abre no Inkscape, plotter ou laser." },
+      ],
+    },
+    {
+      key: "conteudo", title: "Conteúdo", priority: 2, items: [
+        { icon: <Layers size={ICON} />, label: "Folha de setup", onClick: () => sheetOpts.setWithSetup(!sheetOpts.withSetup), active: sheetOpts.withSetup, testId: "sheet-with-setup", description: "Inclui a página de setup: chapa, origem, fresas, tempos e avisos." },
+        { icon: <BoxSelect size={ICON} />, label: sheetOpts.scope === "all" ? "Todas" : "Selecionada", onClick: () => sheetOpts.setScope(sheetOpts.scope === "all" ? "selected" : "all"), disabled: sheetOpts.scope === "all" && !actions.selectedId, testId: "sheet-scope", description: "Um desenho por peça, ou só o da peça selecionada." },
+        { icon: <Maximize size={ICON} />, label: sheetOpts.scale === "auto" ? "Escala auto" : "Escala 1:1", onClick: () => sheetOpts.setScale(sheetOpts.scale === "auto" ? "1:1" : "auto"), testId: "sheet-scale", description: "1:1 sai em tamanho real — imprima em 100% e use como gabarito." },
+      ],
+    },
+  ];
+
   const TABS: Record<View, { id: string; label: string; groups: RibbonGroupDef[] }[]> = {
     editor: [
       { id: "formas", label: "Formas", groups: [...editorGroups.filter((g) => g.key !== "vista"), selectGroup] },
@@ -508,22 +591,13 @@ export function TopBar() {
     simulator: [
       { id: "reproduzir", label: "Reproduzir", groups: simGroups },
     ],
+    drawing: [
+      { id: "folhas", label: "Folhas", groups: sheetGroups },
+    ],
   };
   const tabs = TABS[view];
   const activeTab = tabs.find((tb) => tb.id === ribbonTab[view]) ?? tabs[0];
 
-  const wsTab = (id: View, label: string) => (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={view === id}
-      className={`tab${view === id ? " active" : ""}`}
-      onClick={() => setView(id)}
-      data-testid={`tab-${id}`}
-    >
-      {label}
-    </button>
-  );
 
   return (
     <header className={`topbar fusion${ribbonMinimized ? " minimized" : ""}`} role="banner">
@@ -554,10 +628,7 @@ export function TopBar() {
 
       {/* Row 2: workspace + context tabs */}
       <div className="tabrow">
-        <nav className="tabs" role="tablist" aria-label="Espaço de trabalho">
-          {wsTab("editor", "Desenhar")}
-          {wsTab("simulator", "Simular")}
-        </nav>
+        <WorkspaceMenu view={view} setView={setView} />
         <div className="ribbon-tabs" role="tablist" aria-label="Abas da barra">
           {tabs.map((tb) => (
             <button
@@ -585,6 +656,8 @@ export function TopBar() {
 
       {actions.inputs}
       <Dialog open={!!imageFile} onClose={() => setImageFile(null)} size="lg" testId="import-image-dialog" footer={null}>{imageFile && <ImportImageDialog file={imageFile} onDone={() => setImageFile(null)} />}</Dialog>
+      <Dialog open={!!vectorFile} onClose={() => setVectorFile(null)} size="lg" testId="import-vector-dialog" footer={null}>{vectorFile && <ImportVectorDialog file={vectorFile.file} text={vectorFile.text} onDone={() => setVectorFile(null)} />}</Dialog>
+
       <Dialog open={verifyOpen} onClose={() => setVerifyOpen(false)} size="lg" testId="verify-dialog"><VerifyDialog /></Dialog>
       <Dialog open={nestOpen} onClose={() => setNestOpen(false)} testId="nest-dialog"><NestDialog onDone={() => setNestOpen(false)} /></Dialog>
     </header>

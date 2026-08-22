@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 import fs from "node:fs/promises";
 
 test.describe("sprint 16: operações adicionais, verificação, link", () => {
@@ -18,7 +19,7 @@ test.describe("sprint 16: operações adicionais, verificação, link", () => {
     expect(text).toMatch(/Pocket clear.*target depth 4mm/);
     expect(text).toMatch(/G1 Z-18/); // through cut of the main outline (18 mm stock)
     // verification
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await page.getByTestId("verify").click();
     await expect(page.getByTestId("verify-report")).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".verify-table tbody tr")).toHaveCount(1);
@@ -27,7 +28,7 @@ test.describe("sprint 16: operações adicionais, verificação, link", () => {
     // remove the extra op
     await page.locator(".dialog-close").click();
     // the WebGL view can starve rAF in CI (software GL): don't wait for "stable"
-    await page.getByTestId("tab-editor").click({ force: true });
+    await gotoWorkspace(page, "editor");
     await page.getByTestId("section-toggle-shape").click();
     await page.getByTestId("nav-item-0").click();
     await expect(page.getByTestId("extra-op-0")).toBeVisible();
@@ -50,7 +51,7 @@ test.describe("sprint 16: operações adicionais, verificação, link", () => {
     // open in a clean page
     await page.evaluate(() => localStorage.removeItem("oficina-cnc:project"));
     await page.goto(url);
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await expect(page.getByTestId("project-name")).toHaveValue("Compartilhado");
     await expect(page.getByTestId("notice")).toContainText("Projeto aberto a partir do link");
     expect(page.url()).not.toContain("#p=");

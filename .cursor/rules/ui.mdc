@@ -11,6 +11,7 @@ alwaysApply: false
 - Ícones: `lucide-react`. Sem emoji ou glifo unicode decorativo.
 - Cores, espaçamento e fontes: tokens em `src/index.css` (`--fs-*`, `--s*`, `--control-h`; ver `docs/design-tokens.md`). Sem `font-size` fixo novo.
 - **Ribbon**: ações são dados (`RibbonGroupDef` em `TopBar.tsx`, aba certa: FORMAS/USINAGEM/VISTA/REPRODUZIR); item com `testId`, `description`, `shortcut`. Não criar botão solto na barra.
+- **Ribbon tem orçamento de largura**: a 1280 px ela já está no limite; item novo empurra a barra para o modo compacto (todos os grupos viram só ícone). Antes de adicionar um, rode `e2e/ribbon-fusion.spec.ts`. Ação ocasional e ligada a um tipo de peça vai para a seção correspondente do painel.
 - **Painel**: 4 abas (`shape/machine/cut/post`); subgrupos `<Group>`; `NumberField` com `hint`; selects com texto curto.
 - **Diálogos**: `Dialog` / `confirmDialog` / `promptDialog` de `components/Dialog.tsx`. Nunca `alert()` / `confirm()` / `prompt()`. Avisos: `Notice`.
 - Fluxos novos de UI: `data-testid` estável. Não remover test ids existentes.

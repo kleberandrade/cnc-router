@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 
 test.describe("realistic simulator (sprint 10)", () => {
   test.beforeEach(async ({ page }) => {
@@ -7,7 +8,7 @@ test.describe("realistic simulator (sprint 10)", () => {
     await page.getByTestId("shape-operation").selectOption("pocket");
     await page.getByTestId("shape-depth").fill("4");
     await page.getByTestId("shape-depth").press("Enter");
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await page.waitForTimeout(400);
   });
 

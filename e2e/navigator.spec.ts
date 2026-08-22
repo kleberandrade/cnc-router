@@ -70,7 +70,8 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
     await page.goto("/");
     const dxf = ["0","SECTION","2","HEADER","9","$INSUNITS","70","4","0","ENDSEC","0","SECTION","2","ENTITIES","0","CIRCLE","8","0","10","50","20","50","40","10","0","LWPOLYLINE","8","0","90","4","70","1","10","100","20","20","10","140","20","20","10","140","20","50","10","100","20","50","0","ENDSEC","0","EOF",""].join("\n");
     await page.getByTestId("svg-file-input").setInputFiles({ name: "peca.dxf", mimeType: "application/dxf", buffer: Buffer.from(dxf) });
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
+    await page.getByTestId("import-confirm").click();
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 peças");
     await expect(page.getByTestId("notice")).toContainText("DXF");
   });
 });

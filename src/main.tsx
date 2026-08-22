@@ -12,10 +12,12 @@ import './index.css'
 import App from './App.tsx'
 import { initPwa } from './lib/pwa'
 import { loadEmbeddedFonts, onFontsChanged } from './lib/text'
+import { loadUserFonts } from './lib/userFonts'
 import { useUiStore, initUiPrefs } from './state/uiStore'
 import { installErrorCapture } from "./lib/feedback";
 import { initVitals, vitalsDebugEnabled } from "./lib/vitals";
 import { startDerived } from "./state/derived";
+import { injectSpeedInsights } from "@vercel/speed-insights";
 
 installErrorCapture();
 initUiPrefs();
@@ -23,8 +25,20 @@ initUiPrefs();
 initPwa()
 onFontsChanged(() => useUiStore.getState().bumpFonts())
 void loadEmbeddedFonts()
+void loadUserFonts()
 startDerived()
 if (vitalsDebugEnabled()) initVitals({ debug: true })
+
+// Speed Insights com rota desde o primeiro byte: injetado aqui (não num componente React) para as
+// medições que acontecem antes da hidratação não caírem como "Unknown" no painel (Sprint 29).
+const speedInsights = injectSpeedInsights({ route: "/editor", framework: "react" })
+let lastView = useUiStore.getState().view
+useUiStore.subscribe((st) => {
+  if (st.view !== lastView) {
+    lastView = st.view
+    speedInsights?.setRoute(st.view === "editor" ? "/editor" : st.view === "drawing" ? "/folha" : "/simulador")
+  }
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -22,14 +22,14 @@ test.describe("sprint 21: primeiro uso", () => {
     // example
     await page.getByTestId("example-placa-furos").click();
     await expect(page.getByTestId("empty-state")).toHaveCount(0);
-    await expect(page.getByTestId("status-shapes")).toHaveText("6 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("6 peças");
     await expect(page.getByTestId("notice")).toContainText("Placa com 4 furos");
     // examples also in the menu; confirm dialog when replacing
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
     await page.getByTestId("gallery-numero-casa").click();
     await page.getByTestId("ask-ok").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("6 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("6 peças");
   });
 
   test("empty state can be closed and adding a rectangle from it works", async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe("sprint 21: primeiro uso", () => {
     await expect(page.getByTestId("empty-state")).toHaveCount(0);
     await page.reload();
     await page.getByTestId("empty-add-rectangle").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await expect(page.getByTestId("empty-state")).toHaveCount(0);
   });
 

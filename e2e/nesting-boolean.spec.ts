@@ -38,7 +38,7 @@ test.describe("sprint 15: booleanas e nesting", () => {
     await expect(page.getByTestId("nest-dialog")).toBeVisible();
     await page.getByTestId("nest-gap").fill("3");
     await page.getByTestId("nest-apply").click();
-    await expect(page.getByTestId("notice")).toContainText("6 peça(s) organizada(s)");
+    await expect(page.getByTestId("notice")).toContainText("6 peças organizadas");
     // the last-added (still selected) shape is inside the stock with the 6 mm spacing (tool 3 + gap 3)
     const xs = Number(await page.getByTestId("shape-x").inputValue());
     const ys = Number(await page.getByTestId("shape-y").inputValue());
@@ -50,6 +50,6 @@ test.describe("sprint 15: booleanas e nesting", () => {
     await page.getByTestId("shape-width").fill("350"); await page.getByTestId("shape-width").press("Enter");
     await ribbonClick(page, "nest");
     await page.getByTestId("nest-apply").click();
-    await expect(page.getByTestId("notice")).toContainText("1 não cabem na chapa");
+    await expect(page.getByTestId("notice")).toContainText("1 não cabe na chapa");
   });
 });

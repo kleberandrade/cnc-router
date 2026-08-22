@@ -106,7 +106,7 @@ export async function sendFeedback(payload: FeedbackRequest, opts: { fetchFn?: t
     if (res.status === 429) return { ok: false, reason: "ratelimit", message: data.error ?? "Muitos envios — aguarde 1 minuto." };
     return { ok: false, reason: "rejected", message: data.error ?? `Falha ao enviar (HTTP ${res.status}).` };
   } catch {
-    return { ok: false, reason: "network", message: "Não foi possível falar com o servidor — tente de novo ou envie por e-mail." };
+    return { ok: false, reason: "network", message: "O servidor não respondeu — tente de novo ou mande por e-mail." };
   } finally {
     clearTimeout(timer);
   }

@@ -33,7 +33,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
     await page.getByTestId("shape-sides").press("Enter");
     await page.getByTestId("add-slot").click();
     await expect(page.getByTestId("shape-length")).toHaveValue("50");
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 peças");
   });
 
   test("inline dimensions: typing L Tab A Enter resizes the rectangle", async ({ page }) => {
@@ -107,6 +107,6 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
     // both now share minX = 10 → delete both
     await page.locator("body").click({ position: { x: 5, y: 5 } });
     await page.keyboard.press("Delete");
-    await expect(page.getByTestId("status-shapes")).toHaveText("0 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("0 peças");
   });
 });

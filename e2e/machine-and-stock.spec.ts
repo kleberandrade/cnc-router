@@ -10,7 +10,7 @@ test.describe("machine & stock (sprint 01)", () => {
     await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("machine-preset").selectOption("1325");
     await expect(caption).toContainText("Mesa 1300 × 2500 mm");
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
   });
 
   test("a shape outside the table blocks export with an inline error", async ({ page }) => {

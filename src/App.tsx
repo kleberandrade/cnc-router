@@ -13,8 +13,9 @@ import { useTheme } from "./hooks/useTheme";
 import { EmptyState } from "./components/EmptyState";
 import { Tour, tourDone } from "./components/Tour";
 import { useProjectStore } from "./state/store";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AskHost } from "./components/Dialog";
+import { DropImport } from "./components/DropImport";
+import { DrawingWorkspace } from "./components/DrawingWorkspace";
 import { Timeline } from "./components/Timeline";
 import { readShareHash } from "./lib/share";
 import { Analytics } from "@vercel/analytics/react";
@@ -74,7 +75,9 @@ function App() {
   }, [layout, setPanelOpen]);
 
   const showEmpty = view === "editor" && shapeCount === 0 && !emptyDismissed && layout !== "mobile" && tool === "select";
-  const workspace = (
+  const workspace = view === "drawing" ? (
+    <DrawingWorkspace />
+  ) : (
     <section className="workspace">
       {view === "editor" ? (
         <Editor />
@@ -95,6 +98,7 @@ function App() {
       <StorageNotice onLegal={() => { window.location.hash = "privacidade"; }} />
       {tourOpen && layout !== "mobile" && <Tour onClose={() => setTourOpen(false)} />}
       <AskHost />
+      <DropImport />
       {layout === "mobile" ? (
         <>
           <main className="app-body mobile">
@@ -115,7 +119,6 @@ function App() {
       )}
       <StatusBar />
       <Analytics />
-      <SpeedInsights route={view === "editor" ? "/editor" : "/simulador"} />
     </div>
   );
 }

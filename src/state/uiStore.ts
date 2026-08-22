@@ -9,7 +9,8 @@ const SECTION_ALIAS: Partial<Record<PanelSection, PanelSection>> = { navigator: 
 export const canonicalSection = (s: PanelSection): PanelSection => SECTION_ALIAS[s] ?? s;
 export type Theme = "light" | "dark" | "system";
 export type MousePreset = "standard" | "fusion";
-export type View = "editor" | "simulator";
+/** Estações de trabalho (dropdown estilo Fusion, Sprint 30): desenhar, simular, folha técnica. */
+export type View = "editor" | "simulator" | "drawing";
 export interface SimCameraActions { fit: () => void; top: () => void; iso: () => void }
 export type EditorTool = "select" | "polygon";
 
@@ -32,6 +33,9 @@ interface UiState {
   /** Image waiting in the "Importar imagem" dialog. */
   imageFile: File | null;
   setImageFile: (f: File | null) => void;
+  /** DXF/SVG waiting in the import dialog, already read as text. */
+  vectorFile: { file: File; text: string } | null;
+  setVectorFile: (f: { file: File; text: string } | null) => void;
   /** Examples gallery dialog requested (from the empty state). */
   galleryOpen: boolean;
   setGalleryOpen: (o: boolean) => void;
@@ -133,7 +137,7 @@ export const useUiStore = create<UiState>((set) => ({
     set({ textSize });
     applyPrefs(useUiStore.getState().density, textSize);
   },
-  ribbonTab: { editor: "formas", simulator: "reproduzir" },
+  ribbonTab: { editor: "formas", simulator: "reproduzir", drawing: "folhas" },
   setRibbonTab: (view, tab) => set((st) => ({ ribbonTab: { ...st.ribbonTab, [view]: tab }, ribbonMinimized: false })),
   ribbonMinimized: readPref("oficina-cnc:ribbon-min", ["1", "0"], "0") === "1",
   setRibbonMinimized: (ribbonMinimized) => {
@@ -142,6 +146,8 @@ export const useUiStore = create<UiState>((set) => ({
   },
   imageFile: null,
   setImageFile: (imageFile) => set({ imageFile }),
+  vectorFile: null,
+  setVectorFile: (vectorFile) => set({ vectorFile }),
   galleryOpen: false,
   setGalleryOpen: (galleryOpen) => set({ galleryOpen }),
   tourOpen: false,

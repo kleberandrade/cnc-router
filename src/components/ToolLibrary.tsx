@@ -23,7 +23,7 @@ export function ToolLibrary() {
           <div key={t.id} className="panel-section open" style={{ padding: 8 }} data-testid={`tool-${t.id}`}>
             <div className="tool-row">
               <input className="tool-name" value={t.name} onChange={(e) => updateTool(t.id, { name: e.target.value })} aria-label="Nome da fresa" data-testid={`tool-name-${t.id}`} />
-              <span className="nav-tool">{uses} peça(s)</span>
+              <span className="nav-tool">{uses} {uses === 1 ? "peça" : "peças"}</span>
               <button type="button" className="icon-button" onClick={() => removeTool(t.id)} aria-label="Remover fresa" title="Remover fresa" data-testid={`tool-remove-${t.id}`}>
                 <Trash2 size={14} />
               </button>

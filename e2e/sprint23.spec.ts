@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 
 test.describe("sprint 23: diálogos próprios, origem visual, materiais, políticas, linha do tempo", () => {
   test.slow(); // WebGL under software GL is slow in CI
@@ -10,11 +11,11 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
     await page.getByTestId("menu-new").click();
     await expect(page.getByTestId("ask-dialog")).toContainText("Começar do zero?");
     await page.getByTestId("ask-cancel").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-new").click();
     await page.getByTestId("ask-ok").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("0 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("0 peças");
   });
 
   test("origin picker changes the work origin and the G-code", async ({ page }) => {
@@ -36,7 +37,7 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
     await page.goto("/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await page.waitForTimeout(800);
     const sample = async () => page.locator(".simulator-canvas canvas").first().evaluate((c) => {
       const canvas = c as HTMLCanvasElement;
@@ -82,9 +83,9 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
     await page.getByTestId("add-circle").click();
     await expect(page.getByTestId("timeline-count")).toHaveText("2/2");
     await page.getByTestId("timeline-1").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await expect(page.getByTestId("timeline-count")).toHaveText("1/2");
     await page.getByTestId("timeline-2").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 peças");
   });
 });

@@ -30,7 +30,7 @@ test.describe("PWA (sprint 08)", () => {
     await page.reload();
     await expect(page.getByTestId("project-menu")).toBeVisible();
     await page.getByTestId("add-rectangle").click();
-    await expect(page.getByTestId("status-shapes")).toContainText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toContainText("1 peça");
     await context.setOffline(false);
   });
 });

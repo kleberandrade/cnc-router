@@ -164,19 +164,25 @@ describe("Toolbar (ActionBar + SidePanel + StatusBar)", () => {
     expect(useProjectStore.getState().shapes[0].kind).toBe("circle");
   });
 
-  it("imports shapes from a valid SVG file", async () => {
+  it("imports shapes from a valid SVG file, via the import dialog", async () => {
     render(<Toolbar />);
     const svgText = `<svg xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="5" height="5"/></svg>`;
     const file = new File([svgText], "peca.svg", { type: "image/svg+xml" });
     await userEvent.upload(screen.getByTestId("svg-file-input") as HTMLInputElement, file);
+    // nada cai na chapa antes de confirmar
+    await waitFor(() => expect(screen.getByTestId("import-vector")).toBeInTheDocument());
+    expect(useProjectStore.getState().shapes).toHaveLength(0);
+    fireEvent.click(screen.getByTestId("import-confirm"));
     await waitFor(() => expect(useProjectStore.getState().shapes).toHaveLength(1));
   });
 
-  it("shows an inline error when importing an invalid SVG file", async () => {
+  it("shows the error inside the import dialog for an invalid SVG file", async () => {
     render(<Toolbar />);
     const file = new File(["<svg><rect></svg"], "ruim.svg", { type: "image/svg+xml" });
     await userEvent.upload(screen.getByTestId("svg-file-input") as HTMLInputElement, file);
-    await waitFor(() => expect(screen.getByTestId("notice")).toHaveTextContent("Esse SVG não abriu"));
+    await waitFor(() => expect(screen.getByTestId("import-error")).toHaveTextContent("Esse SVG não abriu."));
+    expect(screen.getByTestId("import-confirm")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("import-cancel"));
   });
 
   it("changing the machine preset updates the work area", () => {

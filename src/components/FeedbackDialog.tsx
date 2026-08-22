@@ -16,7 +16,7 @@ export function FeedbackDialog({ onDone }: { onDone: () => void }) {
 
   const { payload, projectTooBig } = useMemo(() => buildPayload(draft, shapes, settings), [draft, shapes, settings]);
   const valid = payload.title.length >= 3 && payload.message.length >= 10 && (!draft.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email));
-  const preview = payload.diagnostics ? `${payload.diagnostics.version} · ${payload.diagnostics.project.shapes} peça(s) · ${payload.diagnostics.viewport} · ${payload.diagnostics.userAgent.split(") ")[0]})` : "";
+  const preview = payload.diagnostics ? `${payload.diagnostics.version} · ${payload.diagnostics.project.shapes} ${payload.diagnostics.project.shapes === 1 ? "peça" : "peças"} · ${payload.diagnostics.viewport} · ${payload.diagnostics.userAgent.split(") ")[0]})` : "";
 
   const submit = async () => {
     setState({ status: "sending" });

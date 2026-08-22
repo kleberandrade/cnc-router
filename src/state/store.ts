@@ -6,6 +6,7 @@ import { useStore } from "zustand";
 import type { Shape, MachineSettings, ExtraOperation } from "../types";
 import { DEFAULT_MACHINE_SETTINGS } from "../types";
 import { generateShapeId } from "../lib/ids";
+import { explodeText } from "../lib/text";
 import { presetIdForWorkArea } from "../lib/machinePresets";
 import { applyMaterial, applyToolDiameter } from "../lib/materials";
 import type { WorkArea, Stock, MaterialId, CutParamKey, Tool } from "../types";
@@ -103,6 +104,11 @@ interface ProjectState {
   removeExtraOp: (shapeId: string, opId: string) => void;
   /** Boolean between the selected shapes (selection order: first = base). Returns the ids created (empty = nothing to do). */
   booleanSelected: (op: BooleanOp) => string[];
+  /**
+   * Replace a text shape with editable closed paths (one per glyph outline, counters as holes).
+   * Returns the new ids, or `[]` when the shape is not text / locked / the font has not loaded.
+   */
+  explodeTextShape: (id: string) => string[];
   /** Arrange shapes on the stock (selection when ≥ 2 selected, else all visible unlocked). Returns the nesting result. */
   nestOnStock: (opts: Pick<NestOptions, "spacing" | "allowRotate">, ids?: string[]) => NestResult;
   updateSettings: (patch: Partial<MachineSettings>) => void;
@@ -249,6 +255,19 @@ export const useProjectStore = create<ProjectState>()(
     const kept = state.shapes.filter((s) => !removed.has(s.id));
     const shapes = [...kept.slice(0, firstIdx), ...results, ...kept.slice(firstIdx)];
     const ids = results.map((r) => r.id);
+    set({ shapes, selectedIds: ids, selectedId: ids[ids.length - 1] ?? null });
+    return ids;
+  },
+
+  explodeTextShape: (id) => {
+    const state = get();
+    const idx = state.shapes.findIndex((s) => s.id === id);
+    const shape = state.shapes[idx];
+    if (!shape || shape.kind !== "text" || shape.locked) return [];
+    const parts = explodeText(shape);
+    if (parts.length === 0) return [];
+    const shapes = [...state.shapes.slice(0, idx), ...parts, ...state.shapes.slice(idx + 1)];
+    const ids = parts.map((p) => p.id);
     set({ shapes, selectedIds: ids, selectedId: ids[ids.length - 1] ?? null });
     return ids;
   },

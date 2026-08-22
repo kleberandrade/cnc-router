@@ -2,7 +2,32 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
-## [Não publicado]
+## [0.31.0 — Sprint 30 — Estações de trabalho e folha técnica na tela] — 2026-08-22
+
+### Adicionado
+- **Estações de trabalho**: o switch Desenhar | Simular virou um dropdown (estilo Fusion) com três estações — **Desenhar**, **Simular** e a nova **Folha técnica**, pronta para receber as próximas (Resistência está no plano).
+- **Estação Folha técnica**: as folhas em tela cheia antes de exportar — miniaturas das páginas, zoom ajustar/100%, e na ribbon: incluir a folha de setup, todas as peças ou só a selecionada, escala auto/1:1, **Imprimir** e **Baixar SVG** da página atual (vetor que abre no Inkscape, plotter ou laser). Ctrl+P e o menu Imprimir… levam direto pra cá; o diálogo de impressão da 0.30 saiu.
+
+### Alterado
+- Cobertura de testes virou piso: thresholds subiram para 82 % linhas / 77 % branches, com testes novos do diálogo de imagem (estava sem nenhum), da estação e um smoke com o caminho feliz completo (exemplo → editar → simular → folha → G-code).
+
+## [0.30.0 — Sprint 29 — Imprimir e entrada rápida] — 2026-08-22
+
+### Adicionado
+- **Imprimir…** (menu do projeto ou Ctrl+P): **folha de oficina** em A4 para colar do lado da máquina — chapa com origem marcada, fresas (inclusive as extras, com as peças de cada uma), parâmetros de corte, tempo por peça e os avisos de validação; e **desenho técnico** de cada peça com cotas em mm — medidas gerais, furos agrupados ("3× Ø10") com posição, raio de canto — carimbo com escala e, quando a peça cabe na folha, **escala 1:1**: imprima em 100%, recorte e use como gabarito na madeira.
+- **Arraste o arquivo pra tela**: DXF/SVG cai no diálogo de importação, imagem no de vetorização, projeto `.json` abre (pedindo confirmação se houver peças na mesa). Colar também funciona: imagem do clipboard ou SVG copiado como texto.
+- **Tempo por peça** no navegador de peças — dá para ver num relance qual peça está custando o tempo do projeto.
+
+### Corrigido
+- Medições do Speed Insights sem rota ("Unknown"): a rota agora é definida na injeção do script, antes do React montar.
+
+## [0.29.0 — Sprint 28 — Traga seu desenho] — 2026-08-22
+
+### Adicionado
+- **Furos no DXF**: laços fechados dentro de outro viram furo da peça em vez de contorno solto — o flange com 6 furos entra como uma peça, com a fresa compensando para dentro nos furos e para fora no contorno. O agrupamento acontece dentro de cada camada, e uma borda desenhada em volta de uma chapa de peças é reconhecida como moldura, não como peça.
+- **Diálogo de importação** para DXF e SVG: prévia do desenho (com o furo aparecendo como vazio), quais camadas entram, unidade do arquivo com opção de sobrescrever, chave para desligar a inferência de furos e os avisos do arquivo — tudo antes das peças caírem na chapa.
+- **Fontes suas**: carregue um `.ttf`/`.otf` pelo seletor de fonte do painel. Fica salva no navegador e volta na próxima visita; abrir um projeto cuja fonte não está aqui agora avisa em vez de trocar o texto em silêncio.
+- **Explodir em contornos**: transforma um texto em contornos editáveis (os vazios das letras viram furos), preservando profundidade, operação, tabs e operações adicionais. Solta a peça da fonte — dá para editar ponto a ponto, usar nas booleanas e levar o texto junto no arquivo e no link.
 
 ### Corrigido
 - `tsx` como `devDependency` — o `prebuild` (`gen:thumbs`) quebrava na Vercel com `tsx: command not found`.

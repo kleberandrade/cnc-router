@@ -29,7 +29,7 @@ async function measure(page: Page, label: string, action: () => Promise<void>, r
 }
 
 test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
-  test.slow();
+  test.setTimeout(240_000); // 3 rodadas × 9 toques com CPU 4× (as folhas montam em idle, fora da medição)
   test(`os 7 toques principais respondem em < ${LIMIT} ms (CPU ${CPU}×)`, async ({ page, browserName }) => {
     test.skip(browserName !== "chromium", "CDP only");
     const cdp = await page.context().newCDPSession(page);
@@ -49,11 +49,15 @@ test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
       await measure(page, "abrir galeria", () => page.getByTestId("menu-examples").click(), r);
       await measure(page, "filtrar galeria", () => page.getByTestId("ex-tag-encaixe").click(), r);
       await measure(page, "abrir exemplo (caixa de dedos)", () => page.getByTestId("gallery-caixa-dedos").click(), r);
-      await expect(page.getByTestId("status-shapes")).toHaveText("5 forma(s)");
+      await expect(page.getByTestId("status-shapes")).toHaveText("5 peças");
       await measure(page, "adicionar retângulo", () => page.getByTestId("add-rectangle").click(), r);
       await page.getByTestId("section-toggle-cut").click();
       await measure(page, "trocar Ø da fresa", async () => { await page.getByTestId("tool-diameter").fill("4"); await page.getByTestId("tool-diameter").press("Enter"); }, r);
-      await measure(page, "ir para Simular", () => page.getByTestId("tab-simulator").click(), r);
+      // o dropdown abre fora da medição; o toque medido é o que troca a estação
+      await page.getByTestId("workspace-menu").click();
+      await measure(page, "ir para Simular", () => page.getByTestId("ws-simulator").click(), r);
+      await page.getByTestId("workspace-menu").click();
+      await measure(page, "abrir Folha técnica", () => page.getByTestId("ws-drawing").click(), r);
       await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
       for (const [k, v] of Object.entries(r)) best[k] = Math.min(best[k] ?? Infinity, v);
     }

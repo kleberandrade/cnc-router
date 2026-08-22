@@ -13,3 +13,4 @@ Itens avaliados e ainda não planejados em sprint (ordem sugerida de valor). Ent
 | 7 | **Templates/biblioteca de peças** (caixa com encaixe, engrenagem, letreiro) e exemplos por material | Sprint 21 |
 | 8 | **i18n** (en-US) e unidades em polegadas também no editor | Fase 2 (decisão: só mm por ora) |
 | 9 | Sincronização de projeto na nuvem (conta) — só se o feedback pedir; hoje tudo é local + arquivo `.json` + link | — |
+| 10 | **Resistência** (Sprint 31 candidata): FEA 2D plane-stress com espessura (malha do contorno, E/Poisson por material, apoios/cargas em arestas, von Mises em Worker) + viga para flexão de prateleira + vista da peça pronta em 3D (extrusão). Plano na seção D da [Sprint 30](sprint-30-estacoes-e-folha-na-tela.md). Números orientativos, com aviso permanente. | Conversa de 2026-08-22 |

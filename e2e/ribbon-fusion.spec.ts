@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoWorkspace } from "./helpers";
 import fs from "node:fs/promises";
 
 test.describe("sprint 22: barra estilo Fusion", () => {
@@ -12,7 +13,7 @@ test.describe("sprint 22: barra estilo Fusion", () => {
     await expect(page.getByTestId("add-circle-gm")).toBeVisible();
     await expect(page.getByTestId("add-circle-gm")).toContainText("C");
     await page.getByTestId("add-circle-gm").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     // usinagem tab mirrors the selection
     await page.getByTestId("ribbon-tab-usinagem").click();
     await expect(page.getByTestId("op-outline")).toHaveAttribute("aria-pressed", "true");
@@ -69,7 +70,7 @@ test.describe("sprint 22: barra estilo Fusion", () => {
     await page.goto("/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await expect(page.getByTestId("ribbon-tab-reproduzir")).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("simulate-toggle")).toBeEnabled();
     await expect(page.getByTestId("sim-speed")).toBeVisible();

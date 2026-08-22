@@ -39,3 +39,9 @@ export async function alignClick(page: Page, testId: string): Promise<void> {
   await page.getByTestId("ribbon-more").click();
   await page.getByTestId(testId).click();
 }
+
+/** Troca de estação pelo dropdown (Sprint 30): Desenhar, Simular ou Folha técnica. */
+export async function gotoWorkspace(page: Page, ws: "editor" | "simulator" | "drawing"): Promise<void> {
+  await page.getByTestId("workspace-menu").click();
+  await page.getByTestId(`ws-${ws}`).click();
+}

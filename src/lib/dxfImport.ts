@@ -1,17 +1,37 @@
 import DxfParser from "dxf-parser";
-import type { Shape } from "../types";
+import type { PathShape, Shape } from "../types";
 import { generateShapeId } from "./ids";
-import type { Point } from "./geometry";
+import { boundingBox, shapeToPoints, type Point } from "./geometry";
+import { nestLoops, pointInPoly, signedArea } from "./text";
+
+/** A layer found in the file, with how many shapes came from it. */
+export interface DxfLayerInfo {
+  name: string;
+  count: number;
+}
 
 export interface DxfImportResult {
   shapes: Shape[];
   warnings: string[];
+  /** Layers present in the file (before any `options.layers` filter), for the import dialog. */
+  layers: DxfLayerInfo[];
+  /** How many closed loops became holes of another shape. */
+  holes: number;
 }
 
 export interface DxfImportOptions {
   depth?: number;
   /** chord tolerance for arcs/splines, mm */
   tolerance?: number;
+  /**
+   * Group closed loops so inner ones become `holes` of the shape that contains them
+   * (per layer, ignoring a drawing frame). Default `true`.
+   */
+  inferHoles?: boolean;
+  /** Only import entities from these layers. Default: every layer. */
+  layers?: string[];
+  /** Override the drawing unit (mm per drawing unit), ignoring `$INSUNITS`. */
+  unitScale?: number;
 }
 
 /** mm per drawing unit from $INSUNITS (0 = unitless → assume mm). */
@@ -108,6 +128,103 @@ function splinePoints(e: { controlPoints?: Vec[]; fitPoints?: Vec[]; degree?: nu
   return out;
 }
 
+/** A shape plus the DXF layer it came from. */
+interface LayeredShape {
+  shape: Shape;
+  layer: string;
+}
+
+const isClosedLoop = (s: Shape): boolean =>
+  s.kind === "circle" || (s.kind === "path" && s.closed && s.points.length >= 3);
+
+/**
+ * True when `loop` is a drawing border rather than a part.
+ *
+ * Marcenaria DXFs often carry a rectangle around a sheet of parts. Even-odd nesting would make that
+ * rectangle the outer loop and turn every part into a hole of it, so it has to be pulled out of the
+ * grouping — but the test has to be narrow, because a plain rectangular plate with holes looks
+ * identical to a border by size and shape alone.
+ *
+ * What actually separates them is what is *inside*: a border wraps finished parts (two or more
+ * separate outlines, at least one with a hole of its own), while a plate just has holes. The
+ * ambiguous middle case — a border around a single part — stays undetected on purpose; guessing
+ * there would break real plates. The import dialog's "inferir furos" switch covers it.
+ */
+export function isFrameLoop(loop: Point[], others: Point[][], tolerance = 0.02): boolean {
+  if (others.length < 2) return false;
+  if (!others.every((o) => o.length > 0 && pointInPoly(o[0], loop))) return false;
+  const bb = boundingBox(loop);
+  const boxArea = (bb.maxX - bb.minX) * (bb.maxY - bb.minY);
+  if (boxArea <= 0) return false;
+  if (Math.abs(Math.abs(signedArea(loop)) - boxArea) / boxArea > tolerance) return false;
+  const inside = nestLoops(others);
+  return inside.length >= 2 && inside.some((g) => g.holes.length > 0);
+}
+
+/** Re-shape `shape` so it carries `holes` (a circle with holes has to become a path). */
+function withHoles(shape: Shape, holes: Point[][]): Shape {
+  if (shape.kind === "path") return { ...shape, holes };
+  const path: PathShape = {
+    id: shape.id,
+    kind: "path",
+    points: shapeToPoints(shape),
+    holes,
+    closed: true,
+    depth: shape.depth,
+    operation: shape.operation,
+  };
+  return path;
+}
+
+/**
+ * Group closed loops per layer so inner ones become `holes` of the shape containing them.
+ *
+ * Grouping stays inside a layer on purpose: dimensions, hatches and centre lines live alongside the
+ * outline in most files, and nesting across layers would mix what should stay apart.
+ */
+export function groupLoopsByLayer(entries: LayeredShape[]): { shapes: Shape[]; holes: number; frames: number } {
+  const out: Shape[] = [];
+  let holes = 0;
+  let frames = 0;
+  const byLayer = new Map<string, LayeredShape[]>();
+  for (const e of entries) {
+    const list = byLayer.get(e.layer);
+    if (list) list.push(e);
+    else byLayer.set(e.layer, [e]);
+  }
+  for (const list of byLayer.values()) {
+    const closed = list.filter((e) => isClosedLoop(e.shape));
+    const open = list.filter((e) => !isClosedLoop(e.shape));
+    if (closed.length < 2) {
+      out.push(...list.map((e) => e.shape));
+      continue;
+    }
+    const loopOf = new Map<LayeredShape, Point[]>(closed.map((e) => [e, shapeToPoints(e.shape)]));
+    let candidates = closed;
+    for (const e of closed) {
+      const others = closed.filter((o) => o !== e).map((o) => loopOf.get(o) as Point[]);
+      if (isFrameLoop(loopOf.get(e) as Point[], others)) {
+        out.push(e.shape);
+        candidates = closed.filter((o) => o !== e);
+        frames++;
+        break;
+      }
+    }
+    const loops = candidates.map((e) => loopOf.get(e) as Point[]);
+    for (const group of nestLoops(loops)) {
+      const entry = candidates[loops.indexOf(group.outer)];
+      if (!entry) continue;
+      if (group.holes.length === 0) out.push(entry.shape);
+      else {
+        holes += group.holes.length;
+        out.push(withHoles(entry.shape, group.holes));
+      }
+    }
+    out.push(...open.map((e) => e.shape));
+  }
+  return { shapes: out, holes, frames };
+}
+
 /** Parse a DXF (ASCII) document into shapes: LINE, LWPOLYLINE/POLYLINE (bulges), CIRCLE, ARC, ELLIPSE, SPLINE, INSERT (blocks). */
 export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImportResult {
   const depth = options.depth ?? 5;
@@ -115,26 +232,32 @@ export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImpor
   const parser = new DxfParser();
   const dxf = parser.parseSync(text);
   if (!dxf) throw new Error("Esse DXF não parece válido");
-  const { scale, note } = insunitsToMm(dxf.header?.$INSUNITS as number | undefined);
+  const detected = insunitsToMm(dxf.header?.$INSUNITS as number | undefined);
+  const scale = options.unitScale ?? detected.scale;
   const warnings: string[] = [];
-  if (note) warnings.push(note);
-  const shapes: Shape[] = [];
+  if (detected.note && options.unitScale === undefined) warnings.push(detected.note);
+  const entries: LayeredShape[] = [];
   let skipped = 0;
+  let layer = "0";
   const round = (v: number) => Math.round(v * 1000) / 1000;
   const toMm = (m: Matrix, x: number, y: number): Point => { const [px, py] = apply(m, x, y); return [round(px * scale), round(py * scale)]; };
+  const push = (shape: Shape) => entries.push({ shape, layer });
   const pushPath = (pts: Point[], closed: boolean) => {
     if (pts.length < 2) return;
     // drop consecutive duplicates
     const clean = pts.filter((p, i) => i === 0 || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 1e-6);
     if (closed && clean.length > 2 && Math.hypot(clean[0][0] - clean[clean.length - 1][0], clean[0][1] - clean[clean.length - 1][1]) < 1e-6) clean.pop();
     if (clean.length < 2) return;
-    shapes.push({ id: generateShapeId("dxf"), kind: "path", points: clean, closed, depth, operation: "outline" });
+    push({ id: generateShapeId("dxf"), kind: "path", points: clean, closed, depth, operation: "outline" });
   };
   const blocks = (dxf.blocks ?? {}) as Record<string, { entities?: unknown[] }>;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const walk = (entities: any[], m: Matrix, depthGuard = 0) => {
+  const walk = (entities: any[], m: Matrix, depthGuard = 0, inherited = "0") => {
     for (const e of entities) {
+      // DXF rule: entities on layer "0" inside a block take the layer of the INSERT that placed them.
+      const own = typeof e.layer === "string" && e.layer ? e.layer : "0";
+      layer = own === "0" ? inherited : own;
       switch (e.type) {
         case "LINE": {
           pushPath([toMm(m, e.vertices[0].x, e.vertices[0].y), toMm(m, e.vertices[1].x, e.vertices[1].y)], false);
@@ -152,7 +275,7 @@ export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImpor
           const isUniform = Math.abs(Math.abs(m[0]) - Math.abs(m[3])) < 1e-9 && Math.abs(m[1]) < 1e-9 && Math.abs(m[2]) < 1e-9;
           if (isUniform) {
             const [x, y] = toMm(m, e.center.x, e.center.y);
-            shapes.push({ id: generateShapeId("dxf"), kind: "circle", x, y, radius: round(e.radius * Math.abs(m[0]) * scale), depth, operation: "outline" });
+            push({ id: generateShapeId("dxf"), kind: "circle", x, y, radius: round(e.radius * Math.abs(m[0]) * scale), depth, operation: "outline" });
           } else {
             const pts = arcPoints(e.center.x, e.center.y, e.radius, 0, Math.PI * 2, tol / scale).slice(0, -1).map(([x, y]) => toMm(m, x, y));
             pushPath(pts, true);
@@ -193,7 +316,7 @@ export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImpor
           const sx = e.xScale ?? 1, sy = e.yScale ?? 1, rot = ((e.rotation ?? 0) * Math.PI) / 180;
           const cos = Math.cos(rot), sin = Math.sin(rot);
           const local: Matrix = [cos * sx, sin * sx, -sin * sy, cos * sy, e.position?.x ?? 0, e.position?.y ?? 0];
-          walk(block.entities, mul(m, local), depthGuard + 1);
+          walk(block.entities, mul(m, local), depthGuard + 1, layer);
           break;
         }
         case "TEXT": case "MTEXT": case "DIMENSION": case "HATCH": case "POINT": case "ATTDEF": case "ATTRIB":
@@ -205,7 +328,30 @@ export function parseDxf(text: string, options: DxfImportOptions = {}): DxfImpor
     }
   };
   walk(dxf.entities ?? [], IDENT);
-  if (skipped > 0) warnings.push(`${skipped} entidade(s) não suportadas (texto, cotas, hachuras…) foram ignoradas.`);
+
+  const layers: DxfLayerInfo[] = [];
+  for (const e of entries) {
+    const found = layers.find((l) => l.name === e.layer);
+    if (found) found.count++;
+    else layers.push({ name: e.layer, count: 1 });
+  }
+  layers.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+  const wanted = options.layers;
+  const kept = wanted ? entries.filter((e) => wanted.includes(e.layer)) : entries;
+
+  let shapes: Shape[];
+  let holes = 0;
+  if (options.inferHoles === false) {
+    shapes = kept.map((e) => e.shape);
+  } else {
+    const grouped = groupLoopsByLayer(kept);
+    shapes = grouped.shapes;
+    holes = grouped.holes;
+    if (grouped.frames > 0) warnings.push("Tem uma borda em volta do desenho: importei ela como contorno solto, não como peça com furo.");
+  }
+
+  if (skipped > 0) warnings.push(`${skipped} entidades não suportadas (texto, cotas, hachuras…) ficaram de fora.`);
   if (shapes.length === 0) warnings.push("Não achei peças nesse DXF.");
-  return { shapes, warnings };
+  return { shapes, warnings, layers, holes };
 }

@@ -15,7 +15,7 @@ export interface DerivedState extends Derived {
   hash: string;
 }
 
-const EMPTY: Derived = { issues: [], segments: [], warnings: [], shapeCount: 0, time: 0 };
+const EMPTY: Derived = { issues: [], segments: [], warnings: [], shapeCount: 0, time: 0, timePerShape: {} };
 export const useDerivedStore = create<DerivedState>()(() => ({ ...EMPTY, status: "idle", hash: "" }));
 
 const cache = new Map<string, Derived>();

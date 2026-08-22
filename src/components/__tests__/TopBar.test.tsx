@@ -15,7 +15,8 @@ describe("TopBar", () => {
   it("updates the document title when switching views", () => {
     render(<TopBar />);
     expect(document.title).toBe("Desenhar — Oficina CNC");
-    fireEvent.click(screen.getByTestId("tab-simulator"));
+    fireEvent.click(screen.getByTestId("workspace-menu"));
+    fireEvent.click(screen.getByTestId("ws-simulator"));
     expect(document.title).toBe("Simular — Oficina CNC");
   });
 
@@ -23,7 +24,8 @@ describe("TopBar", () => {
     render(<TopBar />);
     expect(screen.getByTestId("add-rectangle")).toBeInTheDocument();
     expect(screen.queryByTestId("simulate-toggle")).toBeNull();
-    fireEvent.click(screen.getByTestId("tab-simulator"));
+    fireEvent.click(screen.getByTestId("workspace-menu"));
+    fireEvent.click(screen.getByTestId("ws-simulator"));
     expect(useUiStore.getState().view).toBe("simulator");
     expect(screen.getByTestId("simulate-toggle")).toBeInTheDocument();
     expect(screen.queryByTestId("add-rectangle")).toBeNull();

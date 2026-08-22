@@ -1,15 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { ribbonClick } from "./helpers";
+import { ribbonClick, gotoWorkspace } from "./helpers";
 
 test.describe("toolbar (sprint 05)", () => {
   test("undo after adding a shape, redo brings it back", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("add-rectangle").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await page.getByTestId("undo").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("0 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("0 peças");
     await page.keyboard.press("Control+y");
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
   });
 
   test("save → new → open restores the project", async ({ page }) => {
@@ -24,9 +24,9 @@ test.describe("toolbar (sprint 05)", () => {
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-new").click();
     await page.getByTestId("ask-ok").click();
-    await expect(page.getByTestId("status-shapes")).toHaveText("0 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("0 peças");
     await page.getByTestId("json-file-input").setInputFiles(path as string);
-    await expect(page.getByTestId("status-shapes")).toHaveText("2 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("2 peças");
   });
 
   test("editing X in the panel moves the shape (and the panel reflects the store)", async ({ page }) => {
@@ -51,7 +51,7 @@ test.describe("toolbar (sprint 05)", () => {
     await page.mouse.click(box.x + 300, box.y + 200);
     await page.mouse.click(box.x + 250, box.y + 120);
     await page.keyboard.press("Enter");
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await expect(page.getByTestId("section-shape")).toContainText("polígono (3 pts)");
   });
 
@@ -67,9 +67,9 @@ test.describe("toolbar (sprint 05)", () => {
     await page.goto("/");
     await page.locator("body").click({ position: { x: 5, y: 5 } });
     await page.keyboard.press("r");
-    await expect(page.getByTestId("status-shapes")).toHaveText("1 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await page.keyboard.press("Delete");
-    await expect(page.getByTestId("status-shapes")).toHaveText("0 forma(s)");
+    await expect(page.getByTestId("status-shapes")).toHaveText("0 peças");
   });
 
   test("panel toggle collapses the side panel", async ({ page }) => {
@@ -85,14 +85,14 @@ test.describe("top bar (sprint 07)", () => {
     await page.goto("/");
     const bar = page.locator(".topbar");
     let box = await bar.boundingBox();
-    expect(box!.height).toBeLessThanOrEqual(130);
+    expect(box!.height).toBeLessThanOrEqual(134); // o wordmark Bricolage custa ~2 px a mais que a fonte do sistema
     await page.getByTestId("ribbon-minimize").click();
     box = await bar.boundingBox();
     expect(box!.height).toBeLessThanOrEqual(70);
     await page.getByTestId("ribbon-minimize").click();
     await expect(page.getByTestId("add-rectangle")).toBeVisible();
     await expect(page.getByTestId("simulate-toggle")).toHaveCount(0);
-    await page.getByTestId("tab-simulator").click();
+    await gotoWorkspace(page, "simulator");
     await expect(page.getByTestId("simulate-toggle")).toBeVisible();
     await expect(page.getByTestId("add-rectangle")).toHaveCount(0);
     await expect(page.locator(".topbar")).toHaveCount(1);
