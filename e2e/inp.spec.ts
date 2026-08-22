@@ -29,7 +29,7 @@ async function measure(page: Page, label: string, action: () => Promise<void>, r
 }
 
 test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
-  test.setTimeout(240_000); // 3 rodadas × 9 toques com CPU 4× (as folhas montam em idle, fora da medição)
+  test.setTimeout(240_000); // 3 rodadas × 10 toques com CPU 4× (as folhas montam em idle, fora da medição)
   test(`os 7 toques principais respondem em < ${LIMIT} ms (CPU ${CPU}×)`, async ({ page, browserName }) => {
     test.skip(browserName !== "chromium", "CDP only");
     const cdp = await page.context().newCDPSession(page);
@@ -62,6 +62,9 @@ test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
       await page.waitForTimeout(500);
       await page.getByTestId("workspace-menu").click();
       await measure(page, "abrir Folha técnica", () => page.getByTestId("ws-drawing").click(), r);
+      await page.waitForTimeout(300);
+      await page.getByTestId("workspace-menu").click();
+      await measure(page, "abrir Resistência", () => page.getByTestId("ws-analysis").click(), r);
       await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
       for (const [k, v] of Object.entries(r)) best[k] = Math.min(best[k] ?? Infinity, v);
     }

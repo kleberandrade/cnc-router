@@ -2,6 +2,14 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [0.33.0 — Sprint 31 — Resistência] — 2026-08-22
+
+### Adicionado
+- **Estação Resistência** no seletor de estações: análise estrutural orientativa da peça. No modo **no plano da chapa**, clique nos lados para marcar apoios (azul) e carga (laranja), informe os kg e calcule — o mapa de tensão de von Mises aparece colorido sobre a peça, com deformada exagerada opcional, deslocamento máximo e o percentual da resistência típica do material. A conta (malha + elementos finitos) roda em um worker, validada contra casos com resposta conhecida: viga engastada (±5%), placa com furo (concentração ≈ 3×) e tração pura.
+- Modo **prateleira**: o caso clássico da chapa num vão com peso em cima — flecha no meio, limite prático de vão/300 e o veredito direto ("vai vergar visível: encurte o vão ou engrosse a chapa").
+- **Peça pronta em 3D**: a extrusão limpa do desenho (contorno, furos e espessura) para girar e conferir, com a cor do material.
+- Materiais ganharam propriedades típicas (módulo E, Poisson, resistência, densidade) — com o aviso permanente: números orientativos, madeira varia de chapa para chapa; nada aqui substitui engenheiro.
+
 ## [0.32.0 — Sprint 32 — Landing page] — 2026-08-22
 
 ### Adicionado

@@ -15,6 +15,16 @@ export interface MaterialPreset {
   notes?: string;
   /** Simulator look: top face, freshly cut face, deep cut, side of the stock (hex), and metalness (0–1). */
   look?: MaterialLook;
+  /**
+   * Propriedades para a análise de Resistência (Sprint 31) — valores TÍPICOS, orientativos:
+   * madeira varia de chapa para chapa e com a direção da fibra.
+   */
+  youngMPa: number;
+  poisson: number;
+  /** Resistência típica à flexão/tração, MPa (referência do fator de segurança, não norma). */
+  strengthMPa: number;
+  /** Densidade, g/cm³ (informativa). */
+  density: number;
 }
 
 export interface MaterialLook { top: number; cut: number; deep: number; side: number; metalness?: number; roughness?: number }
@@ -27,13 +37,13 @@ export const DEFAULT_LOOK: MaterialLook = { top: 0xd9b98a, cut: 0xf1dcb8, deep: 
  * Always a starting point — the user is expected to tune per machine.
  */
 export const MATERIAL_PRESETS: MaterialPreset[] = [
-  { id: "mdf", label: "MDF", feedRate: 1500, plungeRate: 500, spindleSpeed: 18000, passDepthFactor: 0.5, stepoverFactor: 0.5,
+  { id: "mdf", label: "MDF", youngMPa: 3000, poisson: 0.25, strengthMPa: 18, density: 0.75, feedRate: 1500, plungeRate: 500, spindleSpeed: 18000, passDepthFactor: 0.5, stepoverFactor: 0.5,
     notes: "Poeira fina — use aspiração. Aceita passes mais fundos.", look: { top: 0xc9a97a, cut: 0xdcc39a, deep: 0xa88b62, side: 0xb8946a } },
-  { id: "plywood", label: "Compensado", feedRate: 1200, plungeRate: 400, spindleSpeed: 18000, passDepthFactor: 0.4, stepoverFactor: 0.5,
+  { id: "plywood", label: "Compensado", youngMPa: 7000, poisson: 0.3, strengthMPa: 30, density: 0.6, feedRate: 1200, plungeRate: 400, spindleSpeed: 18000, passDepthFactor: 0.4, stepoverFactor: 0.5,
     notes: "A cola desgasta a fresa mais rápido; passes um pouco menores.", look: { top: 0xdcc094, cut: 0xf0dcb4, deep: 0xb08a5a, side: 0xcaa878 } },
-  { id: "pine", label: "Pinus / madeira macia", feedRate: 1800, plungeRate: 600, spindleSpeed: 16000, passDepthFactor: 0.5, stepoverFactor: 0.5,
+  { id: "pine", label: "Pinus / madeira macia", youngMPa: 9000, poisson: 0.3, strengthMPa: 40, density: 0.5, feedRate: 1800, plungeRate: 600, spindleSpeed: 16000, passDepthFactor: 0.5, stepoverFactor: 0.5,
     notes: "Fibra longa: fresa afiada evita lascas nas bordas.", look: { top: 0xe8cfa2, cut: 0xf6e4c0, deep: 0xc9a56e, side: 0xd7b985 } },
-  { id: "aluminum", label: "Alumínio (6061/5052)", advanced: true, feedRate: 300, plungeRate: 100, spindleSpeed: 10000, passDepthFactor: 0.1, stepoverFactor: 0.3,
+  { id: "aluminum", label: "Alumínio (6061/5052)", advanced: true, youngMPa: 69000, poisson: 0.33, strengthMPa: 240, density: 2.7, feedRate: 300, plungeRate: 100, spindleSpeed: 10000, passDepthFactor: 0.1, stepoverFactor: 0.3,
     notes: "Avançado: fresa de 1 corte para alumínio, lubrificação (álcool/WD-40), passes rasos, fixação firme. Evite mergulho vertical longo.", look: { top: 0xb8bec4, cut: 0xdfe3e6, deep: 0x8f979e, side: 0x9aa1a7, metalness: 0.6, roughness: 0.35 } },
 ];
 

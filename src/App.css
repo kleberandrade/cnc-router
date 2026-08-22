@@ -876,6 +876,29 @@ label.checkbox .field-hint {
 .drawing-zoom .rb { border: 1px solid var(--border); background: var(--surface); }
 .drawing-zoom .rb.active { border-color: var(--accent); color: var(--accent); }
 @media (max-width: 767px) { .drawing-thumbs { display: none; } .drawing-page { width: 360px; } .drawing-stage:not(.full) .drawing-page .sheet-page { transform: scale(0.453); } }
+.analysis-ws { display: flex; min-height: 0; background: var(--surface-2); }
+.analysis-panel { width: 280px; flex: none; overflow-y: auto; padding: var(--s3); display: flex; flex-direction: column; gap: var(--s2); border-right: 1px solid var(--border); background: var(--surface); font-size: var(--fs-md); }
+.analysis-panel label { display: flex; flex-direction: column; gap: 3px; }
+.analysis-panel select { height: var(--control-h); border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-size: var(--fs-base); background: var(--surface); color: var(--text); }
+.an-mode { display: flex; gap: var(--s1); }
+.an-mode .choice-icon { flex: 1; padding: 6px 8px; font-size: var(--fs-sm); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; color: var(--text); }
+.an-mode .choice-icon.active { border-color: var(--accent); background: rgba(47,109,143,0.1); color: var(--accent); }
+.an-run { margin-top: var(--s1); }
+.an-results { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--s2); display: grid; gap: 4px; }
+.an-disclaimer { margin-top: auto; padding: var(--s2); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: var(--fs-sm); }
+.analysis-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s3); gap: var(--s2); min-width: 0; }
+.an-canvas { width: min(100%, 900px); height: auto; aspect-ratio: 900 / 620; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); cursor: crosshair; }
+.an-deformed { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: var(--fs-md); }
+.an-stage-tools { display: flex; gap: var(--s2); align-items: center; }
+.an-stage-tools .rb { border: 1px solid var(--border); background: var(--surface); }
+.an-stage-tools .rb.active { border-color: var(--accent); color: var(--accent); }
+.part-view-3d { width: min(100%, 900px); aspect-ratio: 900 / 620; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: grab; }
+.part-view-3d canvas { width: 100% !important; height: 100% !important; display: block; }
+.an-shelf-sketch { width: min(100%, 520px); }
+.an-shelf-sketch .shelf-board { fill: rgba(47,109,143,0.18); stroke: var(--accent); stroke-width: 2; }
+.an-shelf-sketch .shelf-supports { fill: var(--text-muted); }
+.an-shelf-sketch .shelf-label { fill: var(--text); font: 600 14px system-ui, sans-serif; }
+@media (max-width: 767px) { .analysis-ws { flex-direction: column; } .analysis-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 45%; } .an-disclaimer { margin-top: 0; } }
 .workspace-fallback {
   display: flex;
   align-items: center;

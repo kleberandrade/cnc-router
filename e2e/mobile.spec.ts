@@ -120,3 +120,22 @@ test.describe("sprint 30 no toque", () => {
     await expect(page.locator('iframe[data-testid="print-frame"]')).toHaveCount(1);
   });
 });
+
+test.describe("sprint 31 no toque", () => {
+  test("Resistência no celular: prateleira calcula e o aviso está lá", async ({ page }) => {
+    await page.goto("/app/");
+    await page.getByTestId("svg-file-input").first().setInputFiles({ name: "peca.dxf", mimeType: "application/dxf", buffer: Buffer.from([
+      "0","SECTION","2","ENTITIES",
+      "0","LWPOLYLINE","8","0","90","4","70","1","10","0","20","0","10","200","20","0","10","200","20","100","10","0","20","100",
+      "0","ENDSEC","0","EOF",""].join("\n")) });
+    await page.getByTestId("import-confirm").tap();
+    await gotoWorkspace(page, "analysis");
+    await expect(page.getByTestId("analysis-workspace")).toBeVisible();
+    await expect(page.getByTestId("an-disclaimer")).toContainText("orientativos");
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+    expect(overflow).toBe(false);
+    await page.getByTestId("an-mode-shelf").tap();
+    await page.getByTestId("an-shelf-run").tap();
+    await expect(page.getByTestId("an-shelf-results")).toContainText("flecha");
+  });
+});

@@ -1,6 +1,6 @@
 # Sprint 31 — Resistência (análise estrutural orientativa)
 
-**Status:** planejada · **Versão alvo:** 0.33.0 (a Sprint 32 saiu antes)
+**Status:** concluída — 2026-08-22 · **Versão:** 0.33.0
 **Esforço:** G/GG (8–10 dias)
 **Depende de:** 30 (dropdown de estações), 27 (worker)
 
@@ -40,12 +40,20 @@ O princípio da sprint inteira: **números orientativos, honestidade absoluta so
 
 ### E. Validação (o que separa isso de um brinquedo)
 
-- Testes contra casos com resposta fechada, com tolerância declarada:
+- [x] Testes contra casos com resposta fechada, com tolerância declarada:
   - viga engastada com carga na ponta (flecha e tensão vs fórmula, ±5 %);
   - placa com furo central tracionada (concentração de tensão ≈ 3×, ±15 % com malha refinada);
   - prateleira biapoiada (flecha vs fórmula de viga, ±2 %).
 - Teste de malha: qualquer exemplo da galeria gera malha válida (sem triângulo degenerado, área total ≈ área da peça).
 - E2e: configurar um caso na UI → resultado aparece com escala; a11y da estação.
+
+## Como ficou
+
+- `src/lib/fem/`: `mesh.ts` (contorno amostrado + grade interna com jitter determinístico → Delaunay Bowyer–Watson, filtro por centroide; lados selecionáveis por continuidade de direção, nós de canto pertencendo a dois lados com comprimento tributário próprio), `solve.ts` (CST plane-stress, CG com Jacobi), `beam.ts` (viga biapoiada), `job.ts` (contrato puro UI ↔ worker — o worker não pode importar os stores).
+- Validação que passou: viga engastada dentro de ±5% de Timoshenko (flexão + cisalhamento), placa com furo com Kt ≈ 3 (janela −15%/+30% para a malha uniforme), tração pura com tensão nominal e alongamento σL/E exatos. O primeiro bug real que a validação pegou: nós de canto recebiam carga de um lado só e a tração pura saía 1,7× — a contabilidade de dois lados por nó resolveu.
+- Estação: seleção de lados clicando no canvas (Apoiar/Carregar), von Mises em canvas 2D puro (milhares de triângulos num loop de fill), deformada exagerada a ~6% do vão, barra de escala; modo prateleira com esboço SVG e veredito de vão/300; alternador "Peça em 3D" (extrusão via chunk do Three, arrastar gira); aviso orientativo permanente no painel.
+- Material "personalizado" não tem propriedades: a análise usa os valores do MDF e diz isso na tela.
+- INP: toque "abrir Resistência" = 104 ms com CPU 4× (décimo toque do `inp.spec.ts`).
 
 ## DoD específica
 

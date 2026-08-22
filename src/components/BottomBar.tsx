@@ -1,7 +1,8 @@
-import { Square, Circle as CircleIcon, Pentagon, Check, Undo2, Redo2, Trash2, SlidersHorizontal, Play, Pause, RotateCcw, StepBack, StepForward, SkipBack, SkipForward, Maximize, Printer } from "lucide-react";
+import { Square, Circle as CircleIcon, Pentagon, Check, Undo2, Redo2, Trash2, SlidersHorizontal, Play, Pause, RotateCcw, StepBack, StepForward, SkipBack, SkipForward, Maximize, Printer, Gauge } from "lucide-react";
 import { useProjectActions } from "./useProjectActions";
 import { useUiStore } from "../state/uiStore";
 import { useSheetsStore, printSheets } from "../state/sheets";
+import { useAnalysisStore, runAnalysis, runShelf } from "../state/analysis";
 import { useSimStore } from "../state/simStore";
 
 const ICON = 20;
@@ -39,6 +40,8 @@ export function BottomBar() {
   const { toggle, stepForward, stepBack, reset, toEnd } = useSimStore.getState();
   const simDisabled = duration <= 0;
   const sheetCurrent = useSheetsStore((s) => s.current);
+  const anStatus = useAnalysisStore((s) => s.status);
+  const anMode = useAnalysisStore((s) => s.mode);
   const sheetCount = useSheetsStore((s) => s.pages.length);
   const atEnd = duration > 0 && t >= duration;
 
@@ -65,6 +68,10 @@ export function BottomBar() {
           <Btn icon={<Undo2 size={ICON} />} label="Desfazer" onClick={actions.undo} disabled={actions.pastStates === 0} testId="mb-undo" />
           <Btn icon={<Redo2 size={ICON} />} label="Refazer" onClick={actions.redo} disabled={actions.futureStates === 0} testId="mb-redo" />
           <Btn icon={<Trash2 size={ICON} />} label="Excluir" onClick={actions.remove} disabled={!actions.selectedId} testId="mb-delete" />
+        </>
+      ) : view === "analysis" ? (
+        <>
+          <Btn icon={<Gauge size={ICON} />} label={anStatus === "running" ? "Calculando…" : "Calcular"} onClick={() => (anMode === "shelf" ? runShelf() : runAnalysis())} disabled={anStatus === "running"} primary testId="mb-an-run" />
         </>
       ) : view === "drawing" ? (
         <>

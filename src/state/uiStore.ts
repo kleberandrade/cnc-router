@@ -10,7 +10,7 @@ export const canonicalSection = (s: PanelSection): PanelSection => SECTION_ALIAS
 export type Theme = "light" | "dark" | "system";
 export type MousePreset = "standard" | "fusion";
 /** Estações de trabalho (dropdown estilo Fusion, Sprint 30): desenhar, simular, folha técnica. */
-export type View = "editor" | "simulator" | "drawing";
+export type View = "editor" | "simulator" | "drawing" | "analysis";
 export interface SimCameraActions { fit: () => void; top: () => void; iso: () => void }
 export type EditorTool = "select" | "polygon";
 
@@ -137,7 +137,7 @@ export const useUiStore = create<UiState>((set) => ({
     set({ textSize });
     applyPrefs(useUiStore.getState().density, textSize);
   },
-  ribbonTab: { editor: "formas", simulator: "reproduzir", drawing: "folhas" },
+  ribbonTab: { editor: "formas", simulator: "reproduzir", drawing: "folhas", analysis: "analise" },
   setRibbonTab: (view, tab) => set((st) => ({ ribbonTab: { ...st.ribbonTab, [view]: tab }, ribbonMinimized: false })),
   ribbonMinimized: readPref("oficina-cnc:ribbon-min", ["1", "0"], "0") === "1",
   setRibbonMinimized: (ribbonMinimized) => {

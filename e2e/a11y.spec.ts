@@ -36,6 +36,13 @@ test.describe("sprint 21: acessibilidade (axe, sério/crítico)", () => {
     await page.getByTestId("import-vector").waitFor();
     expect(await scan(page)).toEqual([]);
   });
+  test("analysis workspace (Resistência)", async ({ page }) => {
+    await page.goto("/app/");
+    await page.getByTestId("add-rectangle").click();
+    await gotoWorkspace(page, "analysis");
+    await page.getByTestId("an-canvas").waitFor();
+    expect(await scan(page)).toEqual([]);
+  });
   test("drawing workspace (folha técnica)", async ({ page }) => {
     await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();

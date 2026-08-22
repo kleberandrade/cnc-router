@@ -16,6 +16,7 @@ import { useProjectStore } from "./state/store";
 import { AskHost } from "./components/Dialog";
 import { DropImport } from "./components/DropImport";
 import { DrawingWorkspace } from "./components/DrawingWorkspace";
+import { AnalysisWorkspace } from "./components/AnalysisWorkspace";
 import { Timeline } from "./components/Timeline";
 import { readShareHash } from "./lib/share";
 import { Analytics } from "@vercel/analytics/react";
@@ -92,6 +93,8 @@ function App() {
   const showEmpty = view === "editor" && shapeCount === 0 && !emptyDismissed && layout !== "mobile" && tool === "select";
   const workspace = view === "drawing" ? (
     <DrawingWorkspace />
+  ) : view === "analysis" ? (
+    <AnalysisWorkspace />
   ) : (
     <section className="workspace">
       {view === "editor" ? (

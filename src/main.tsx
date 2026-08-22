@@ -36,7 +36,7 @@ let lastView = useUiStore.getState().view
 useUiStore.subscribe((st) => {
   if (st.view !== lastView) {
     lastView = st.view
-    speedInsights?.setRoute(st.view === "editor" ? "/editor" : st.view === "drawing" ? "/folha" : "/simulador")
+    speedInsights?.setRoute(st.view === "editor" ? "/editor" : st.view === "drawing" ? "/folha" : st.view === "analysis" ? "/resistencia" : "/simulador")
   }
 })
 

@@ -5,7 +5,7 @@ import {
   RotateCcw, ArrowUpFromLine, Box, Keyboard, Info, Hexagon, Sparkles, Mail, ExternalLink, MessageSquarePlus, BookOpen, Compass,
   Link2, ClipboardCheck, Scissors, SquareDashedBottom, Drill, SquareArrowOutUpRight, SquareArrowDownLeft, Minus, Anchor, Spline, ListOrdered, Sun, Moon, MousePointer2, BoxSelect, ChevronUp, RectangleHorizontal, Magnet, Settings2, Type,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
-  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon, Printer, PencilRuler, FileText, FileDown, Layers,
+  AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Combine, SquareMinus, SquareDot, LayoutGrid, AlignCenterHorizontal as AlignIcon, Printer, PencilRuler, FileText, FileDown, Layers, Gauge, Eraser,
 } from "lucide-react";
 import { OverflowRibbon, RibbonButton, ICON, type RibbonGroupDef } from "./Ribbon";
 import { useProjectActions } from "./useProjectActions";
@@ -23,6 +23,7 @@ import { ExamplesGallery } from "./ExamplesGallery";
 import { ImportImageDialog } from "./ImportImageDialog";
 import { ImportVectorDialog } from "./ImportVectorDialog";
 import { useSheetsStore, printSheets } from "../state/sheets";
+import { useAnalysisStore, runAnalysis, runShelf } from "../state/analysis";
 import { standaloneSvg } from "../lib/sheet";
 import { resetTour } from "./Tour";
 import { verifyProject } from "../lib/verify";
@@ -306,7 +307,7 @@ function News() {
 function ProjectName() {
   const name = useProjectStore((s) => s.settings.projectName ?? "");
   const updateSettings = useProjectStore((s) => s.updateSettings);
-  const titleView = useUiStore((s) => (s.view === "simulator" ? "Simular" : s.view === "drawing" ? "Folha técnica" : "Desenhar"));
+  const titleView = useUiStore((s) => (s.view === "simulator" ? "Simular" : s.view === "drawing" ? "Folha técnica" : s.view === "analysis" ? "Resistência" : "Desenhar"));
   const [draft, setDraft] = useState<string | null>(null);
   useEffect(() => {
     // Duas features disputavam o título da aba: o nome do projeto (Sprint 22) e a vista (SEO).
@@ -335,6 +336,7 @@ const WORKSPACES: { id: View; label: string; icon: React.ReactNode; desc: string
   { id: "editor", label: "Desenhar", icon: <PencilRuler size={15} />, desc: "Peças, medidas e operações na chapa." },
   { id: "simulator", label: "Simular", icon: <Play size={15} />, desc: "A fresa percorrendo o caminho, com remoção de material." },
   { id: "drawing", label: "Folha técnica", icon: <FileText size={15} />, desc: "Folha de oficina e desenhos cotados — ver, imprimir, baixar." },
+  { id: "analysis", label: "Resistência", icon: <Gauge size={15} />, desc: "Tensão e flecha orientativas: apoios, carga e mapa de esforço." },
 ];
 
 /** Dropdown de estações de trabalho (estilo Fusion, Sprint 30). */
@@ -583,6 +585,17 @@ export function TopBar() {
     },
   ];
 
+  const anStatus = useAnalysisStore((s) => s.status);
+  const anMode = useAnalysisStore((s) => s.mode);
+  const analysisGroups: RibbonGroupDef[] = [
+    {
+      key: "analise", title: "Análise", priority: 1, items: [
+        { icon: <Gauge size={ICON} />, label: anStatus === "running" ? "Calculando…" : "Calcular", onClick: () => (anMode === "shelf" ? runShelf() : runAnalysis()), disabled: anStatus === "running", testId: "an-run-ribbon", primary: true, featured: true, description: "Roda a análise com os apoios e cargas marcados. Os números são orientativos." },
+        { icon: <Eraser size={ICON} />, label: "Limpar", onClick: () => useAnalysisStore.getState().clear(), testId: "an-clear", description: "Tira apoios, cargas e o resultado da tela." },
+      ],
+    },
+  ];
+
   const TABS: Record<View, { id: string; label: string; groups: RibbonGroupDef[] }[]> = {
     editor: [
       { id: "formas", label: "Formas", groups: [...editorGroups.filter((g) => g.key !== "vista"), selectGroup] },
@@ -594,6 +607,9 @@ export function TopBar() {
     ],
     drawing: [
       { id: "folhas", label: "Folhas", groups: sheetGroups },
+    ],
+    analysis: [
+      { id: "analise", label: "Análise", groups: analysisGroups },
     ],
   };
   const tabs = TABS[view];
