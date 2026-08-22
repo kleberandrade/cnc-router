@@ -27,15 +27,15 @@ test.describe("sprint 30: estações e folha técnica na tela", () => {
     await page.getByTestId("add-circle").click();
     await gotoWorkspace(page, "drawing");
 
-    // folha de oficina + 2 desenhos
-    await expect(page.getByTestId("sheet-thumb-2")).toBeVisible();
+    // folha de oficina + 2 desenhos + conjunto (as formas padrão se sobrepõem e colam)
+    await expect(page.getByTestId("sheet-thumb-3")).toBeVisible();
     await expect(page.getByTestId("drawing-page")).toContainText("Chapa");
     await page.getByTestId("sheet-thumb-1").click();
     await expect(page.getByTestId("drawing-page").locator(".titleblock")).toContainText("esc. 1:1");
 
     // sem a folha de oficina sobram só os desenhos
     await page.getByTestId("sheet-with-setup").click();
-    await expect(page.getByTestId("sheet-thumb-2")).toHaveCount(0);
+    await expect(page.getByTestId("sheet-thumb-3")).toHaveCount(0);
     await page.getByTestId("sheet-with-setup").click();
 
     // zoom 100% mantém a página visível

@@ -30,6 +30,32 @@ describe("fem/mesh", () => {
     expect(ps.count).toBe(5); // 4 do contorno + 1 do furo
   });
 
+  it("cantos arredondados separam os lados (a tábua de carnes deixa marcar apoio E carga)", () => {
+    // retângulo 100×60 com cantos r = 8 (arcos de 8 segmentos)
+    const r = 8, seg = 8;
+    const arc = (cx: number, cy: number, a0: number): Point[] =>
+      Array.from({ length: seg + 1 }, (_, i) => [cx + r * Math.cos(a0 + (i * Math.PI / 2) / seg), cy + r * Math.sin(a0 + (i * Math.PI / 2) / seg)]);
+    const loop: Point[] = [
+      ...arc(100 - r, r, -Math.PI / 2), ...arc(100 - r, 60 - r, 0),
+      ...arc(r, 60 - r, Math.PI / 2), ...arc(r, r, Math.PI),
+    ];
+    const sides = boundarySides(loop);
+    expect(new Set(sides).size).toBeGreaterThanOrEqual(4);
+    // o meio da aresta esquerda e o da direita caem em lados diferentes
+    const sideAt = (px: number, py: number) => {
+      let best = 0, bestD = Infinity;
+      for (let i = 0; i < loop.length; i++) {
+        const a = loop[i], b = loop[(i + 1) % loop.length];
+        const dx = (a[0] + b[0]) / 2 - px, dy = (a[1] + b[1]) / 2 - py;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = sides[i]; }
+      }
+      return best;
+    };
+    expect(sideAt(0, 30)).not.toBe(sideAt(100, 30));
+    expect(sideAt(50, 0)).not.toBe(sideAt(50, 60));
+  });
+
   it("malha do retângulo cobre a área e marca os nós de contorno por lado", () => {
     const mesh = meshPart(rect(100, 60), [], { h: 5 });
     checkMesh(mesh, 6000, 3);

@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { glueParts } from "../assembly";
+import { glueParts, partitionShapes, assembleShapes } from "../assembly";
 import { partSides } from "../mesh";
 import { runFemJob } from "../job";
 import { regionArea, type Region } from "../../boolean";
 import type { Point } from "../../geometry";
+import type { RectangleShape } from "../../../types";
 
 const rect = (x: number, y: number, w: number, h: number): Region => ({
   outer: [[x, y], [x + w, y], [x + w, y + h], [x, y + h]],
@@ -59,6 +60,38 @@ describe("fem/assembly: colar peças", () => {
     expect(one).toHaveLength(1);
     expect(regionArea(one[0])).toBeCloseTo(1200, 5);
     expect(glueParts([])).toHaveLength(0);
+  });
+
+  it("semântica de corte (tábua de carnes): rasgo passante vira furo, rebaixo parcial não entra", () => {
+    const shape = (p: Partial<RectangleShape>): RectangleShape => ({
+      id: "s", kind: "rectangle", x: 0, y: 0, width: 100, height: 60, rotation: 0,
+      depth: 30, operation: "outline", ...p,
+    });
+    const board = shape({ id: "board", width: 380, height: 210, side: "outside" });
+    const slot = shape({ id: "slot", x: 300, y: 90, width: 60, height: 22, side: "inside", cutThrough: true });
+    const groove = shape({ id: "groove", x: 30, y: 30, width: 320, height: 150, operation: "pocket", depth: 4 });
+
+    const parts = partitionShapes([board, slot, groove], 30);
+    expect(parts.solids).toHaveLength(1);
+    expect(parts.cutouts).toHaveLength(1); // só o rasgo; a canaleta rasa fica de fora
+
+    const regions = assembleShapes([board, slot, groove], 30);
+    expect(regions).toHaveLength(1);
+    expect(regions[0].holes).toHaveLength(1);
+    expect(regionArea(regions[0])).toBeCloseTo(380 * 210 - 60 * 22, -1);
+  });
+
+  it("furação parcial (cega) não desconta; passante desconta", () => {
+    const shape = (p: Partial<RectangleShape>): RectangleShape => ({
+      id: "s", kind: "rectangle", x: 0, y: 0, width: 100, height: 60, rotation: 0,
+      depth: 18, operation: "outline", side: "outside", ...p,
+    });
+    const board = shape({ id: "b" });
+    const blind = shape({ id: "blind", x: 20, y: 20, width: 10, height: 10, operation: "drill", depth: 8, side: undefined });
+    const throughHole = shape({ id: "th", x: 60, y: 20, width: 10, height: 10, operation: "drill", depth: 18, side: undefined });
+    const regions = assembleShapes([board, blind, throughHole], 18);
+    expect(regions).toHaveLength(1);
+    expect(regions[0].holes).toHaveLength(1);
   });
 
   it("validação física: duas chapas coladas se comportam como a peça única equivalente (±5%)", () => {

@@ -2,6 +2,15 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [0.35.0 — Sprint 34 — Conjunto de verdade] — 2026-08-22
+
+### Corrigido
+- **Cantos arredondados separam os lados**: a tábua de carnes (e qualquer peça de canto arredondado) deixava o contorno inteiro virar um lado só, impossível marcar apoio E carga. Agora a curva acumulada separa as arestas; borda de furo redondo continua um lado só, um clique.
+- **O conjunto entende o corte**: contorno por fora é peça; furação e recorte por dentro que atravessam a chapa são descontados como furo (o rasgo da alça vira furo de verdade no cálculo e no 3D). Rebaixo parcial e gravação não mudam o contorno, e o aviso diz isso.
+
+### Adicionado
+- **Folha técnica do conjunto**: a página "Conjunto (peças coladas)" mostra o desenho cotado do conjunto montado, com os furos descontados — só aparece quando o conjunto difere das peças soltas.
+
 ## [0.34.0 — Sprint 33 — Resistência no conjunto] — 2026-08-22
 
 ### Adicionado

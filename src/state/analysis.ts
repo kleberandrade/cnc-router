@@ -5,8 +5,8 @@ import { shapeToPoints, boundingBox, type Point } from "../lib/geometry";
 
 import { runFemJob, type FemJob, type AnalysisResultData } from "../lib/fem/job";
 import { shelfBeam, type BeamResult } from "../lib/fem/beam";
-import { glueParts, GLUE_TOL } from "../lib/fem/assembly";
-import { shapeRegions, type Region } from "../lib/boolean";
+import { assembleShapes, GLUE_TOL } from "../lib/fem/assembly";
+import type { Region } from "../lib/boolean";
 import type { PathShape, Shape } from "../types";
 export type { FemJob, AnalysisResultData } from "../lib/fem/job";
 
@@ -111,9 +111,12 @@ export function analysisGeometry(shape: Shape): { outer: Point[]; holes: Point[]
   return { outer: shapeToPoints(shape), holes: shape.kind === "path" ? (shape as PathShape).holes ?? [] : [] };
 }
 
-/** Peças visíveis coladas (folga até 0,5 mm conta como encostado): uma região por grupo conectado. */
-export function assemblyRegions(shapes: Shape[] = analyzableShapes()): Region[] {
-  return glueParts(shapes.flatMap(shapeRegions), GLUE_TOL);
+/**
+ * Conjunto pelas regras de corte (Sprint 34): contornos por fora colados (folga até 0,5 mm conta
+ * como encostado), recortes passantes descontados como furos. Uma região por grupo conectado.
+ */
+export function assemblyRegions(shapes: Shape[] = useProjectStore.getState().shapes): Region[] {
+  return assembleShapes(shapes, useProjectStore.getState().settings.stock.thickness, GLUE_TOL);
 }
 
 /** Geometria que a análise vai malhar, pelo escopo atual — ou o motivo de não dar. */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { setupSheet, technicalDrawing, dimensionsFor, fitScale, type SheetDerived } from "../sheet";
+import { setupSheet, technicalDrawing, assemblyDrawingShapes, dimensionsFor, fitScale, type SheetDerived } from "../sheet";
 import { computeDerived } from "../derivedCompute";
 import { DEFAULT_MACHINE_SETTINGS, type MachineSettings, type PathShape, type RectangleShape, type Shape } from "../../types";
 
@@ -71,6 +71,33 @@ describe("setupSheet", () => {
     const shapes: Shape[] = [flange(), { ...flange(), id: "x", name: "Escondida", hidden: true }];
     const { html } = setupSheet(shapes, settings(), derivedOf(shapes));
     expect(html).not.toContain("Escondida");
+  });
+});
+
+describe("assemblyDrawingShapes", () => {
+  const rect = (p: Partial<RectangleShape>): RectangleShape => ({
+    id: "r", kind: "rectangle", x: 0, y: 0, width: 100, height: 60, rotation: 0,
+    depth: 18, operation: "outline", side: "outside", ...p,
+  });
+
+  it("tábua-like: chapa + rasgo passante vira uma página de conjunto com o furo descontado", () => {
+    const board = rect({ id: "b", width: 380, height: 210 });
+    const slot = rect({ id: "s", x: 300, y: 90, width: 60, height: 22, side: "inside", cutThrough: true });
+    const asm = assemblyDrawingShapes([board, slot], settings());
+    expect(asm).toHaveLength(1);
+    expect(asm[0].name).toBe("Conjunto (peças coladas)");
+    expect(asm[0].holes).toHaveLength(1);
+    const [page] = technicalDrawing(asm, settings());
+    expect(page.title).toContain("Conjunto");
+  });
+
+  it("duas peças encostadas colam numa página; peça sozinha não duplica", () => {
+    const a = rect({ id: "a" });
+    const b = rect({ id: "b", x: 100 });
+    expect(assemblyDrawingShapes([a, b], settings())).toHaveLength(1);
+    expect(assemblyDrawingShapes([a], settings())).toHaveLength(0);
+    // duas peças longe, sem recorte: nada colou, nada a mostrar
+    expect(assemblyDrawingShapes([a, rect({ id: "c", x: 200 })], settings())).toHaveLength(0);
   });
 });
 

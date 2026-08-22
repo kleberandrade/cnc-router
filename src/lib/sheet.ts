@@ -1,5 +1,6 @@
 import type { MachineSettings, PathShape, Shape } from "../types";
 import { boundingBox, shapeToPoints, type Point } from "./geometry";
+import { assembleShapes, partitionShapes } from "./fem/assembly";
 import { originPoint } from "./toolpath";
 import { findMaterial } from "./materials";
 import { formatDuration } from "./timing";
@@ -227,6 +228,31 @@ export function setupSheet(shapes: Shape[], settings: MachineSettings, derived: 
 export function technicalDrawing(shapes: Shape[], settings: MachineSettings, opts: DrawingOptions = {}): SheetPage[] {
   const visible = shapes.filter((s) => !s.hidden);
   return visible.map((shape, i) => drawingPage(shape, i, visible.length, settings, opts));
+}
+
+/**
+ * Peças sintéticas do conjunto montado (Sprint 34): contornos por fora colados, recortes passantes
+ * descontados — a mesma conta da estação Resistência. Vazio quando o conjunto não difere das peças
+ * soltas (nada colou e nada foi descontado), para a folha não duplicar página.
+ */
+export function assemblyDrawingShapes(shapes: Shape[], settings: MachineSettings): PathShape[] {
+  const visible = shapes.filter((s) => !s.hidden);
+  const thickness = settings.stock.thickness;
+  const { solids, cutouts } = partitionShapes(visible, thickness);
+  if (solids.length === 0) return [];
+  const groups = assembleShapes(visible, thickness);
+  if (cutouts.length === 0 && groups.length === solids.length) return [];
+  return groups.map((g, i) => ({
+    id: `__assembly-${i}`,
+    kind: "path",
+    points: g.outer,
+    holes: g.holes.length ? g.holes : undefined,
+    closed: true,
+    depth: thickness,
+    operation: "outline",
+    side: "outside",
+    name: groups.length > 1 ? `Conjunto ${i + 1} (peças coladas)` : "Conjunto (peças coladas)",
+  }));
 }
 
 function drawingPage(shape: Shape, index: number, total: number, settings: MachineSettings, opts: DrawingOptions): SheetPage {

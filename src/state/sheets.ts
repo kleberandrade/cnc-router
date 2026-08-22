@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { useProjectStore } from "./store";
 import { useDerivedStore } from "./derived";
 import { projectHash } from "../lib/derivedCompute";
-import { setupSheet, technicalDrawing, SHEET_CSS, type SheetPage } from "../lib/sheet";
+import { setupSheet, technicalDrawing, assemblyDrawingShapes, SHEET_CSS, type SheetPage } from "../lib/sheet";
 
 /** `SHEET_CSS` com cada seletor prefixado por `.sheet-host` — para o preview dentro do app, sem vazar regra global (body, @page, *). */
 export const SCOPED_SHEET_CSS = SHEET_CSS.split("\n")
@@ -56,7 +56,9 @@ export function buildSheetsNow(date = new Date().toLocaleDateString("pt-BR")): S
   const st = useProjectStore.getState();
   const derived = useDerivedStore.getState();
   const o = useSheetsStore.getState();
-  const shapes = o.scope === "selected" && st.selectedId ? st.shapes.filter((s) => s.id === st.selectedId) : st.shapes;
+  const selected = o.scope === "selected" && st.selectedId ? st.shapes.filter((s) => s.id === st.selectedId) : null;
+  // no escopo "todas", a folha do conjunto montado entra no fim, numerada junto (Sprint 34)
+  const shapes = selected ?? [...st.shapes, ...assemblyDrawingShapes(st.shapes, st.settings)];
   const pages: SheetPage[] = [];
   if (o.withSetup) pages.push(setupSheet(st.shapes, st.settings, derived, { date }));
   pages.push(...technicalDrawing(shapes, st.settings, { scale: o.scale, date }));

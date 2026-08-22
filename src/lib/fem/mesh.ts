@@ -47,9 +47,14 @@ export interface MeshOptions {
 
 /**
  * Lados selecionáveis de um laço: arestas consecutivas com mudança de direção < 30° viram um lado
- * só (retângulo → 4 lados; círculo amostrado → 1). Determinístico — a UI e o worker derivam o mesmo.
+ * só (retângulo → 4 lados; círculo amostrado → 1). Curvas suaves também separam: quando a direção
+ * deriva mais de ~60° desde o início do lado, começa um lado novo — é o que faz cantos
+ * arredondados dividirem as arestas retas em lados distintos (Sprint 34). A exceção é o laço
+ * uniforme (círculo amostrado: arestas parecidas, sem canto vivo), que continua um lado só para
+ * a borda de um furo redondo seguir selecionável num clique.
+ * Determinístico — a UI e o worker derivam o mesmo.
  */
-export function boundarySides(loop: Point[], angleDeg = 30): number[] {
+export function boundarySides(loop: Point[], angleDeg = 30, curveDeg = 60): number[] {
   const n = loop.length;
   const sideOfEdge = new Array<number>(n).fill(0);
   const dir = (i: number): Point => {
@@ -57,17 +62,36 @@ export function boundarySides(loop: Point[], angleDeg = 30): number[] {
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
     return [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
   };
-  const limit = Math.cos((angleDeg * Math.PI) / 180);
+  const turnAt = (i: number): number => {
+    const d0 = dir((i - 1 + n) % n), d1 = dir(i);
+    return Math.acos(Math.max(-1, Math.min(1, d0[0] * d1[0] + d0[1] * d1[1])));
+  };
+  const sharp = (angleDeg * Math.PI) / 180;
+  const curve = (curveDeg * Math.PI) / 180;
+
+  // laço uniforme (círculo amostrado): sem canto vivo e arestas de comprimento parecido → 1 lado
+  const lens = [];
+  for (let i = 0; i < n; i++) {
+    const a = loop[i], b = loop[(i + 1) % n];
+    lens.push(Math.hypot(b[0] - a[0], b[1] - a[1]));
+  }
+  const sorted = [...lens].sort((a, b) => a - b);
+  const median = sorted[Math.floor(n / 2)] || 1;
+  let hasSharp = false;
+  for (let i = 0; i < n; i++) if (turnAt(i) >= sharp) { hasSharp = true; break; }
+  if (!hasSharp && Math.max(...lens) <= 3 * median) return sideOfEdge;
+
   let side = 0;
+  let drift = 0; // curvatura acumulada desde o início do lado atual
   for (let i = 1; i < n; i++) {
-    const d0 = dir(i - 1), d1 = dir(i);
-    if (d0[0] * d1[0] + d0[1] * d1[1] < limit) side++;
+    const t = turnAt(i);
+    if (t >= sharp || drift + t > curve) { side++; drift = 0; }
+    else drift += t;
     sideOfEdge[i] = side;
   }
   // fecha o laço: se a última aresta continua na direção da primeira, funde os lados das pontas
   if (side > 0) {
-    const dLast = dir(n - 1), dFirst = dir(0);
-    if (dLast[0] * dFirst[0] + dLast[1] * dFirst[1] >= limit) {
+    if (turnAt(0) < sharp && drift + turnAt(0) <= curve) {
       const last = sideOfEdge[n - 1];
       for (let i = 0; i < n; i++) if (sideOfEdge[i] === last) sideOfEdge[i] = 0;
       // renumera para ids contíguos

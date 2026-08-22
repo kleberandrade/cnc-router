@@ -51,8 +51,12 @@ export function AnalysisWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shape?.id]);
 
-  // no escopo Conjunto, a geometria é o grupo colado; mais de um grupo = nada para malhar (a UI explica)
-  const regions = useMemo(() => (st.scope === "assembly" ? assemblyRegions(candidates) : []), [st.scope, candidates]);
+  // no escopo Conjunto, a geometria segue as regras de corte (colados + recortes descontados);
+  // mais de um grupo = nada para malhar (a UI explica)
+  const regions = useMemo(
+    () => (st.scope === "assembly" ? assemblyRegions(shapes) : []),
+    [st.scope, shapes, settings.stock.thickness] // eslint-disable-line react-hooks/exhaustive-deps
+  );
   const geo = useMemo(() => {
     if (st.scope === "assembly") return regions.length === 1 ? regions[0] : null;
     return shape ? analysisGeometry(shape) : null;

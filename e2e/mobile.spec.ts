@@ -113,8 +113,10 @@ test.describe("sprint 30 no toque", () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
     expect(overflow).toBe(false);
     await expect(page.getByTestId("mb-sheet-prev")).toBeDisabled();
-    await page.getByTestId("mb-sheet-next").tap();
-    await page.getByTestId("mb-sheet-next").tap();
+    // navega até a última página (a contagem varia: o conjunto colado ganha página própria)
+    for (let i = 0; i < 8 && !(await page.getByTestId("mb-sheet-next").isDisabled()); i++) {
+      await page.getByTestId("mb-sheet-next").tap();
+    }
     await expect(page.getByTestId("mb-sheet-next")).toBeDisabled();
     await page.getByTestId("mb-sheet-print").tap();
     await expect(page.locator('iframe[data-testid="print-frame"]')).toHaveCount(1);
