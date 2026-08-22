@@ -5,7 +5,7 @@ test.describe("sprint 30: estações e folha técnica na tela", () => {
   test.slow();
 
   test("dropdown troca as três estações e o título da aba acompanha", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await expect(page).toHaveTitle("Desenhar — Oficina CNC");
     await page.getByTestId("workspace-menu").click();
@@ -21,7 +21,7 @@ test.describe("sprint 30: estações e folha técnica na tela", () => {
   });
 
   test("estação de folha: miniaturas, troca de página, opções da ribbon", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
@@ -45,7 +45,7 @@ test.describe("sprint 30: estações e folha técnica na tela", () => {
   });
 
   test("Ctrl+P e o menu Imprimir… levam à estação; Imprimir cria o iframe", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.keyboard.press("Control+p");
@@ -64,7 +64,7 @@ test.describe("sprint 30: estações e folha técnica na tela", () => {
   });
 
   test("Baixar SVG entrega um .svg bem-formado da página atual", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await gotoWorkspace(page, "drawing");
@@ -83,7 +83,7 @@ test.describe("sprint 30: estações e folha técnica na tela", () => {
   });
 
   test("projeto vazio: a estação explica em vez de mostrar folha em branco", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await gotoWorkspace(page, "drawing");
     await expect(page.getByTestId("drawing-empty")).toBeVisible();

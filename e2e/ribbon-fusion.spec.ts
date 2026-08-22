@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 
 test.describe("sprint 22: barra estilo Fusion", () => {
   test("tabs switch the ribbon; group title opens a menu that triggers actions; ribbon minimizes", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await expect(page.getByTestId("ribbon-tab-formas")).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("add-rectangle")).toBeVisible();
@@ -39,7 +39,7 @@ test.describe("sprint 22: barra estilo Fusion", () => {
   });
 
   test("rich tooltip appears on hover with shortcut and description", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").hover();
     await expect(page.getByTestId("rich-tooltip")).toBeVisible();
@@ -50,7 +50,7 @@ test.describe("sprint 22: barra estilo Fusion", () => {
   });
 
   test("project name goes to the tab title, the G-code header and the file names", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-name").fill("Placa da Bancada");
     await page.getByTestId("project-name").press("Enter");
@@ -67,7 +67,7 @@ test.describe("sprint 22: barra estilo Fusion", () => {
   });
 
   test("simulator workspace shows the Reproduzir tab with transport", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await gotoWorkspace(page, "simulator");

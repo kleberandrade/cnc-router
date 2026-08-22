@@ -95,6 +95,7 @@ function ProjectMenu({ actions }: { actions: ReturnType<typeof useProjectActions
           {item(<MessageSquarePlus size={16} />, "Sugestões e problemas…", () => setDialog("feedback"), "menu-feedback")}
           {item(<Sparkles size={16} />, hasNews ? "Novidades desta versão" : "Novidades", openNews, "menu-news", hasNews ? "novo" : undefined)}
           {item(<Info size={16} />, "Sobre", () => setDialog("about"), "menu-about")}
+          {item(<ExternalLink size={16} />, "Página do projeto", () => { window.location.href = "/"; }, "menu-site")}
           <div className="menu-sep" />
           <div className="menu-footer" data-testid="menu-version">{PRODUCT.name} {versionLabel()}</div>
         </div>

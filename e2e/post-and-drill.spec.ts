@@ -10,7 +10,7 @@ async function exportGcode(page: import("@playwright/test").Page): Promise<{ tex
 
 test.describe("sprint 14: pós-processadores, G20, furação, hélice", () => {
   test("LinuxCNC post exports .ngc with parenthesis comments and M30; inches switch to G20", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("section-toggle-post").click();
     await page.getByTestId("post").selectOption("linuxcnc");
@@ -31,7 +31,7 @@ test.describe("sprint 14: pós-processadores, G20, furação, hélice", () => {
   });
 
   test("drill operation for a small circle: plunge at the centre, peck cycle", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-operation").selectOption("drill");
     await page.getByTestId("section-toggle-cut").click();
@@ -51,7 +51,7 @@ test.describe("sprint 14: pós-processadores, G20, furação, hélice", () => {
   });
 
   test("helix entry on pockets removes the vertical plunge and the time estimate uses acceleration", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-operation").selectOption("pocket");
     await page.getByTestId("section-toggle-cut").click();

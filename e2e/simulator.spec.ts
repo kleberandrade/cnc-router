@@ -3,7 +3,7 @@ import { gotoWorkspace } from "./helpers";
 
 test.describe("simulator player (sprint 04)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await gotoWorkspace(page, "simulator");
   });

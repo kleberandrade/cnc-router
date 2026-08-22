@@ -6,7 +6,7 @@ test.describe("sprint 29: imprimir e entrada rápida", () => {
   test.slow();
 
   test("Ctrl+P abre a impressão (hoje: estação Folha técnica, Sprint 30)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.keyboard.press("Control+p");
@@ -15,7 +15,7 @@ test.describe("sprint 29: imprimir e entrada rápida", () => {
   });
 
   test("tempo por peça aparece no navegador", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("section-toggle-shape").click();
@@ -23,7 +23,7 @@ test.describe("sprint 29: imprimir e entrada rápida", () => {
   });
 
   test("arrastar um SVG para a janela abre o diálogo de importação, nunca importa direto", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     // drop sintético com DataTransfer real do navegador
     await page.evaluate((svg) => {
@@ -46,7 +46,7 @@ test.describe("sprint 29: imprimir e entrada rápida", () => {
   });
 
   test("colar SVG (Ctrl+V) abre o diálogo de importação", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.evaluate((svg) => {
       const dt = new DataTransfer();
@@ -61,7 +61,7 @@ test.describe("sprint 29: imprimir e entrada rápida", () => {
   });
 
   test("soltar um projeto .json com peças na mesa pede confirmação", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     const json = JSON.stringify({ app: "oficina-cnc", version: 9, savedAt: "2026-08-22", shapes: [

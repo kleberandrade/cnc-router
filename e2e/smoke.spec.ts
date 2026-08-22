@@ -7,7 +7,7 @@ import { gotoWorkspace } from "./helpers";
  */
 test.describe("smoke @smoke", () => {
   test("the app loads and shows the main workspace", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.getByTestId("project-menu")).toContainText("Oficina CNC");
     await expect(page.getByTestId("editor-canvas")).toBeVisible();
     await expect(page.getByTestId("add-rectangle")).toBeVisible();
@@ -15,7 +15,7 @@ test.describe("smoke @smoke", () => {
   });
 
   test("caminho feliz: exemplo → editar → simular → folha técnica → G-code", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
 
     // abrir um exemplo pela galeria

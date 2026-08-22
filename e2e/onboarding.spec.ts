@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("sprint 21: primeiro uso", () => {
   test("first visit shows the tour; it can be skipped and does not come back; the empty state offers examples", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => localStorage.removeItem("oficina-cnc:tour-done"));
     await page.reload();
     await expect(page.getByTestId("tour")).toBeVisible();
@@ -33,7 +33,7 @@ test.describe("sprint 21: primeiro uso", () => {
   });
 
   test("empty state can be closed and adding a rectangle from it works", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => localStorage.setItem("oficina-cnc:tour-done", "1"));
     await page.reload();
     await page.getByTestId("empty-close").click();
@@ -45,7 +45,7 @@ test.describe("sprint 21: primeiro uso", () => {
   });
 
   test("preferences: density and text size change the html attributes and persist", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => localStorage.setItem("oficina-cnc:tour-done", "1"));
     await page.reload();
     await page.getByTestId("project-menu").click();

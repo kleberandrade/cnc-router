@@ -4,7 +4,7 @@ import { gotoWorkspace } from "./helpers";
 test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", () => {
   test.slow();
   test("menu opens the gallery (≥ 11 cards with thumbnails, grouped by category); example opens and simulates", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();
@@ -26,7 +26,7 @@ test.describe("sprint 24: exemplos, galeria, ilustrações, notice compacto", ()
   });
 
   test("option illustrations mirror the selects (operation, compensation, tool type, corners)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await expect(page.getByTestId("op-icons-outline")).toHaveAttribute("aria-checked", "true");

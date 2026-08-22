@@ -6,7 +6,7 @@ test.describe("sprint 18: ribbon overflow and panel tabs", () => {
   for (const w of WIDTHS) {
     test(`at ${w}px every ribbon action is reachable and nothing overflows the viewport`, async ({ page }) => {
       await page.setViewportSize({ width: w, height: 800 });
-      await page.goto("/");
+      await page.goto("/app/");
       await page.getByTestId("add-rectangle").click();
       // every visible ribbon button lies inside the viewport
       const buttons = page.locator(".ribbon .rb");
@@ -40,7 +40,7 @@ test.describe("sprint 18: ribbon overflow and panel tabs", () => {
   }
 
   test("panel tabs switch sections; selecting a shape opens Peça", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("section-toggle-post").click();
     await expect(page.getByTestId("section-post")).toBeVisible();
     await expect(page.getByTestId("section-shape")).toHaveCount(0);
@@ -55,7 +55,7 @@ test.describe("sprint 18: ribbon overflow and panel tabs", () => {
   });
 
   test("no select option text is clipped in the panel (short labels + hints)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     const clipped = await page.locator(".side-panel select").evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => (e as HTMLSelectElement).options[(e as HTMLSelectElement).selectedIndex]?.text));
     expect(clipped).toEqual([]);

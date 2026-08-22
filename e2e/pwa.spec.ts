@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("PWA (sprint 08)", () => {
   test("serves a valid manifest and registers a service worker; fonts are self-hosted", async ({ page, request }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const link = page.locator('link[rel="manifest"]');
     await expect(link).toHaveCount(1);
     const href = await link.getAttribute("href");
@@ -23,7 +23,7 @@ test.describe("PWA (sprint 08)", () => {
   });
 
   test("works offline after the first visit (service worker precache)", async ({ page, context }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(async () => { await navigator.serviceWorker.ready; });
     await page.waitForTimeout(800);
     await context.setOffline(true);

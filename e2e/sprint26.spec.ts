@@ -4,7 +4,7 @@ import { gotoWorkspace } from "./helpers";
 test.describe("sprint 26: exemplos de encaixe, filtro na galeria, aviso de folga", () => {
   test.slow();
   test("gallery filter chips + search; fitting example opens arranged; slot-tight-fit warning", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();

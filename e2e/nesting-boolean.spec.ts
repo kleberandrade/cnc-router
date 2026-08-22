@@ -3,7 +3,7 @@ import { ribbonClick } from "./helpers";
 
 test.describe("sprint 15: booleanas e nesting", () => {
   test("união de dois retângulos vira 1 path; subtração cria furo; undo volta", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-rectangle").click(); // second one spawns offset, overlapping the first
     await page.getByTestId("section-toggle-shape").click();
@@ -32,7 +32,7 @@ test.describe("sprint 15: booleanas e nesting", () => {
   });
 
   test("organizar na chapa arruma as peças e avisa as que não cabem", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     for (let i = 0; i < 6; i++) await page.getByTestId("add-rectangle").click();
     await ribbonClick(page, "nest");
     await expect(page.getByTestId("nest-dialog")).toBeVisible();

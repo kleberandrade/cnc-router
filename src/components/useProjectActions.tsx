@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useProjectStore, generateShapeId, undo, redo, useTemporalStore } from "../state/store";
 import { useUiStore } from "../state/uiStore";
-import { importFile, openProjectFromText } from "./importEntry";
+import { importFile, openProjectFromText, openExampleById } from "./importEntry";
 import { tryGenerateGCode } from "../lib/gcode";
 import { findPost } from "../lib/post";
 import type { BooleanOp } from "../lib/boolean";
-import { findExample } from "../content/examples";
 import { buildShareUrl } from "../lib/share";
 import { confirmDialog, promptDialog } from "./Dialog";
 import { serializeProject } from "../lib/projectFile";
@@ -165,15 +164,7 @@ export function useProjectActions() {
   };
 
   const handleOpenExample = async (id: string) => {
-    const ex = findExample(id);
-    if (!ex) return;
-    if (shapeCount > 0 && !(await confirmDialog({ title: `Abrir o exemplo "${ex.title}"?`, message: "As peças que estão na mesa serão substituídas. Se quiser guardar, salve o projeto antes.", confirmLabel: "Abrir exemplo" }))) return;
-    const { shapes: exShapes, settings: exSettings } = await ex.build();
-    useProjectStore.getState().loadProject({ shapes: exShapes, settings: exSettings });
-    setSection("shape");
-    setNotice({ kind: "info", title: `Exemplo "${ex.title}" aberto.`, details: [ex.teaches] });
-    useUiStore.getState().setView("editor");
-    setTimeout(() => zoomFit(), 0);
+    if (await openExampleById(id)) setTimeout(() => zoomFit(), 0);
   };
 
   const handleShareLink = async () => {

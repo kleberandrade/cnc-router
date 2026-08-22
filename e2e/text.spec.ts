@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 
 test.describe("text & islands (sprint 13)", () => {
   test("text shape exports G-code with one outline per glyph loop and preserves counters", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.waitForTimeout(600); // fonts
     await page.getByTestId("add-text").click();
     await page.getByTestId("text-value").fill("O");
@@ -19,7 +19,7 @@ test.describe("text & islands (sprint 13)", () => {
   });
 
   test("text size via inline dimension and font/alignment fields", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.waitForTimeout(600);
     await page.getByTestId("add-text").click();
     await page.getByTestId("dim-s").fill("40");
@@ -31,7 +31,7 @@ test.describe("text & islands (sprint 13)", () => {
   });
 
   test("SVG path with an inner sub-path imports as a shape with a hole and pockets around it", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100mm" height="100mm"><path d="M10,10 H70 V60 H10 Z M30,25 H50 V45 H30 Z"/></svg>`;
     await page.getByTestId("svg-file-input").setInputFiles({ name: "furo.svg", mimeType: "image/svg+xml", buffer: Buffer.from(svg) });
     await page.getByTestId("import-confirm").click();

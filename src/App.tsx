@@ -52,6 +52,21 @@ function App() {
     return () => window.removeEventListener("hashchange", openShared);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Ganchos da landing (Sprint 32): /app/?galeria=1 abre a galeria; /app/?exemplo=<id> abre o exemplo.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const exemplo = params.get("exemplo");
+    const galeria = params.get("galeria");
+    if (!exemplo && !galeria) return;
+    history.replaceState(null, "", window.location.pathname + window.location.hash);
+    if (exemplo) {
+      void import("./components/importEntry").then(({ openExampleById }) => openExampleById(exemplo));
+    } else if (galeria === "1") {
+      useUiStore.getState().setGalleryOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // First visit on a desktop-sized screen: offer the tour once (never on mobile).
   useEffect(() => {
     if (layout === "desktop" && shapeCount === 0 && !tourDone() && !tourOpen) {

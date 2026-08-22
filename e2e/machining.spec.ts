@@ -10,7 +10,7 @@ async function exportGcode(page: import("@playwright/test").Page): Promise<strin
 
 test.describe("machining quality (sprint 06)", () => {
   test("outside compensation enlarges the tool path by the tool diameter", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("section-toggle-cut").click();
     await page.getByTestId("tool-diameter").fill("6");
     await page.getByTestId("tool-diameter").press("Enter");
@@ -26,7 +26,7 @@ test.describe("machining quality (sprint 06)", () => {
   });
 
   test("tabs appear in the G-code as lifts to depth - height", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-tabs").check();
     await expect(page.getByTestId("tabs-count")).toHaveValue("4");
@@ -36,7 +36,7 @@ test.describe("machining quality (sprint 06)", () => {
   });
 
   test("auto ordering puts pockets before the outer cut; manual keeps drawing order", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click(); // outside cut
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-operation").selectOption("pocket");
@@ -49,7 +49,7 @@ test.describe("machining quality (sprint 06)", () => {
   });
 
   test("a hole smaller than the tool is flagged and blocks export", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-radius").fill("1");
     await page.getByTestId("shape-radius").press("Enter");
@@ -60,7 +60,7 @@ test.describe("machining quality (sprint 06)", () => {
   });
 
   test("importing an Inkscape-style SVG (px + mm size) yields mm-sized shapes and reports approximations", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="60mm" viewBox="0 0 377.95276 226.77165">
       <rect x="0" y="0" width="188.97638" height="113.38583"/>
       <path d="M 200,200 C 200,150 300,150 300,200 Z"/></svg>`;

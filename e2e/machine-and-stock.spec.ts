@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("machine & stock (sprint 01)", () => {
   test("changing the machine preset resizes the table without losing shapes", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     const caption = page.locator(".editor-caption");
     await expect(caption).toContainText("Mesa 600 × 400 mm");
@@ -14,7 +14,7 @@ test.describe("machine & stock (sprint 01)", () => {
   });
 
   test("a shape outside the table blocks export with an inline error", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("machine-preset").selectOption("custom");
@@ -25,7 +25,7 @@ test.describe("machine & stock (sprint 01)", () => {
   });
 
   test("a shape outside the stock only warns and export still works", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("stock-width").fill("30"); // rect spans x 10..50 → outside stock but inside table
@@ -36,7 +36,7 @@ test.describe("machine & stock (sprint 01)", () => {
   });
 
   test("dragging a shape cannot leave the table", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("section-toggle-machine").click();
     await page.getByTestId("machine-preset").selectOption("3018");
     await page.getByTestId("add-circle").click();

@@ -7,7 +7,7 @@ test.describe("sprint 20: sugestões e problemas", () => {
       received = JSON.parse(route.request().postData() ?? "{}");
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, id: "e2e123", receivedAt: "2026-08-16T00:00:00Z" }) });
     });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-feedback").click();
@@ -32,7 +32,7 @@ test.describe("sprint 20: sugestões e problemas", () => {
 
   test("when the channel is not configured (501) the form offers e-mail; About links to the form", async ({ page }) => {
     await page.route("**/api/feedback", (route) => route.fulfill({ status: 501, contentType: "application/json", body: JSON.stringify({ error: "no token" }) }));
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-about").click();
     await page.getByTestId("about-feedback").click();
@@ -47,7 +47,7 @@ test.describe("sprint 20: sugestões e problemas", () => {
   });
 
   test("offline: sending is refused with a clear message", async ({ page, context }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-feedback").click();
     await page.getByTestId("fb-title").fill("Sem rede");

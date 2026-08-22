@@ -1,6 +1,6 @@
 # Sprint 31 — Resistência (análise estrutural orientativa)
 
-**Status:** planejada · **Versão alvo:** 0.32.0
+**Status:** planejada · **Versão alvo:** 0.33.0 (a Sprint 32 saiu antes)
 **Esforço:** G/GG (8–10 dias)
 **Depende de:** 30 (dropdown de estações), 27 (worker)
 

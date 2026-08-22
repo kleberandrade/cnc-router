@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 test.describe("sprint 25: importar imagem (silhueta e relevo), exemplos de imagem, contorno paralelo", () => {
   test.slow();
   test("PNG → silhueta vira peça; PNG → relevo vira ReliefShape e simula", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     const png = readFileSync("public/examples/raposa.png");
     // silhouette
@@ -33,7 +33,7 @@ test.describe("sprint 25: importar imagem (silhueta e relevo), exemplos de image
   });
 
   test("gallery has image examples; pocket strategy select mirrors icons", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-examples").click();

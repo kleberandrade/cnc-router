@@ -11,7 +11,7 @@ async function exportGcode(page: import("@playwright/test").Page): Promise<strin
 
 test.describe("shapes & canvas editing (sprint 09)", () => {
   test("rectangle with fillet keeps 40×30 bbox and G-code has arcs (many short moves)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-side").selectOption("on");
     const sharp = await exportGcode(page);
@@ -26,7 +26,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
   });
 
   test("regular polygon and slot can be created and edited numerically", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-ngon").click();
     await expect(page.getByTestId("shape-sides")).toHaveValue("6");
     await page.getByTestId("shape-sides").fill("8");
@@ -37,7 +37,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
   });
 
   test("inline dimensions: typing L Tab A Enter resizes the rectangle", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await expect(page.getByTestId("inline-dims")).toBeVisible();
     await page.getByTestId("dim-w").fill("70");
@@ -49,7 +49,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
   });
 
   test("dragging a transformer handle changes the width", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     // rectangle 40×30 at (10,10). Find right-middle anchor: compute px via caption scale.
     const canvas = page.locator(".editor-canvas canvas").first();
@@ -68,7 +68,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
   });
 
   test("snap: dragging a shape near the stock centre aligns its centre", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-circle").click(); // r=15 at (25,25)
     const canvas = page.locator(".editor-canvas canvas").first();
     const box = (await canvas.boundingBox())!;
@@ -87,7 +87,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
   });
 
   test("marquee selects several shapes; align left and Delete act on all", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-x").fill("120");

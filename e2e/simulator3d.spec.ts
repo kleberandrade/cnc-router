@@ -3,7 +3,7 @@ import { gotoWorkspace } from "./helpers";
 
 test.describe("realistic simulator (sprint 10)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-operation").selectOption("pocket");
     await page.getByTestId("shape-depth").fill("4");

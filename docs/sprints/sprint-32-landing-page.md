@@ -1,6 +1,6 @@
 # Sprint 32 — Landing page
 
-**Status:** planejada · **Versão alvo:** 0.33.0
+**Status:** concluída — 2026-08-22 · **Versão:** 0.32.0 (executada antes da Sprint 31, a pedido do autor — a landing prepara o próximo post)
 **Esforço:** M (4–6 dias)
 **Depende de:** 30
 
@@ -47,9 +47,9 @@ A landing é **estática e separada do app** — não um componente React dentro
 
 ### E. Testes
 
-- e2e da landing: carrega sem JS de app (bundle não referenciado), Iniciar navega para `/app/`, redirect de `/#p=…` preserva o projeto compartilhado, âncoras legais chegam ao destino, a11y (axe) e Lighthouse ≥ 95 em performance/SEO/a11y como referência manual.
-- e2e dos ganchos `?galeria=1` / `?exemplo=`.
-- smoke atualizado para entrar por `/app/`.
+- [x] e2e da landing (`landing.spec.ts`): sem bundle do app na raiz, Iniciar navega, redirect de `/#p=…` abre o projeto, âncora legal chega ao diálogo, a11y (axe) limpa.
+- [x] e2e dos ganchos `?galeria=1` / `?exemplo=` (com e sem confirmação).
+- [x] 31 specs migradas para `/app/`; smoke, SEO (canonical da landing e do app, sitemap duplo) e INP atualizados.
 
 ## DoD específica
 
@@ -58,6 +58,14 @@ A landing é **estática e separada do app** — não um componente React dentro
 - Landing < 100 KB transferidos (sem fontes bloqueantes; imagens lazy abaixo da dobra).
 - SEO: title/description/OG próprios da landing; sitemap com `/` e `/app/`; sem regressão no `seo.spec.ts`.
 - DoD global.
+
+## Como ficou
+
+- Vite multi-page via `rolldownOptions.input` (landing `index.html` + `app/index.html`); a landing sai sem nenhum `script type="module"` — só os dois scripts da Vercel (analytics/speed insights com rota `/`).
+- Redirect de links antigos é a **primeira coisa** no `<head>` da landing (antes de qualquer pintura): `#p=`, `#privacidade`, `#cookies`, `#termos`, `#sobre` → `/app/` + hash.
+- Miniaturas dos exemplos geradas no build (`gen:landing-thumbs` no `prebuild`, SVGs em `public/landing/`); heroes são capturas reais do app em WebP (~55 KB cada).
+- Versão no footer via `%VITE_APP_VERSION%` (injetada no HTML pelo build).
+- PWA: `start_url`/`scope` `/app/`, `navigateFallback` no HTML do app com denylist para a raiz.
 
 ## Fora do escopo
 

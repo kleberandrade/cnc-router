@@ -2,50 +2,266 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Links antigos apontam para a raiz: compartilhamento (#p=…) e âncoras legais vão para o app
+      // antes de qualquer pintura. A landing nunca pode engolir um projeto compartilhado.
+      (function () {
+        var h = location.hash;
+        if (/^#\/?(p=|privacidade|cookies|termos|sobre)/.test(h)) location.replace("/app/" + h);
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href="https://oficina-cnc.vercel.app/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#16283d" />
     <meta name="robots" content="index, follow" />
-    <meta name="application-name" content="Oficina CNC" />
-    <meta name="author" content="Oficina CNC" />
-    <meta name="description" content="Desenhe, simule e exporte G-code no navegador — sem instalar nada." />
+    <meta name="description" content="Desenhe a peça, gere o G-code e veja o corte simulado antes de ligar a máquina. Editor para router CNC de bancada — de graça, no navegador." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Oficina CNC" />
-    <meta property="og:title" content="Oficina CNC — desenhe, simule, exporte G-code" />
-    <meta property="og:description" content="Desenhe, simule e exporte G-code no navegador — sem instalar nada." />
+    <meta property="og:title" content="Oficina CNC — desenhe, simule, corte" />
+    <meta property="og:description" content="Editor, G-code e simulador 3D para router CNC de bancada. De graça, no navegador." />
     <meta property="og:url" content="https://oficina-cnc.vercel.app/" />
     <meta property="og:image" content="https://oficina-cnc.vercel.app/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Oficina CNC — editor 2D, G-code GRBL e simulador 3D no navegador" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Oficina CNC — desenhe, simule, exporte G-code" />
-    <meta name="twitter:description" content="Desenhe, simule e exporte G-code no navegador — sem instalar nada." />
-    <meta name="twitter:image" content="https://oficina-cnc.vercel.app/og-image.png" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Oficina CNC" />
-    <title>Oficina CNC — desenhe, simule, exporte G-code</title>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Oficina CNC",
-        "url": "https://oficina-cnc.vercel.app/",
-        "description": "Desenhe, simule e exporte G-code no navegador — sem instalar nada.",
-        "applicationCategory": "DesignApplication",
-        "operatingSystem": "Web",
-        "inLanguage": "pt-BR",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
-        "image": "https://oficina-cnc.vercel.app/og-image.png"
+    <title>Oficina CNC — desenhe, simule e corte na sua router CNC</title>
+    <style>
+      :root {
+        --bg: #f7f7f5; --surface: #ffffff; --ink: #1c2b33; --muted: #5a6b73;
+        --accent: #2f6d8f; --accent-ink: #ffffff; --line: #dfe3e0; --deep: #14343f;
       }
-    </script>
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #101d23; --surface: #16262e; --ink: #e8eef1; --muted: #9db0b9; --accent: #5aa5c8; --accent-ink: #0d1a20; --line: #24363f; --deep: #0c161b; }
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+      header.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; }
+      .brand svg { flex: none; }
+      a.btn { display: inline-block; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 12px 26px; border-radius: 10px; text-decoration: none; }
+      a.btn:hover { filter: brightness(1.08); }
+      a.btn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+      .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding: 44px 0 64px; }
+      .hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.12; letter-spacing: -0.03em; font-weight: 800; margin-bottom: 16px; }
+      .hero h1 em { font-style: normal; color: var(--accent); }
+      .hero p.lead { font-size: 1.12rem; color: var(--muted); margin-bottom: 24px; max-width: 46ch; }
+      .cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      .cta-note { font-size: 0.85rem; color: var(--muted); width: 100%; }
+      .shot { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 16px 48px rgb(0 0 0 / 0.18); }
+      .shot img { display: block; width: 100%; height: auto; }
+      section { padding: 56px 0; }
+      section.alt { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      h2 { font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -0.02em; margin-bottom: 8px; }
+      .kicker { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.08em; }
+      .sub { color: var(--muted); max-width: 62ch; margin-bottom: 28px; }
+      .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+      .step h3 { font-size: 1.05rem; margin: 12px 0 4px; }
+      .step p { color: var(--muted); font-size: 0.95rem; }
+      .step .n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 0.85rem; margin-right: 8px; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+      .cols ul { list-style: none; display: grid; gap: 10px; margin-top: 14px; }
+      .cols li { padding-left: 22px; position: relative; color: var(--ink); }
+      .cols li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 800; }
+      .sheetimg { max-width: 380px; justify-self: center; }
+      .ex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+      .ex-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; text-decoration: none; color: var(--ink); display: block; }
+      .ex-card:hover { border-color: var(--accent); }
+      .ex-card img { width: 100%; height: 110px; object-fit: contain; background: #fff; border-radius: 6px; border: 1px solid var(--line); }
+      .ex-card span { display: block; margin-top: 8px; font-size: 0.9rem; font-weight: 600; }
+      .faq { display: grid; gap: 10px; max-width: 720px; }
+      .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; }
+      .faq summary { font-weight: 700; cursor: pointer; }
+      .faq p { color: var(--muted); margin-top: 8px; }
+      footer { background: var(--deep); color: #cfdde4; padding: 44px 0 28px; margin-top: 40px; }
+      footer a { color: #cfdde4; text-decoration: none; }
+      footer a:hover { color: #fff; text-decoration: underline; }
+      .foot-cols { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 28px; margin-bottom: 28px; }
+      .foot-cols h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8fb0bd; margin-bottom: 10px; }
+      .foot-cols ul { list-style: none; display: grid; gap: 7px; font-size: 0.95rem; }
+      .foot-brand { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+      .foot-tag { font-size: 0.9rem; color: #9db8c2; max-width: 34ch; }
+      .foot-line { border-top: 1px solid #24444f; padding-top: 18px; font-size: 0.85rem; color: #85a3ae; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      @media (max-width: 860px) {
+        .hero, .cols { grid-template-columns: 1fr; }
+        .steps, .ex-grid { grid-template-columns: 1fr 1fr; }
+        .foot-cols { grid-template-columns: 1fr 1fr; }
+        .sheetimg { max-width: 100%; }
+      }
+      @media (max-width: 540px) { .steps, .ex-grid { grid-template-columns: 1fr; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div class="wrap">
+      <header class="top">
+        <div class="brand">
+          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="2" width="22" height="22" rx="6" fill="none" stroke="var(--accent)" stroke-width="3"/><rect x="9.5" y="9.5" width="7" height="7" rx="1.5" fill="var(--accent)"/></svg>
+          Oficina CNC
+        </div>
+        <a class="btn" href="/app/" data-testid="landing-start-top">Iniciar</a>
+      </header>
+
+      <section class="hero">
+        <div>
+          <h1>Desenhe a peça, gere o G-code e <em>veja o corte antes</em> de ligar a máquina</h1>
+          <p class="lead">Editor 2D, simulador 3D com remoção de material e folha técnica pronta para imprimir — feito para router CNC de bancada e para quem trabalha com MDF, compensado e pinus.</p>
+          <div class="cta-row">
+            <a class="btn" href="/app/" data-testid="landing-start">Iniciar — é de graça</a>
+            <a class="btn ghost" href="/app/?galeria=1" data-testid="landing-examples">Ver exemplos</a>
+            <span class="cta-note">Sem cadastro. Seus arquivos não saem do seu navegador.</span>
+          </div>
+        </div>
+        <div class="shot"><img src="/landing/hero-editor.webp" width="1600" height="956" alt="Editor do Oficina CNC com a tábua de carnes aberta" fetchpriority="high" /></div>
+      </section>
+    </div>
+
+    <section class="alt">
+      <div class="wrap">
+        <p class="kicker">Como funciona</p>
+        <h2>Três passos, nenhuma instalação</h2>
+        <p class="sub">Do desenho ao arquivo que a sua máquina entende — GRBL, Marlin ou LinuxCNC/Mach3, em mm ou polegadas.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="shot"><img src="/landing/hero-editor.webp" loading="lazy" width="1600" height="956" alt="Estação Desenhar" /></div>
+            <h3><span class="n">1</span>Desenhe</h3>
+            <p>Formas prontas, medidas em mm, encaixes com folga calculada, texto, booleanas e nesting na chapa.</p>
+          </div>
+          <div class="step">
+            <div class="shot"><img src="/landing/hero-simulador.webp" loading="lazy" width="1600" height="956" alt="Estação Simular" /></div>
+            <h3><span class="n">2</span>Simule</h3>
+            <p>A fresa percorre o caminho com remoção de material e tempo estimado. Os erros aparecem aqui, não na madeira.</p>
+          </div>
+          <div class="step">
+            <div class="shot"><img src="/landing/hero-folha.webp" loading="lazy" width="1600" height="956" alt="Estação Folha técnica" /></div>
+            <h3><span class="n">3</span>Corte</h3>
+            <p>Exporte o G-code, imprima a folha de setup e leve para a máquina. A validação avisa o que conferir antes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap cols">
+        <div>
+          <p class="kicker">Traga seu desenho</p>
+          <h2>DXF e SVG que entram do jeito certo</h2>
+          <p class="sub">Arraste o arquivo para a tela e confira na prévia antes de qualquer coisa cair na chapa.</p>
+          <ul>
+            <li>Furos do DXF viram furos de verdade — não contornos soltos</li>
+            <li>Escolha de camadas e unidade do arquivo na importação</li>
+            <li>Foto ou logo em PNG/JPG vira contorno vetorizado ou relevo 2,5D</li>
+            <li>Suas fontes .ttf/.otf nos textos, com "explodir em contornos"</li>
+          </ul>
+        </div>
+        <div class="shot sheetimg"><img src="/landing/import-dxf.webp" loading="lazy" width="560" height="528" alt="Diálogo de importação de DXF com prévia e furos inferidos" /></div>
+      </div>
+    </section>
+
+    <section class="alt">
+      <div class="wrap cols">
+        <div class="shot sheetimg"><img src="/landing/folha-a4.webp" loading="lazy" width="900" height="1273" alt="Folha de oficina em A4 com chapa, origem, fresas e tempos" /></div>
+        <div>
+          <p class="kicker">Papel na oficina</p>
+          <h2>Folha técnica que vai para o lado da máquina</h2>
+          <p class="sub">Nenhuma ferramenta gratuita faz isso: a folha de setup com origem, fresas, parâmetros e avisos — e o desenho cotado de cada peça.</p>
+          <ul>
+            <li>Desenho técnico com medidas, furos agrupados e carimbo</li>
+            <li>Escala 1:1 quando a peça cabe no A4 — recorte e use como gabarito</li>
+            <li>Tempo estimado por peça, para saber o que está custando caro</li>
+            <li>SVG baixável para editar fora, plotter ou laser</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <p class="kicker">Comece por um exemplo</p>
+        <h2>Peças reais, prontas para estudar e cortar</h2>
+        <p class="sub">Cada exemplo ensina um recurso — encaixe com folga, rebaixo multi-passe, texto com fresa V, relevo. Clique e ele abre no editor.</p>
+        <div class="ex-grid">
+          <a class="ex-card" href="/app/?exemplo=tabua-carnes"><img src="/landing/thumb-tabua-carnes.svg" loading="lazy" alt="" /><span>Tábua de carnes</span></a>
+          <a class="ex-card" href="/app/?exemplo=caixa-dedos"><img src="/landing/thumb-caixa-dedos.svg" loading="lazy" alt="" /><span>Caixa com encaixe de dedo</span></a>
+          <a class="ex-card" href="/app/?exemplo=suporte-celular"><img src="/landing/thumb-suporte-celular.svg" loading="lazy" alt="" /><span>Suporte de celular</span></a>
+          <a class="ex-card" href="/app/?exemplo=numero-casa"><img src="/landing/thumb-numero-casa.svg" loading="lazy" alt="" /><span>Número da casa</span></a>
+          <a class="ex-card" href="/app/?exemplo=engrenagens"><img src="/landing/thumb-engrenagens.svg" loading="lazy" alt="" /><span>Engrenagens</span></a>
+          <a class="ex-card" href="/app/?exemplo=pratinho-relevo"><img src="/landing/thumb-pratinho-relevo.svg" loading="lazy" alt="" /><span>Pratinho em relevo 2,5D</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt">
+      <div class="wrap">
+        <p class="kicker">Sem promessa inflada</p>
+        <h2>Para quem é — e o que não é</h2>
+        <p class="sub">Feito para router CNC de bancada (3018 à 1325) cortando MDF, compensado, pinus e alumínio leve. Não substitui CAM industrial de 5 eixos — e nem tenta.</p>
+        <div class="faq">
+          <details>
+            <summary>Quanto custa?</summary>
+            <p>Nada. O projeto nasceu para resolver um problema real de oficina e continua gratuito, sem cadastro.</p>
+          </details>
+          <details>
+            <summary>Meus desenhos saem do meu computador?</summary>
+            <p>Não. Tudo roda e fica no seu navegador — projeto salvo localmente, exportação direto para o seu disco. Nada sobe para servidor.</p>
+          </details>
+          <details>
+            <summary>Funciona sem internet?</summary>
+            <p>Sim: é um PWA. Instale pelo navegador e ele abre e trabalha offline.</p>
+          </details>
+          <details>
+            <summary>Que máquinas e controladores?</summary>
+            <p>Qualquer router que aceite G-code: GRBL, Marlin ou LinuxCNC/Mach3, com pós-processador próprio para cada um, em mm ou polegadas (G21/G20).</p>
+          </details>
+          <details>
+            <summary>Celular e tablet?</summary>
+            <p>Sim — dá para desenhar, simular e conferir a folha técnica no toque. Para trabalho longo, a tela grande continua sendo melhor amiga da oficina.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <div class="foot-cols">
+          <div>
+            <div class="foot-brand">
+              <svg width="22" height="22" viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="2" width="22" height="22" rx="6" fill="none" stroke="#5aa5c8" stroke-width="3"/><rect x="9.5" y="9.5" width="7" height="7" rx="1.5" fill="#5aa5c8"/></svg>
+              Oficina CNC
+            </div>
+            <p class="foot-tag">Feito no navegador, por quem usa router de bancada.</p>
+          </div>
+          <div>
+            <h4>Produto</h4>
+            <ul>
+              <li><a href="/app/">Iniciar</a></li>
+              <li><a href="/app/?galeria=1">Exemplos</a></li>
+              <li><a href="/app/#sobre">Sobre e novidades</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="/app/#privacidade">Privacidade</a></li>
+              <li><a href="/app/#cookies">Cookies</a></li>
+              <li><a href="/app/#termos">Termos de uso</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contato</h4>
+            <ul>
+              <li><a href="mailto:pdjkleber@gmail.com">pdjkleber@gmail.com</a></li>
+              <li><a href="/app/#sobre">Sugestões e problemas</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-line">
+          <span>© 2026 Kleber Andrade · Oficina CNC v%VITE_APP_VERSION%</span>
+          <span>G-code GRBL · Marlin · LinuxCNC — mm e polegadas</span>
+        </div>
+      </div>
+    </footer>
+    <script defer src="/_vercel/speed-insights/script.js" data-route="/"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </body>
 </html>

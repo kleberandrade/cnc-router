@@ -37,7 +37,7 @@ test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
     const best: Record<string, number> = {};
     // Several runs, keep the best of each tap: the container's software rendering is noisy; the best run is the app's own cost.
     for (let run = 0; run < RUNS; run++) {
-      await page.goto("/");
+      await page.goto("/app/");
       await page.evaluate(() => localStorage.removeItem("oficina-cnc:project"));
       await page.reload();
       await page.getByTestId("empty-close").click();
@@ -56,6 +56,10 @@ test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
       // o dropdown abre fora da medição; o toque medido é o que troca a estação
       await page.getByTestId("workspace-menu").click();
       await measure(page, "ir para Simular", () => page.getByTestId("ws-simulator").click(), r);
+      // espera a cena do Three.js montar antes do próximo toque — senão o clique seguinte mede a
+      // montagem do simulador (já coberta pelo toque acima), não a abertura da estação de folha
+      await expect(page.getByTestId("simulate-toggle")).toBeEnabled();
+      await page.waitForTimeout(500);
       await page.getByTestId("workspace-menu").click();
       await measure(page, "abrir Folha técnica", () => page.getByTestId("ws-drawing").click(), r);
       await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });

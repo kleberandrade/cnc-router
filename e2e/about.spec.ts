@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("sprint 19: versão, Sobre, Novidades", () => {
   test("version is visible in the status bar and menu; About shows author; News lists changelog entries", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.getByTestId("status-version")).toHaveText(/^v\d+\.\d+\.\d+$/);
     await page.getByTestId("project-menu").click();
     await expect(page.getByTestId("menu-version")).toContainText("Oficina CNC v");
@@ -17,7 +17,7 @@ test.describe("sprint 19: versão, Sobre, Novidades", () => {
     await expect(page.locator(".news-entry").first()).toContainText(/Sprint \d+/);
   });
   test("exported G-code starts with product, version and author", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     const dl = page.waitForEvent("download");
     await page.getByTestId("export-gcode").click();

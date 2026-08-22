@@ -9,7 +9,7 @@ const scan = async (page: import("@playwright/test").Page) => {
 
 test.describe("sprint 21: acessibilidade (axe, sério/crítico)", () => {
   test("editor with a shape, side panel tabs, About dialog", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     expect(await scan(page)).toEqual([]);
     await page.getByTestId("section-toggle-cut").click();
@@ -24,7 +24,7 @@ test.describe("sprint 21: acessibilidade (axe, sério/crítico)", () => {
     expect(await scan(page)).toEqual([]);
   });
   test("import dialog (DXF com camadas e furos)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const dxf = [
       "0", "SECTION", "2", "ENTITIES",
       "0", "LWPOLYLINE", "8", "0", "90", "4", "70", "1", "10", "0", "20", "0", "10", "100", "20", "0", "10", "100", "20", "60", "10", "0", "20", "60",
@@ -37,14 +37,14 @@ test.describe("sprint 21: acessibilidade (axe, sério/crítico)", () => {
     expect(await scan(page)).toEqual([]);
   });
   test("drawing workspace (folha técnica)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await gotoWorkspace(page, "drawing");
     await page.getByTestId("drawing-page").waitFor();
     expect(await scan(page)).toEqual([]);
   });
   test("simulator view and empty state", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     expect(await scan(page)).toEqual([]);
     await page.getByTestId("add-rectangle").click();
     await gotoWorkspace(page, "simulator");

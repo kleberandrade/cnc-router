@@ -10,7 +10,7 @@ async function exportGcode(page: import("@playwright/test").Page): Promise<strin
 
 test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
   test("hiding a shape removes it from the G-code; reordering changes manual order", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-x").fill("120");
@@ -34,7 +34,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
   });
 
   test("renaming shows in the navigator and validation messages", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-name").fill("Tampa");
     await page.getByTestId("section-toggle-shape").click();
@@ -42,7 +42,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
   });
 
   test("a second tool creates an M0 tool change in the G-code", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
     await page.getByTestId("shape-x").fill("120");
@@ -57,7 +57,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
   });
 
   test("dark theme applies data-theme and persists", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("project-menu").click();
     await page.getByTestId("menu-prefs").click();
     await page.getByTestId("pref-theme").selectOption("dark");
@@ -67,7 +67,7 @@ test.describe("navigator, tools, theme, DXF (sprint 11)", () => {
   });
 
   test("DXF import creates shapes", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const dxf = ["0","SECTION","2","HEADER","9","$INSUNITS","70","4","0","ENDSEC","0","SECTION","2","ENTITIES","0","CIRCLE","8","0","10","50","20","50","40","10","0","LWPOLYLINE","8","0","90","4","70","1","10","100","20","20","10","140","20","20","10","140","20","50","10","100","20","50","0","ENDSEC","0","EOF",""].join("\n");
     await page.getByTestId("svg-file-input").setInputFiles({ name: "peca.dxf", mimeType: "application/dxf", buffer: Buffer.from(dxf) });
     await page.getByTestId("import-confirm").click();

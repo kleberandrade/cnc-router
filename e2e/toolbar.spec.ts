@@ -3,7 +3,7 @@ import { ribbonClick, gotoWorkspace } from "./helpers";
 
 test.describe("toolbar (sprint 05)", () => {
   test("undo after adding a shape, redo brings it back", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
     await page.getByTestId("undo").click();
@@ -13,7 +13,7 @@ test.describe("toolbar (sprint 05)", () => {
   });
 
   test("save → new → open restores the project", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-circle").click();
     await page.getByTestId("add-rectangle").click();
     const downloadPromise = page.waitForEvent("download");
@@ -30,7 +30,7 @@ test.describe("toolbar (sprint 05)", () => {
   });
 
   test("editing X in the panel moves the shape (and the panel reflects the store)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("shape-x").fill("120");
     await page.getByTestId("shape-x").press("Enter");
@@ -41,7 +41,7 @@ test.describe("toolbar (sprint 05)", () => {
   });
 
   test("polygon tool: three clicks + Enter create a path shape", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("tool-polygon").click();
     await expect(page.getByTestId("polygon-hint")).toBeVisible();
     const canvas = page.locator(".editor-canvas canvas").first();
@@ -56,7 +56,7 @@ test.describe("toolbar (sprint 05)", () => {
   });
 
   test("zoom buttons change the zoom label; 0 fits again", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await ribbonClick(page, "zoom-in");
     await expect(page.locator(".editor-caption")).toContainText("zoom 125%");
     await page.keyboard.press("0");
@@ -64,7 +64,7 @@ test.describe("toolbar (sprint 05)", () => {
   });
 
   test("keyboard: R adds a rectangle, Delete removes it, Tab reaches the toolbar", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("body").click({ position: { x: 5, y: 5 } });
     await page.keyboard.press("r");
     await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
@@ -73,7 +73,7 @@ test.describe("toolbar (sprint 05)", () => {
   });
 
   test("panel toggle collapses the side panel", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.getByTestId("section-shape")).toBeVisible();
     await page.getByTestId("panel-toggle").click();
     await expect(page.getByTestId("section-shape")).toHaveCount(0);
@@ -82,7 +82,7 @@ test.describe("toolbar (sprint 05)", () => {
 
 test.describe("top bar (sprint 07)", () => {
   test("single top bar (app bar + tabs + ribbon ≤ 130 px; minimized ≤ 70 px); ribbon switches with the view", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const bar = page.locator(".topbar");
     let box = await bar.boundingBox();
     expect(box!.height).toBeLessThanOrEqual(134); // o wordmark Bricolage custa ~2 px a mais que a fonte do sistema
@@ -99,7 +99,7 @@ test.describe("top bar (sprint 07)", () => {
   });
 
   test("project menu opens, has actions and the shortcuts dialog", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("project-menu").click();
     await expect(page.getByTestId("project-menu-list")).toBeVisible();
     await page.getByTestId("menu-shortcuts").click();
@@ -112,7 +112,7 @@ test.describe("top bar (sprint 07)", () => {
   test("numeric fields never clip their value (X/Y/Z of the machine)", async ({ page }) => {
     for (const width of [1280, 1024, 800]) {
       await page.setViewportSize({ width, height: 800 });
-      await page.goto("/");
+      await page.goto("/app/");
       if ((await page.getByTestId("section-toggle-machine").count()) === 0) await page.getByTestId("panel-toggle").click();
       await page.getByTestId("section-toggle-machine").click();
       for (const id of ["work-width", "work-height", "work-z"]) {
@@ -126,7 +126,7 @@ test.describe("top bar (sprint 07)", () => {
   });
 
   test("panel containers have at least 12 px of inner padding", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     const pad = await page.locator(".panel-section.open .panel-body").evaluate((el) => {
       const cs = getComputedStyle(el);

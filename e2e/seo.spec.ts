@@ -3,8 +3,8 @@ import { gotoWorkspace } from "./helpers";
 
 test.describe("SEO", () => {
   test("serves canonical, Open Graph, JSON-LD and brand icon", async ({ page, request }) => {
-    await page.goto("/");
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://oficina-cnc.vercel.app/");
+    await page.goto("/app/");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://oficina-cnc.vercel.app/app/");
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
       "Oficina CNC — desenhe, simule, exporte G-code",
@@ -27,14 +27,24 @@ test.describe("SEO", () => {
 
     const sitemap = await request.get("/sitemap.xml");
     expect(sitemap.ok()).toBe(true);
-    expect(await sitemap.text()).toContain("https://oficina-cnc.vercel.app/");
+    const sm = await sitemap.text();
+    expect(sm).toContain("https://oficina-cnc.vercel.app/</loc>");
+    expect(sm).toContain("https://oficina-cnc.vercel.app/app/</loc>");
 
     const og = await request.get("/og-image.png");
     expect(og.ok()).toBe(true);
   });
 
-  test("document title follows the active view", async ({ page }) => {
+  test("landing: canonical próprio, descrição e sem bundle do app", async ({ page }) => {
     await page.goto("/");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://oficina-cnc.vercel.app/");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /router CNC de bancada/);
+    // a landing não pode carregar o bundle do app
+    expect(await page.locator('script[type="module"]').count()).toBe(0);
+  });
+
+  test("document title follows the active view", async ({ page }) => {
+    await page.goto("/app/");
     await expect(page).toHaveTitle("Desenhar — Oficina CNC");
     await gotoWorkspace(page, "simulator");
     await expect(page).toHaveTitle("Simular — Oficina CNC");

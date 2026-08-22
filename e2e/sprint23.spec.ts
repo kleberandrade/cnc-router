@@ -4,7 +4,7 @@ import { gotoWorkspace } from "./helpers";
 test.describe("sprint 23: diálogos próprios, origem visual, materiais, políticas, linha do tempo", () => {
   test.slow(); // WebGL under software GL is slow in CI
   test("Novo projeto uses the in-app confirm; cancel keeps shapes, confirm clears", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("project-menu").click();
@@ -19,7 +19,7 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
   });
 
   test("origin picker changes the work origin and the G-code", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("section-toggle-machine").click();
@@ -34,7 +34,7 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
   });
 
   test("material changes the stock colour in the 3D view", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await gotoWorkspace(page, "simulator");
@@ -58,7 +58,7 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
   });
 
   test("privacy/cookies/terms open from About and from #privacidade; storage notice dismisses", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => localStorage.removeItem("oficina-cnc:storage-notice"));
     await page.reload();
     await expect(page.getByTestId("storage-notice")).toBeVisible();
@@ -72,12 +72,12 @@ test.describe("sprint 23: diálogos próprios, origem visual, materiais, políti
     await page.getByTestId("open-legal-termos").click();
     await expect(page.getByTestId("legal-termos")).toContainText("Confira sempre no simulador");
     await page.keyboard.press("Escape");
-    await page.goto("/#cookies");
+    await page.goto("/app/#cookies");
     await expect(page.getByTestId("legal-cookies")).toBeVisible();
   });
 
   test("timeline marks each change and jumps back", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();

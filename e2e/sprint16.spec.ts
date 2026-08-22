@@ -5,7 +5,7 @@ import fs from "node:fs/promises";
 test.describe("sprint 16: operações adicionais, verificação, link", () => {
   test.slow(); // WebGL under software GL is slow in CI
   test("extra operation: pocket + through cut on the same rectangle → both in the G-code; verification lists the pocket", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("extra-op-add").click();
@@ -38,7 +38,7 @@ test.describe("sprint 16: operações adicionais, verificação, link", () => {
 
   test("share link round-trips the project through the URL hash", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await page.getByTestId("project-name").fill("Compartilhado");
     await page.getByTestId("project-name").press("Enter");

@@ -5,7 +5,7 @@ test.describe("G-code export flow", () => {
   test("adding a rectangle enables export and downloads a .gcode file", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     await page.getByTestId("add-rectangle").click();
 
@@ -22,7 +22,7 @@ test.describe("G-code export flow", () => {
   test("exporting with no shapes shows a warning instead of downloading", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     await page.getByTestId("export-gcode").click();
     await expect(page.getByTestId("notice")).toContainText(
@@ -31,7 +31,7 @@ test.describe("G-code export flow", () => {
   });
 
   test("invalid machine settings block export with an inline error", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     // Setting passDepth to 0 is rejected by the input, so poke the store through the UI limits:
     // an empty field keeps the last valid value, so export must still work.
@@ -44,7 +44,7 @@ test.describe("G-code export flow", () => {
   });
 
   test("project survives a page reload (localStorage persistence)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await page.getByTestId("add-circle").click();
     await page.reload();
@@ -55,7 +55,7 @@ test.describe("G-code export flow", () => {
   test("selecting a shape and switching to the simulator shows playback controls", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-circle").click();
     await gotoWorkspace(page, "simulator");
 
@@ -68,7 +68,7 @@ test.describe("G-code export flow", () => {
 
 test.describe("time estimate (sprint 03)", () => {
   test("estimated time is shown in the toolbar and simulator and written to the G-code", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("add-rectangle").click();
     await expect(page.getByTestId("toolbar-estimate")).toContainText(/tempo estimado \d+/);
     const downloadPromise = page.waitForEvent("download");

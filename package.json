@@ -1,12 +1,12 @@
 {
   "name": "cnc-router",
   "private": true,
-  "version": "0.31.0",
+  "version": "0.32.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "gen:thumbs": "tsx scripts/gen-thumbs.ts",
-    "prebuild": "tsx scripts/gen-thumbs.ts",
+    "prebuild": "tsx scripts/gen-thumbs.ts && tsx scripts/gen-landing-thumbs.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "gen:landing": "tsx scripts/gen-landing-thumbs.ts"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

@@ -2,6 +2,15 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [0.32.0 — Sprint 32 — Landing page] — 2026-08-22
+
+### Adicionado
+- **Página inicial do projeto** em oficina-cnc.vercel.app: cover com o fluxo em três passos, as seções de importação e folha técnica, exemplos clicáveis (abrem direto no editor), perguntas rápidas e footer com privacidade e contato. O app agora vive em **/app/** — o botão Iniciar leva pra lá.
+- Ganchos de entrada: `/app/?galeria=1` abre a galeria e `/app/?exemplo=<id>` abre um exemplo (pedindo confirmação se houver peças na mesa).
+
+### Alterado
+- Links antigos continuam valendo: compartilhamento `/#p=…` e âncoras (`#privacidade`, `#sobre`…) redirecionam para o app preservando o conteúdo; a PWA instalada segue abrindo direto no editor (`start_url` `/app/`).
+
 ## [0.31.0 — Sprint 30 — Estações de trabalho e folha técnica na tela] — 2026-08-22
 
 ### Adicionado

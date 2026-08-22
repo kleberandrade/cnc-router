@@ -3,6 +3,7 @@ import { useUiStore } from "../state/uiStore";
 import { parseProject } from "../lib/projectFile";
 import { loadUserFonts, missingFonts, fontDisplayName } from "../lib/userFonts";
 import { confirmDialog } from "./Dialog";
+import { findExample } from "../content/examples";
 
 /**
  * One front door for every way a file can arrive (Sprint 29): the menu's file picker, a drop on the
@@ -92,4 +93,19 @@ export async function importPasted(data: DataTransfer): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+/** Abre um exemplo da galeria pelo id, com confirmação se houver peças na mesa. Usado pelo menu e pelos links da landing (`?exemplo=`). */
+export async function openExampleById(id: string): Promise<boolean> {
+  const ex = findExample(id);
+  if (!ex) return false;
+  const ui = useUiStore.getState();
+  if (useProjectStore.getState().shapes.length > 0 &&
+      !(await confirmDialog({ title: `Abrir o exemplo "${ex.title}"?`, message: "As peças que estão na mesa serão substituídas. Se quiser guardar, salve o projeto antes.", confirmLabel: "Abrir exemplo" }))) return false;
+  const { shapes, settings } = await ex.build();
+  useProjectStore.getState().loadProject({ shapes, settings });
+  ui.setSection("shape");
+  ui.setNotice({ kind: "info", title: `Exemplo "${ex.title}" aberto.`, details: [ex.teaches] });
+  ui.setView("editor");
+  return true;
 }

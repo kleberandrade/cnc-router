@@ -24,7 +24,7 @@ test.describe("sprint 28: traga seu desenho", () => {
   test.slow();
 
   test("DXF com furos entra como uma peça só, e o diálogo deixa desligar a inferência", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     // flange: chapa 100 × 60 com 3 furos
     await upload(page, "flange.dxf", dxfDoc(rect(0, 0, 100, 60), circle(20, 30, 5), circle(50, 30, 5), circle(80, 30, 5)));
@@ -46,7 +46,7 @@ test.describe("sprint 28: traga seu desenho", () => {
   });
 
   test("camadas desmarcadas ficam de fora", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await upload(page, "cotado.dxf", dxfDoc(rect(0, 0, 100, 60), circle(50, 30, 5), rect(200, 0, 30, 30, "COTAS")));
     await expect(page.getByTestId("import-layers")).toBeVisible();
@@ -61,7 +61,7 @@ test.describe("sprint 28: traga seu desenho", () => {
   const inchDoc = dxfDoc(rect(4, 2, 4, 2));
 
   test("sem sobrescrever, o desenho entra como está no arquivo", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await upload(page, "pol.dxf", inchDoc);
     await page.getByTestId("import-confirm").click();
@@ -71,7 +71,7 @@ test.describe("sprint 28: traga seu desenho", () => {
   });
 
   test("unidade do desenho pode ser sobrescrita no diálogo", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await upload(page, "pol.dxf", inchDoc);
     await page.getByTestId("import-unit").selectOption("25.4");
@@ -82,7 +82,7 @@ test.describe("sprint 28: traga seu desenho", () => {
   });
 
   test("explodir texto: vira contornos editáveis e some da fonte", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await ribbonClick(page, "add-text");
     await expect(page.getByTestId("status-shapes")).toHaveText("1 peça");
@@ -101,7 +101,7 @@ test.describe("sprint 28: traga seu desenho", () => {
   });
 
   test("carregar fonte própria pelo painel", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("empty-close").click();
     await ribbonClick(page, "add-text");
     await page.getByTestId("section-toggle-shape").click();

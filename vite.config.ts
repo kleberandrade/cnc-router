@@ -25,6 +25,8 @@ const changelogEntries = (() => {
   } catch { return [] }
 })()
 
+process.env.VITE_APP_VERSION = pkg.version
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
@@ -36,6 +38,11 @@ export default defineConfig({
     // Three.js minificado fica ~560 kB; o limite padrão (500) só gerava ruído no CI.
     chunkSizeWarningLimit: 600,
     rolldownOptions: {
+      // Multi-page (Sprint 32): a raiz é a landing estática; o app vive em /app/.
+      input: {
+        landing: new URL('./index.html', import.meta.url).pathname,
+        app: new URL('./app/index.html', import.meta.url).pathname,
+      },
       output: {
         codeSplitting: {
           groups: [
@@ -59,8 +66,8 @@ export default defineConfig({
         short_name: 'Oficina CNC',
         description: 'Desenhe, simule e exporte G-code no navegador — sem instalar nada.',
         lang: 'pt-BR',
-        start_url: '/',
-        scope: '/',
+        start_url: '/app/',
+        scope: '/app/',
         display: 'standalone',
         orientation: 'any',
         background_color: '#f7f7f5',
@@ -75,7 +82,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-        navigateFallback: '/index.html',
+        navigateFallback: '/app/index.html',
+        navigateFallbackDenylist: [/^\/$/, /^\/index\.html$/, /^\/landing/],
       },
       devOptions: { enabled: false },
     }),

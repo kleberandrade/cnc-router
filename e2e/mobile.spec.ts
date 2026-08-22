@@ -4,7 +4,7 @@ import { gotoWorkspace } from "./helpers";
 // Runs in the mobile-chrome (Pixel 7) and tablet-chrome (iPad) projects.
 test.describe("responsive layouts (sprint 08)", () => {
   test("no horizontal scroll and the main flow works with taps", async ({ page, viewport }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const layout = await page.locator(".app").getAttribute("data-layout");
     expect(layout).toBe(viewport!.width < 768 ? "mobile" : "tablet");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
@@ -37,7 +37,7 @@ test.describe("responsive layouts (sprint 08)", () => {
   });
 
   test("touch targets in the bottom bar / ribbon are at least 40 px", async ({ page, viewport }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const sel = viewport!.width < 768 ? ".bottom-bar .bb-btn" : ".ribbon .rb";
     const sizes = await page.locator(sel).evaluateAll((els) =>
       els.map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => [r.width, r.height])
@@ -51,7 +51,7 @@ test.describe("responsive layouts (sprint 08)", () => {
 
   test("pinch changes the editor zoom", async ({ page, viewport }) => {
     test.skip(viewport!.width >= 768, "mobile only");
-    await page.goto("/");
+    await page.goto("/app/");
     const canvas = page.locator(".editor-canvas canvas").first();
     const box = (await canvas.boundingBox())!;
     const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
@@ -77,7 +77,7 @@ test.describe("sprint 29 no toque", () => {
     "0", "ENDSEC", "0", "EOF", ""].join("\n");
 
   test("importar DXF cabe na tela e funciona por toque", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("svg-file-input").first().setInputFiles({ name: "peca.dxf", mimeType: "application/dxf", buffer: Buffer.from(dxf) });
     await expect(page.getByTestId("import-vector")).toBeVisible();
     // o diálogo não pode estourar a largura da tela
@@ -92,7 +92,7 @@ test.describe("sprint 29 no toque", () => {
   });
 
   test("menu Imprimir… leva à estação de folha no toque", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("svg-file-input").first().setInputFiles({ name: "peca.dxf", mimeType: "application/dxf", buffer: Buffer.from(dxf) });
     await page.getByTestId("import-confirm").tap();
     await page.getByTestId("project-menu").tap();
@@ -105,7 +105,7 @@ test.describe("sprint 29 no toque", () => {
 test.describe("sprint 30 no toque", () => {
   test("estação de folha no celular: página, navegação e imprimir na barra", async ({ page, viewport }) => {
     test.skip(viewport!.width >= 768, "mobile only");
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByTestId("mb-add-rectangle").tap();
     await page.getByTestId("mb-add-circle").tap();
     await gotoWorkspace(page, "drawing");
