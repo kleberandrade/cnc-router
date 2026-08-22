@@ -2,6 +2,12 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
 
+## [0.35.1 — Ajuste — A análise roda sozinha] — 2026-08-22
+
+### Corrigido
+- Marcou apoio e carga, a análise dispara sozinha — sem precisar de Calcular (que segue lá para rodar de novo). Um guia de passos mostra o que falta ("1 de 2: apoiar", "2 de 2: carregar") e o "Calculando…" aparece enquanto a conta roda.
+- A mensagem de erro antiga não fica mais na tela depois que você marca um lado ou mexe na carga.
+
 ## [0.35.0 — Sprint 34 — Conjunto de verdade] — 2026-08-22
 
 ### Corrigido

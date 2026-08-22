@@ -16,10 +16,11 @@ test.describe("sprint 34: conjunto de verdade", () => {
     const box = (await canvas.boundingBox())!;
     const sx = box.width / 900, sy = box.height / 620;
     await canvas.click({ position: { x: 40 * sx, y: 310 * sy } }); // lado esquerdo: apoiar
+    await expect(page.getByTestId("an-guide")).toContainText("2 de 2"); // o guia puxa o próximo passo
     await page.getByTestId("an-tool-load").click();
     await canvas.click({ position: { x: 860 * sx, y: 310 * sy } }); // lado direito: carregar
 
-    await page.getByTestId("an-run").click();
+    // a análise dispara sozinha: nada de Calcular
     await expect(page.getByTestId("an-results")).toContainText("MPa", { timeout: 20_000 });
 
     // o 3D extruda o conjunto (com o rasgo da alça)

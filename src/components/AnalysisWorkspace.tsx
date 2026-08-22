@@ -238,6 +238,18 @@ export function AnalysisWorkspace() {
             <button type="button" className="rb primary an-run" onClick={runAnalysis} data-testid="an-run" disabled={st.status === "running"}>
               {st.status === "running" ? "Calculando…" : "Calcular"}
             </button>
+            {/* guia de passos ao vivo: a análise dispara sozinha quando os dois lados estão marcados */}
+            {!st.error && st.status !== "ready" && (
+              <p className="hint" role="status" data-testid="an-guide">
+                {st.supports.length === 0
+                  ? "1 de 2: com Apoiar ativo, clique no lado que fica preso ou apoiado."
+                  : st.loads.length === 0
+                    ? "2 de 2: troque para Carregar e clique no lado onde o peso entra. A análise roda sozinha."
+                    : st.status === "running"
+                      ? "Calculando…"
+                      : "Pronto: ajuste a carga ou clique em Calcular para rodar de novo."}
+              </p>
+            )}
             {st.error && <p className="hint hint-warn" data-testid="an-error">{st.error}</p>}
             {st.result && (
               <div className="an-results" data-testid="an-results">

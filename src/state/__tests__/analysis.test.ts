@@ -63,12 +63,25 @@ describe("state/analysis", () => {
     expect(st.result!.tris.length).toBeGreaterThan(100);
   });
 
-  it("mexer na carga invalida o resultado (nada de mapa velho na tela)", () => {
-    useAnalysisStore.setState({ supports: [3], loads: [1] });
-    runAnalysis();
-    expect(useAnalysisStore.getState().result).toBeTruthy();
+  it("marcar apoio e carga dispara a análise sozinha; mexer na carga recalcula (nada de mapa velho)", () => {
+    useAnalysisStore.getState().toggleSide(3); // apoio
+    expect(useAnalysisStore.getState().result).toBeNull(); // ainda falta a carga
+    useAnalysisStore.getState().setTool("load");
+    useAnalysisStore.getState().toggleSide(1); // carga: agora roda sozinha (fallback síncrono)
+    expect(useAnalysisStore.getState().status).toBe("ready");
+    const first = useAnalysisStore.getState().result!;
+    expect(first).toBeTruthy();
     useAnalysisStore.getState().setLoadKg(50);
-    expect(useAnalysisStore.getState().result).toBeNull();
+    const again = useAnalysisStore.getState().result!;
+    expect(again).toBeTruthy();
+    expect(again.maxDisp).toBeGreaterThan(first.maxDisp); // 50 kg deforma mais que 10
+  });
+
+  it("erro antigo some assim que a pessoa marca um lado (o guia assume)", () => {
+    runAnalysis(); // sem nada marcado: erro
+    expect(useAnalysisStore.getState().error).toContain("apoiado");
+    useAnalysisStore.getState().toggleSide(3);
+    expect(useAnalysisStore.getState().error).toBeNull();
   });
 
   it("escopo Conjunto: peças encostadas coladas viram um job só; afastadas explicam em vez de rodar", () => {

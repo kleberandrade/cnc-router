@@ -90,17 +90,28 @@ export const useAnalysisStore = create<AnalysisState>()((set, get) => ({
     set({
       [list]: has ? st[list].filter((s) => s !== side) : [...st[list], side],
       [other]: st[other].filter((s) => s !== side),
-      result: null, status: "idle",
+      result: null, status: "idle", error: null,
     } as Partial<AnalysisState>);
+    autoRun();
   },
-  setLoadKg: (loadKg) => set({ loadKg, result: null, status: "idle" }),
-  setLoadDir: (loadDir) => set({ loadDir, result: null, status: "idle" }),
+  setLoadKg: (loadKg) => { set({ loadKg, result: null, status: "idle", error: null }); autoRun(); },
+  setLoadDir: (loadDir) => { set({ loadDir, result: null, status: "idle", error: null }); autoRun(); },
   setShowDeformed: (showDeformed) => set({ showDeformed }),
   setShelfSpan: (shelfSpan) => set({ shelfSpan, shelfResult: null }),
   setShelfLoadKg: (shelfLoadKg) => set({ shelfLoadKg, shelfResult: null }),
   setShelfLoadType: (shelfLoadType) => set({ shelfLoadType, shelfResult: null }),
   clear: () => set({ supports: [], loads: [], result: null, shelfResult: null, status: "idle", error: null }),
 }));
+
+/**
+ * A análise dispara sozinha assim que apoio + carga estão marcados (UX do print de 2026-08-22:
+ * "marco o lado e a análise não inicia"). O worker é last-wins, então recalcular a cada ajuste
+ * é barato; nos testes o fallback síncrono deixa o resultado pronto na volta da ação.
+ */
+function autoRun(): void {
+  const st = useAnalysisStore.getState();
+  if (st.mode === "inplane" && st.supports.length > 0 && st.loads.length > 0 && st.loadKg > 0) runAnalysis();
+}
 
 /** Peças fechadas que a análise aceita (a geometria vem normalizada para a origem da caixa). */
 export function analyzableShapes(): Shape[] {

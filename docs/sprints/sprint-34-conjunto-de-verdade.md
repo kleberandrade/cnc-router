@@ -41,6 +41,10 @@ Teste do autor com a tábua de carnes (2026-08-22, com print): no escopo Conjunt
 - Verificado no fluxo do print: tábua de carnes → Conjunto → apoiar esquerda, carregar direita → mapa com o rasgo da alça descontado; 3D mostra a tábua com o furo; folha ganha "Desenho — Conjunto" com 380 × 210 e o rasgo 22 × 60.
 - Specs que contavam páginas fixas da folha (sprint30, mobile) atualizadas: as formas padrão se sobrepõem e agora colam numa página extra.
 
+## Ajuste pós-sprint (v0.35.1)
+
+Print do autor: marcou o lado apoiado e "a análise não inicia" — a mensagem de erro antiga ficava na tela e nada dizia que faltava o passo da carga. Agora `toggleSide`/carga/direção limpam o erro e disparam a análise sozinha quando apoio + carga estão marcados (worker last-wins; nos testes o fallback síncrono responde na volta da ação); um guia de passos (`an-guide`) mostra "1 de 2 / 2 de 2 / Calculando…" e o Calcular vira o botão de rodar de novo.
+
 ## DoD específica
 
 - O fluxo do print do autor funciona: tábua de carnes → Conjunto → apoiar/carregar → mapa com o rasgo descontado.
