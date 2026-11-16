@@ -4,6 +4,14 @@ import { test, expect, type Page } from "@playwright/test";
  * Sprint 27 — interaction latency on a throttled CPU (proxy for mobile INP).
  * Measures the longest `event` timing entry produced by each tap.
  */
+// Use the same software WebGL path on local machines and headless CI runners.
+test.use({ launchOptions: {
+  ...(process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {}),
+  args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+} });
+// A latency regression must fail CI rather than disappear behind a workflow retry.
+test.describe.configure({ retries: 0 });
+
 const LIMIT = Number(process.env.INP_LIMIT ?? 200);
 const CPU = Number(process.env.INP_CPU ?? 4);
 

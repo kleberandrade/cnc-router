@@ -56,6 +56,13 @@ dryer --threshold 0.8 api/_lib/feedback-core.ts
 mutator --use-existing-coverage --max-workers 2 --test-command 'node_modules/.bin/vitest run api/__tests__/feedback-core.test.ts' api/_lib/feedback-core.ts
 ```
 
+The simulator invalidates its GPU frame when geometry, playback, projection,
+viewport or camera changes; a paused unchanged scene does not draw continuously.
+`e2e/simulator-idle.spec.ts` counts real WebGL calls without replacing rendering.
+The INP proxy uses SwiftShader software WebGL, the original 200 ms limit and 4× CPU
+throttling on both local and CI runs. That test has no workflow retries; its three
+internal samples retain the original measurement policy.
+
 Generated reports belong in ignored `.metrics/`, coverage and `target/` folders.
 The maintenance log records the scope/results; a score on one file is not a
 whole-project quality claim.

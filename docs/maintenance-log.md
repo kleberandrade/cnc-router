@@ -63,3 +63,37 @@ Publication was authorized after passing relevant checks; the delivery message r
   Manifest and lockfile version/license/engines match; fetched origin/main was an
   ancestor of the local changes. No force push, remote visibility change, manual
   hosting deployment or package publication was performed during preparation.
+
+## Follow-up from remote validation — 2026-11-16
+
+- Published the four prepared commits to main at ceb5d5e; verified About, six badges,
+  private visibility, MIT detection and zero deployments at that head. CI run
+  43795004914 completed successfully, but log review found the latency test only
+  passed after two retries (768/744 ms opening the drawing workspace).
+- Reproduced the issue locally using software WebGL and CPU profiling. The paused
+  simulator continuously redrew its unchanged scene. A new real-WebGL regression
+  failed as expected, observing 69 draw calls in an idle 200 ms window.
+- Changed the existing render loop to draw only after camera/scene/playback/viewport
+  invalidation; stopped repeating frame-derived work for unchanged paused scenes.
+  The new test also requires drawing to resume when the camera changes.
+- Retained the 200 ms budget and 4× CPU throttle; made the performance test use
+  software WebGL consistently and disabled its outer retries. Did not lower gates
+  or classify the initial flaky result as a clean first-attempt pass.
+
+- Focused real-browser checks passed (10 tests), including software-WebGL latency,
+  paused idle draws, playback/material removal, camera views and projection. The
+  drawing-workspace transition measured 168 ms in that focused run; this is a local
+  software-renderer observation, not a physical-device or production INP claim.
+- Quality-tool scope for this follow-up: Dryer found no duplication candidates in
+  Simulator at 0.8. Crapper reports existing Simulator complexity 79 (no unit
+  coverage/CRAP score because the GPU component is explicitly unit-excluded).
+  Mutator scanned 353 sites there; they were not executed against mocked rendering.
+  The earlier 92 killed mutations apply only to feedback-core and NumberField.
+  Real browser regression tests provide the evidence for this rendering correction;
+  reducing the legacy component's overall complexity remains future work.
+
+- Patch 0.35.3 final local validation: build passed without warnings; lint retained
+  zero errors/18 existing warnings; 484 unit tests passed with the same coverage
+  (91.40% lines). Full browser suite: 145 passed, two intentional tablet skips.
+  The explicit software-WebGL latency test passed with outer retries disabled;
+  its drawing-workspace measurement was 176 ms in this full local run.

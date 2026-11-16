@@ -1,3 +1,11 @@
+## [0.35.3 — Maintenance — Render paused simulation on demand] — 2026-11-16
+
+- Stop issuing GPU draw calls for an unchanged paused scene; invalidate on camera,
+  project, projection, viewport or playback updates.
+- Add a real-browser regression test for idle rendering and camera redraws.
+- Run the latency budget with software WebGL consistently on local/CI hosts, with
+  no workflow retries for that test and the original 200 ms/4× CPU budget.
+
 ## [0.35.2 — Maintenance — Feedback boundaries and supported toolchain] — 2026-11-15
 
 - Bound feedback streams by bytes, validate optional fields, store recognized fields only,

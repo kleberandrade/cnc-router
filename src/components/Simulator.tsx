@@ -47,6 +47,7 @@ interface SceneRefs {
   anim: { from: THREE.Vector3; to: THREE.Vector3; target: THREE.Vector3; t0: number } | null;
   frameSubs: Set<(camera: THREE.Camera) => void>;
   lastMeshUpdate: number;
+  needsRender: boolean;
 }
 
 function frameTarget(settings: ReturnType<typeof useProjectStore.getState>["settings"], segments: Segment[]) {
@@ -162,8 +163,11 @@ export function Simulator() {
     refs.current = {
       renderer, scene, persp, ortho: orthoCam, camera: persp, controls,
       tool: null, cutLines: null, rapidLines: null, cutColors: null, cutIndexBySegment: null,
-      stockGroup, surface: null, surfaceColors: null, look: { top: new THREE.Color(0xd9b98a), cut: new THREE.Color(0xf1dcb8), deep: new THREE.Color(0xb98d5a) }, hm: null, anim: null, frameSubs: frameSubs.current, lastMeshUpdate: 0,
+      stockGroup, surface: null, surfaceColors: null, look: { top: new THREE.Color(0xd9b98a), cut: new THREE.Color(0xf1dcb8), deep: new THREE.Color(0xb98d5a) }, hm: null, anim: null, frameSubs: frameSubs.current, lastMeshUpdate: 0, needsRender: true,
     };
+
+    const invalidate = () => { if (refs.current) refs.current.needsRender = true; };
+    controls.addEventListener("change", invalidate);
 
     let last = performance.now();
     let raf = 0;
@@ -182,11 +186,16 @@ export function Simulator() {
         if (k >= 1) r.anim = null;
       }
       r.controls.update();
-      r.renderer.render(scene, r.camera);
-      r.frameSubs.forEach((fn) => fn(r.camera));
-      const tg = r.controls.target;
-      (window as unknown as { __simCam?: number[] }).__simCam = [r.camera.position.x - tg.x, r.camera.position.y - tg.y, r.camera.position.z - tg.z];
-      (window as unknown as { __simRemoved?: number }).__simRemoved = r.hm ? removedVolume(r.hm) : 0;
+      // A paused, unchanged scene has no GPU work. Continuous software rendering
+      // otherwise delays unrelated UI interactions, including leaving the workspace.
+      if (r.needsRender) {
+        r.needsRender = false;
+        r.renderer.render(scene, r.camera);
+        r.frameSubs.forEach((fn) => fn(r.camera));
+        const tg = r.controls.target;
+        (window as unknown as { __simCam?: number[] }).__simCam = [r.camera.position.x - tg.x, r.camera.position.y - tg.y, r.camera.position.z - tg.z];
+        (window as unknown as { __simRemoved?: number }).__simRemoved = r.hm ? removedVolume(r.hm) : 0;
+      }
     };
     raf = requestAnimationFrame(loop);
 
@@ -198,6 +207,7 @@ export function Simulator() {
       persp.updateProjectionMatrix();
       const r = refs.current;
       if (r) {
+        r.needsRender = true;
         const dist = r.ortho.position.distanceTo(r.controls.target) || 400;
         const half = dist * Math.tan((persp.fov * Math.PI) / 360);
         r.ortho.left = -half * (w / h); r.ortho.right = half * (w / h); r.ortho.top = half; r.ortho.bottom = -half;
@@ -209,6 +219,7 @@ export function Simulator() {
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      controls.removeEventListener("change", invalidate);
       controls.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
@@ -232,6 +243,7 @@ export function Simulator() {
   useEffect(() => {
     const r = refs.current;
     if (!r) return;
+    r.needsRender = true;
     const from = r.camera;
     const to = ortho ? r.ortho : r.persp;
     if (from === to) return;
@@ -253,6 +265,7 @@ export function Simulator() {
   useEffect(() => {
     const r = refs.current;
     if (!r) return;
+    r.needsRender = true;
     const { scene, stockGroup } = r;
     const { workArea, stock } = settings;
     const [ox, oy] = workOriginOffset(settings);
@@ -359,6 +372,7 @@ export function Simulator() {
   useEffect(() => {
     const r = refs.current;
     if (!r) return;
+    r.needsRender = true;
     const [x, y, z] = positionAt(segments, timing, t);
     r.tool?.position.set(x, y, z);
 
