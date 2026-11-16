@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Stage, Layer, Rect, Circle, Line, Text, Group, Transformer, Image as KonvaImage } from "react-konva";
 import { reliefGrid } from "../lib/relief";
-import type { ReliefShape } from "../types";
+import type { ReliefShape, MachineSettings } from "../types";
 import type Konva from "konva";
 import { useProjectStore, generateShapeId, translateShape } from "../state/store";
 import { useUiStore } from "../state/uiStore";
@@ -48,6 +48,50 @@ const DARK = {
   marquee: "rgba(143,192,230,0.15)",
   ruler: "#94a3b8",
 };
+
+/** Background props exclude selection/parts so editing cannot invalidate the static canvas. */
+interface BackgroundProps {
+  workArea: MachineSettings["workArea"];
+  stock: MachineSettings["stock"];
+  scale: number;
+  ox: number;
+  oy: number;
+  colors: typeof LIGHT;
+  toPx: (x: number, y: number) => Point;
+}
+
+const EditorBackground = memo(function EditorBackground({ workArea, stock, scale, ox, oy, colors: COLORS, toPx }: BackgroundProps) {
+  const grid = gridStepFor(scale);
+  const tablePxH = workArea.height * scale;
+  const gridLines: React.ReactNode[] = [];
+  for (let x = 0; x <= workArea.width + 1e-9; x += grid.minor) {
+    const isMajor = Math.round(x) % grid.major === 0;
+    const [px] = toPx(x, 0);
+    gridLines.push(<Line key={`gx-${x}`} points={[px, oy, px, oy + tablePxH]} stroke={isMajor ? COLORS.gridMajor : COLORS.gridMinor} strokeWidth={1} listening={false} />);
+    if (isMajor) gridLines.push(<Text key={`tx-${x}`} x={px - 14} y={oy + tablePxH + 4} width={28} align="center" text={String(x)} fontSize={9} fill={COLORS.ruler} listening={false} />);
+  }
+  for (let y = 0; y <= workArea.height + 1e-9; y += grid.minor) {
+    const isMajor = Math.round(y) % grid.major === 0;
+    const [, py] = toPx(0, y);
+    gridLines.push(<Line key={`gy-${y}`} points={[ox, py, ox + workArea.width * scale, py]} stroke={isMajor ? COLORS.gridMajor : COLORS.gridMinor} strokeWidth={1} listening={false} />);
+    if (isMajor) gridLines.push(<Text key={`ty-${y}`} x={0} y={py - 5} width={RULER + PADDING - 4} align="right" text={String(y)} fontSize={9} fill={COLORS.ruler} listening={false} />);
+  }
+
+  const [stockPxX, stockPxY] = toPx(stock.offsetX, stock.offsetY + stock.height);
+  const [originPxX, originPxY] = toPx(...originPoint(stock));
+  return (
+    <Layer listening={false}>
+      <Rect name="table" x={ox} y={oy} width={workArea.width * scale} height={tablePxH} fill={COLORS.table} stroke={COLORS.tableBorder} strokeWidth={1.5} />
+      {gridLines}
+      <Rect x={stockPxX} y={stockPxY} width={stock.width * scale} height={stock.height * scale} fill={COLORS.stock} stroke={COLORS.stockBorder} strokeWidth={1} dash={[6, 3]} name="stock" />
+      <Group>
+        <Line points={[originPxX - 8, originPxY, originPxX + 8, originPxY]} stroke={COLORS.origin} strokeWidth={1.5} />
+        <Line points={[originPxX, originPxY - 8, originPxX, originPxY + 8]} stroke={COLORS.origin} strokeWidth={1.5} />
+        <Text x={originPxX + 6} y={originPxY - 14} text="0,0" fontSize={10} fill={COLORS.origin} />
+      </Group>
+    </Layer>
+  );
+});
 
 /** Centre (mm) used as the Konva node position for a shape. */
 function shapeCenter(shape: Shape): Point {
@@ -157,7 +201,7 @@ export function Editor() {
   const oy = PADDING + pan.y;
   const tablePxH = workArea.height * scale;
 
-  const toPx = (x: number, y: number): [number, number] => [ox + x * scale, oy + tablePxH - y * scale];
+  const toPx = useCallback((x: number, y: number): Point => [ox + x * scale, oy + tablePxH - y * scale], [ox, oy, tablePxH, scale]);
   const fromPx = (px: number, py: number): [number, number] => [(px - ox) / scale, (oy + tablePxH - py) / scale];
 
   useEffect(() => {
@@ -202,7 +246,6 @@ export function Editor() {
   }, [selectedIds, shapes, scale, pan]);
 
   const issues = useDerived((d) => d.issues);
-  const grid = gridStepFor(scale);
 
   const strokeFor = (shape: Shape) => {
     const level = shapeIssueLevel(issues, shape.id);
@@ -210,23 +253,6 @@ export function Editor() {
     if (level === "warning") return COLORS.warning;
     return selectedIds.includes(shape.id) ? COLORS.selected : COLORS.shape;
   };
-
-  const gridLines: React.ReactNode[] = [];
-  for (let x = 0; x <= workArea.width + 1e-9; x += grid.minor) {
-    const isMajor = Math.round(x) % grid.major === 0;
-    const [px] = toPx(x, 0);
-    gridLines.push(<Line key={`gx-${x}`} points={[px, oy, px, oy + tablePxH]} stroke={isMajor ? COLORS.gridMajor : COLORS.gridMinor} strokeWidth={1} listening={false} />);
-    if (isMajor) gridLines.push(<Text key={`tx-${x}`} x={px - 14} y={oy + tablePxH + 4} width={28} align="center" text={String(x)} fontSize={9} fill={COLORS.ruler} listening={false} />);
-  }
-  for (let y = 0; y <= workArea.height + 1e-9; y += grid.minor) {
-    const isMajor = Math.round(y) % grid.major === 0;
-    const [, py] = toPx(0, y);
-    gridLines.push(<Line key={`gy-${y}`} points={[ox, py, ox + workArea.width * scale, py]} stroke={isMajor ? COLORS.gridMajor : COLORS.gridMinor} strokeWidth={1} listening={false} />);
-    if (isMajor) gridLines.push(<Text key={`ty-${y}`} x={0} y={py - 5} width={RULER + PADDING - 4} align="right" text={String(y)} fontSize={9} fill={COLORS.ruler} listening={false} />);
-  }
-
-  const [stockPxX, stockPxY] = toPx(stock.offsetX, stock.offsetY + stock.height);
-  const [originPxX, originPxY] = toPx(...originPoint(stock));
 
   // ---- drag with clamp + snap (node position = shape centre in px) ----
   const dragBound = (shape: Shape) => (pos: { x: number; y: number }) => {
@@ -402,16 +428,7 @@ export function Editor() {
         onTouchEnd={(e) => { if (e.evt.touches.length < 2) pinch.current = null; }}
       >
         {/* Static background (table, grid, stock, origin) in its own layer: it only redraws on pan/zoom/stock changes, not on every shape edit (Sprint 27). Background clicks hit the Stage. */}
-        <Layer listening={false}>
-          <Rect name="table" x={ox} y={oy} width={workArea.width * scale} height={tablePxH} fill={COLORS.table} stroke={COLORS.tableBorder} strokeWidth={1.5} />
-          {gridLines}
-          <Rect x={stockPxX} y={stockPxY} width={stock.width * scale} height={stock.height * scale} fill={COLORS.stock} stroke={COLORS.stockBorder} strokeWidth={1} dash={[6, 3]} name="stock" />
-          <Group>
-            <Line points={[originPxX - 8, originPxY, originPxX + 8, originPxY]} stroke={COLORS.origin} strokeWidth={1.5} />
-            <Line points={[originPxX, originPxY - 8, originPxX, originPxY + 8]} stroke={COLORS.origin} strokeWidth={1.5} />
-            <Text x={originPxX + 6} y={originPxY - 14} text="0,0" fontSize={10} fill={COLORS.origin} />
-          </Group>
-        </Layer>
+        <EditorBackground workArea={workArea} stock={stock} scale={scale} ox={ox} oy={oy} colors={COLORS} toPx={toPx} />
         <Layer>
 
           {shapes.map((shape) => {

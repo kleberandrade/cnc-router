@@ -1,3 +1,12 @@
+## [0.35.4 — Maintenance — Preserve the static editor canvas] — 2026-11-16
+
+- Memoize the table/grid/stock/origin layer independently of part selection and
+  editing; keep redraws for actual viewport, theme and stock changes.
+- Add a real-canvas regression verifying that adding a part does not repaint the
+  background while zoom still does. Preserve the 200 ms interaction gate.
+- Attribute Event Timing records to their actual interaction/action timestamps,
+  drain them after paint, and use real keyboard events for numeric editing.
+
 ## [0.35.3 — Maintenance — Render paused simulation on demand] — 2026-11-16
 
 - Stop issuing GPU draw calls for an unchanged paused scene; invalidate on camera,

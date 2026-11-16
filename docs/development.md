@@ -56,12 +56,21 @@ dryer --threshold 0.8 api/_lib/feedback-core.ts
 mutator --use-existing-coverage --max-workers 2 --test-command 'node_modules/.bin/vitest run api/__tests__/feedback-core.test.ts' api/_lib/feedback-core.ts
 ```
 
+The editor's static table/grid/stock/origin layer is memoized independently of
+part edits and selection. Its coordinate conversion is shared with the editor;
+viewport, stock and theme changes still invalidate the background. A real-canvas
+regression checks both preserved drawing during editing and redraw on zoom.
+
 The simulator invalidates its GPU frame when geometry, playback, projection,
 viewport or camera changes; a paused unchanged scene does not draw continuously.
 `e2e/simulator-idle.spec.ts` counts real WebGL calls without replacing rendering.
 The INP proxy uses SwiftShader software WebGL, the original 200 ms limit and 4× CPU
 throttling on both local and CI runs. That test has no workflow retries; its three
-internal samples retain the original measurement policy. CI fails on any flaky
+internal samples retain the original best-of-three policy. It attributes only
+nonzero-interactionId events starting in the measured action, and drains observer
+records after painting, per the [Event Timing API](https://www.w3.org/TR/event-timing/).
+A zero means no qualifying entry reached the API's 16 ms reporting threshold;
+this laboratory proxy is not a field INP percentile. CI fails on any flaky
 result even when a retry passes; camera tests await rendered orientation instead
 of assuming a fixed animation duration on every GPU.
 

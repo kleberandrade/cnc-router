@@ -15,24 +15,55 @@ test.describe.configure({ retries: 0 });
 const LIMIT = Number(process.env.INP_LIMIT ?? 200);
 const CPU = Number(process.env.INP_CPU ?? 4);
 
+interface MeasuredEvent {
+  name: string;
+  duration: number;
+  startTime: number;
+  interactionId: number;
+  target: string;
+}
+interface TimingWindow {
+  __evts: MeasuredEvent[];
+  __eventObserver: PerformanceObserver;
+  __collectEvents: (entries: PerformanceEntry[]) => void;
+}
+
 async function startObserver(page: Page) {
   await page.evaluate(() => {
-    const w = window as unknown as { __evts: { name: string; duration: number; target: string }[] };
+    const w = window as unknown as TimingWindow;
+    w.__eventObserver?.disconnect();
     w.__evts = [];
-    new PerformanceObserver((list) => {
-      for (const e of list.getEntries() as PerformanceEventTiming[]) {
+    w.__collectEvents = (entries) => {
+      for (const entry of entries) {
+        const e = entry as PerformanceEventTiming;
         const t = e.target as Element | null;
-        w.__evts.push({ name: e.name, duration: e.duration, target: t?.getAttribute?.("data-testid") ?? t?.tagName ?? "?" });
+        w.__evts.push({ name: e.name, duration: e.duration, startTime: e.startTime,
+          interactionId: e.interactionId, target: t?.getAttribute?.("data-testid") ?? t?.tagName ?? "?" });
       }
-    }).observe({ type: "event", buffered: true, durationThreshold: 16 } as PerformanceObserverInit);
+    };
+    w.__eventObserver = new PerformanceObserver((list) => w.__collectEvents(list.getEntries()));
+    w.__eventObserver.observe({ type: "event", buffered: true, durationThreshold: 16 } as PerformanceObserverInit);
   });
 }
 async function measure(page: Page, label: string, action: () => Promise<void>, results: Record<string, number>) {
-  await page.evaluate(() => { (window as unknown as { __evts: unknown[] }).__evts = []; });
+  const startedAt = await page.evaluate(() => {
+    const w = window as unknown as TimingWindow;
+    w.__eventObserver.takeRecords();
+    w.__evts = [];
+    return performance.now();
+  });
   await action();
+  // Event duration ends at a paint, not at an arbitrary timer. Drain pending observer
+  // records after painting, then exclude delayed records belonging to earlier actions.
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
   await page.waitForTimeout(600);
-  const evts = await page.evaluate(() => (window as unknown as { __evts: { name: string; duration: number; target: string }[] }).__evts);
-  const worst = evts.filter((e) => e.name.startsWith("pointer") || e.name === "click" || e.name === "keydown").reduce((m, e) => Math.max(m, e.duration), 0);
+  const evts = await page.evaluate(() => {
+    const w = window as unknown as TimingWindow;
+    w.__collectEvents(w.__eventObserver.takeRecords());
+    return w.__evts;
+  });
+  const worst = evts.filter((e) => e.startTime >= startedAt && e.interactionId > 0)
+    .reduce((m, e) => Math.max(m, e.duration), 0);
   results[label] = Math.round(worst);
 }
 
@@ -60,7 +91,13 @@ test.describe("sprint 27: latência de interação (INP) com CPU lenta", () => {
       await expect(page.getByTestId("status-shapes")).toHaveText("5 peças");
       await measure(page, "adicionar retângulo", () => page.getByTestId("add-rectangle").click(), r);
       await page.getByTestId("section-toggle-cut").click();
-      await measure(page, "trocar Ø da fresa", async () => { await page.getByTestId("tool-diameter").fill("4"); await page.getByTestId("tool-diameter").press("Enter"); }, r);
+      await measure(page, "trocar Ø da fresa", async () => {
+        const field = page.getByTestId("tool-diameter");
+        await field.click();
+        await field.press("ControlOrMeta+A");
+        await field.press("4");
+        await field.press("Enter");
+      }, r);
       // o dropdown abre fora da medição; o toque medido é o que troca a estação
       await page.getByTestId("workspace-menu").click();
       await measure(page, "ir para Simular", () => page.getByTestId("ws-simulator").click(), r);

@@ -109,3 +109,44 @@ Publication was authorized after passing relevant checks; the delivery message r
   and focused lint checks passed. Vite development startup on isolated localhost
   port 5187 returned HTTP 200 for /app/; that temporary server was then stopped.
   This final change affects tests/configuration/documentation, not machining logic.
+
+## Editor latency follow-up — 2026-11-16
+
+- Strict CI run 43798370073 correctly failed instead of retrying away a 216 ms
+  rectangle-add interaction. Camera readiness and the drawing-workspace transition
+  passed (64 ms); no latency budget was raised.
+- Found that the nominally static editor layer still recreated every grid element
+  and points array on selection/part updates, causing Konva to repaint it. A new
+  real-canvas test failed as expected: background clears increased from 9 to 11
+  after adding a circle, although the table/grid/stock were unchanged.
+- Isolated that existing layer behind a memoized component whose inputs are only
+  viewport/stock/theme data. The regression also requires a zoom to redraw it.
+
+- A local performance run overlapped unrelated Java/Android work (host load 36.61,
+  later 22.74); did not stop those processes or claim its 1608 ms reading as an
+  isolated application measurement. Confirmed heavy Java processes belonged to
+  other directories. Functional background assertions reached the zoom step;
+  corrected the test to hover the interactive editor container, not its inert canvas.
+- Reviewed the proxy premise after repeated noisy gates: it combined hover events
+  and delayed entries without action timestamps. Aligned attribution with Event
+  Timing: nonzero interactionId, startTime within the measured action, a paint before
+  collection, and draining pending observer records. Preserved 200 ms/4× CPU,
+  software WebGL, three samples and no outer retries; documented sub-16 ms zeros.
+
+- Corrected-proxy browser run passed with rectangle add at 80 ms and drawing
+  workspace at 48 ms; the functional background/zoom regression also passed.
+  Shared the editor's stable coordinate converter with the memoized layer rather
+  than keeping two copies of that conversion rule. No unrelated process was stopped.
+
+- The tool-diameter timing action now uses actual selection/typing/Enter key events
+  instead of programmatic fill, so Event Timing can attribute the edit itself.
+  Editor static analysis reports legacy complexity 128 with coverage/CRAP N/A;
+  Dryer found no duplication candidates at 0.8. Canvas behavior remains verified
+  in real browser tests rather than assigned fabricated unit/mutation coverage.
+
+- Final 0.35.4 local checks: 484 unit tests passed with unchanged coverage, production
+  build passed, and all 146 browser checks passed (two intentional tablet skips).
+  Rechecked the final timing file after closing edits: its largest reported
+  best-of-three value was 120 ms, rectangle add 96 ms, drawing workspace 32 ms,
+  with real numeric-key events, the original budget and no outer retry.
+  TypeScript and lint passed; no new production warnings or dependency changes.
