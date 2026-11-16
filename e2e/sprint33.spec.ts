@@ -9,6 +9,7 @@ async function twoParts(page: import("@playwright/test").Page, gap: number) {
   await page.getByTestId("section-toggle-shape").click();
   await page.getByTestId("shape-width").fill("100");
   await page.getByTestId("shape-width").press("Enter");
+  await expect(page.getByTestId("shape-width")).toHaveValue("100");
   await page.getByTestId("shape-height").fill("80");
   await page.getByTestId("shape-height").press("Enter");
   await page.getByTestId("shape-x").fill("0");
@@ -18,6 +19,7 @@ async function twoParts(page: import("@playwright/test").Page, gap: number) {
   await page.getByTestId("add-rectangle").click();
   await page.getByTestId("shape-width").fill("100");
   await page.getByTestId("shape-width").press("Enter");
+  await expect(page.getByTestId("shape-width")).toHaveValue("100");
   await page.getByTestId("shape-height").fill("80");
   await page.getByTestId("shape-height").press("Enter");
   await page.getByTestId("shape-x").fill(String(100 + gap));

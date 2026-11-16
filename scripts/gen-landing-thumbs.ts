@@ -18,7 +18,7 @@ mkdirSync("public/landing", { recursive: true });
 for (const id of FEATURED) {
   const ex = EXAMPLES.find((e) => e.id === id);
   if (!ex) throw new Error(`exemplo em destaque sumiu: ${id}`);
-  const { shapes } = ex.build();
+  const { shapes } = await ex.build();
   const t = projectThumbnail(shapes, 192, 128, 8);
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${t.viewBox}" role="img" aria-label="${ex.title}">` +

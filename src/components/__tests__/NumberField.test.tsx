@@ -35,4 +35,19 @@ describe("NumberField", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     expect(blur).toHaveBeenCalled();
   });
+  it("shows external dimensions when idle and preserves an in-progress edit", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(<NumberField label="Width" value={40} onChange={onChange} testId="f" />);
+    const input = screen.getByTestId("f");
+    rerender(<NumberField label="Width" value={60} onChange={onChange} testId="f" />);
+    expect(input).toHaveValue(60);
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "100" } });
+    rerender(<NumberField label="Width" value={80} onChange={onChange} testId="f" />);
+    expect(input).toHaveValue(100);
+    fireEvent.blur(input);
+    expect(onChange).toHaveBeenLastCalledWith(100);
+    expect(input).toHaveValue(80);
+  });
+
 });

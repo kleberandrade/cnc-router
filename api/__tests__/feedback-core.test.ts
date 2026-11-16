@@ -107,4 +107,20 @@ describe("feedback core", () => {
     expect(saved).toHaveLength(0);
   });
 
+  it("returns a generated reference id when no id provider is injected", async () => {
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.123456789);
+    try {
+      const res = await handleFeedback(req(good), { ...deps, id: undefined });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.id).toMatch(/^[a-z0-9]{9}$/);
+      expect(JSON.parse(saved[0].body).id).toBe(body.id);
+    } finally { random.mockRestore(); }
+  });
+  it("allows an exact validation byte budget and rejects one byte over", () => {
+    expect(validate(good, 100, 100)).toBeNull();
+    expect(validate(good, 100, 101)).toMatch(/grande/);
+    expect(validate(good, 0)).toBeNull();
+  });
+
 });

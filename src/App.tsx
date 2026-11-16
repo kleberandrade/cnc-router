@@ -15,6 +15,7 @@ import { Tour, tourDone } from "./components/Tour";
 import { useProjectStore } from "./state/store";
 import { AskHost } from "./components/Dialog";
 import { DropImport } from "./components/DropImport";
+import { openExampleById } from "./components/importEntry";
 import { DrawingWorkspace } from "./components/DrawingWorkspace";
 import { AnalysisWorkspace } from "./components/AnalysisWorkspace";
 import { Timeline } from "./components/Timeline";
@@ -61,7 +62,7 @@ function App() {
     if (!exemplo && !galeria) return;
     history.replaceState(null, "", window.location.pathname + window.location.hash);
     if (exemplo) {
-      void import("./components/importEntry").then(({ openExampleById }) => openExampleById(exemplo));
+      void openExampleById(exemplo);
     } else if (galeria === "1") {
       useUiStore.getState().setGalleryOpen(true);
     }

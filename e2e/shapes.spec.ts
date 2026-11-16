@@ -62,6 +62,7 @@ test.describe("shapes & canvas editing (sprint 09)", () => {
     await page.mouse.down();
     await page.mouse.move(rightMid.x + 20 * scale, rightMid.y, { steps: 6 });
     await page.mouse.up();
+    await expect.poll(async () => Number(await page.getByTestId("shape-width").inputValue())).toBeGreaterThan(55);
     const w = Number(await page.getByTestId("shape-width").inputValue());
     expect(w).toBeGreaterThan(55);
     expect(w).toBeLessThan(65);

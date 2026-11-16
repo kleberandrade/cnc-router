@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { parseNumberInput } from "../lib/numberInput";
 
 interface Props {
@@ -17,19 +17,21 @@ interface Props {
   hint?: string;
 }
 
+/** Translate stepping keys without coupling keyboard policy to component state. */
+function stepDelta(key: string, step: number, shift: boolean): number | undefined {
+  const direction = key === "ArrowUp" ? 1 : key === "ArrowDown" ? -1 : undefined;
+  return direction === undefined ? undefined : direction * step * (shift ? 10 : 1);
+}
+
 /**
  * Numeric input that never pushes an invalid value to the store:
  * empty/invalid text keeps the last valid value (restored on blur / Enter).
  * Arrow keys step by `step` (×10 with Shift).
  */
 export function NumberField({ label, value, onChange, unit, min, max, step = 1, badge, testId, disabled, hint }: Props) {
-  const [text, setText] = useState(String(value));
-  const [focused, setFocused] = useState(false);
-
-  // Sync from store when not editing.
-  useEffect(() => {
-    if (!focused) setText(String(value));
-  }, [value, focused]);
+  // A draft exists only while editing. External updates render directly when idle,
+  // so a delayed effect cannot overwrite a newly focused/filled field.
+  const [draft, setDraft] = useState<string | null>(null);
 
   const commit = (raw: string) => {
     const v = parseNumberInput(raw, value, { min, max });
@@ -47,30 +49,30 @@ export function NumberField({ label, value, onChange, unit, min, max, step = 1, 
         <input
           type="number"
           inputMode="decimal"
-          value={text}
+          value={draft ?? String(value)}
           min={min}
           max={max}
           step={step}
           disabled={disabled}
           data-testid={testId}
-          onFocus={() => setFocused(true)}
+          onFocus={() => setDraft(String(value))}
           onChange={(e) => {
-            setText(e.target.value);
+            setDraft(e.target.value);
             commit(e.target.value);
           }}
           onBlur={() => {
-            setFocused(false);
-            setText(String(commit(text)));
+            commit(draft ?? String(value));
+            setDraft(null);
           }}
           onKeyDown={(e) => {
+            const delta = stepDelta(e.key, step, e.shiftKey);
             if (e.key === "Enter") {
               (e.target as HTMLInputElement).blur();
-            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            } else if (delta !== undefined) {
               e.preventDefault();
-              const delta = (e.key === "ArrowUp" ? 1 : -1) * step * (e.shiftKey ? 10 : 1);
               const next = Math.round((value + delta) * 1000) / 1000;
               const v = parseNumberInput(String(next), value, { min, max });
-              setText(String(v));
+              setDraft(String(v));
               if (v !== value) onChange(v);
             }
           }}

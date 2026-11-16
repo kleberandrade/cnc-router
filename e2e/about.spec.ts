@@ -4,6 +4,7 @@ test.describe("sprint 19: versão, Sobre, Novidades", () => {
   test("version is visible in the status bar and menu; About shows author; News lists changelog entries", async ({ page }) => {
     await page.goto("/app/");
     await expect(page.getByTestId("status-version")).toHaveText(/^v\d+\.\d+\.\d+$/);
+    const version = (await page.getByTestId("status-version").innerText()).slice(1);
     await page.getByTestId("project-menu").click();
     await expect(page.getByTestId("menu-version")).toContainText("Oficina CNC v");
     await page.getByTestId("menu-about").click();
@@ -14,7 +15,7 @@ test.describe("sprint 19: versão, Sobre, Novidades", () => {
     await page.getByTestId("menu-news").click();
     await expect(page.getByTestId("news")).toBeVisible();
     await expect(page.locator(".news-entry")).toHaveCount(3);
-    await expect(page.locator(".news-entry").first()).toContainText(/Sprint \d+/);
+    await expect(page.locator(".news-entry").first()).toContainText(version);
   });
   test("exported G-code starts with product, version and author", async ({ page }) => {
     await page.goto("/app/");
