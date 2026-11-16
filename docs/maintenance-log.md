@@ -97,3 +97,15 @@ Publication was authorized after passing relevant checks; the delivery message r
   (91.40% lines). Full browser suite: 145 passed, two intentional tablet skips.
   The explicit software-WebGL latency test passed with outer retries disabled;
   its drawing-workspace measurement was 176 ms in this full local run.
+
+- CI run 43797129030 passed its latency gate on the first attempt (drawing workspace
+  80 ms), but log review found a different camera-view test flaky: its fixed 500 ms
+  sleep expired before a software-rendered animation reached the top view. Replaced
+  fixed waits with assertions polling the rendered camera orientation, and added
+  `failOnFlakyTests` in CI so a passing retry cannot silently approve any flaky test.
+
+- After camera-readiness assertions and strict flaky handling, the full local
+  browser suite passed again: 145 passed, two platform-specific skips. TypeScript
+  and focused lint checks passed. Vite development startup on isolated localhost
+  port 5187 returned HTTP 200 for /app/; that temporary server was then stopped.
+  This final change affects tests/configuration/documentation, not machining logic.

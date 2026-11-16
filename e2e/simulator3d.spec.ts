@@ -42,20 +42,22 @@ test.describe("realistic simulator (sprint 10)", () => {
     const cam = () => page.evaluate(() => (window as unknown as { __simCam?: number[] }).__simCam ?? [0, 0, 0]);
     // from the default iso view the FRENTE face is visible → click it
     await page.getByTestId("viewcube-front").click({ force: true });
-    await page.waitForTimeout(500);
-    const front = await cam();
-    expect(front[1]).toBeLessThan(0);
-    expect(Math.abs(front[2])).toBeLessThan(Math.abs(front[1]) * 0.1);
+    await expect.poll(async () => {
+      const [, y, z] = await cam();
+      return y < 0 && Math.abs(z) < Math.abs(y) * 0.1;
+    }).toBe(true);
     await page.getByTestId("sim-top").click();
-    await page.waitForTimeout(500);
-    const top = await cam();
-    expect(Math.abs(top[2])).toBeGreaterThan(Math.abs(top[1]) * 10); // looking straight down
+    await expect.poll(async () => {
+      const [, y, z] = await cam();
+      return Math.abs(z) > Math.abs(y) * 10; // looking straight down
+    }).toBe(true);
     await page.getByTestId("viewcube-ortho").click({ force: true });
     await expect(page.getByTestId("viewcube-ortho")).toHaveAttribute("aria-pressed", "true");
     await page.getByTestId("viewcube-home").click({ force: true });
-    await page.waitForTimeout(400);
-    const iso = await cam();
-    expect(iso[2]).toBeGreaterThan(0);
+    await expect.poll(async () => {
+      const [x, y, z] = await cam();
+      return x > 0 && y < 0 && z > 0 && z < Math.abs(y) * 2;
+    }).toBe(true);
   });
 
   test("tool type can be changed (V-bit shows angle field)", async ({ page }) => {

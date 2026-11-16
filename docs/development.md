@@ -61,7 +61,9 @@ viewport or camera changes; a paused unchanged scene does not draw continuously.
 `e2e/simulator-idle.spec.ts` counts real WebGL calls without replacing rendering.
 The INP proxy uses SwiftShader software WebGL, the original 200 ms limit and 4× CPU
 throttling on both local and CI runs. That test has no workflow retries; its three
-internal samples retain the original measurement policy.
+internal samples retain the original measurement policy. CI fails on any flaky
+result even when a retry passes; camera tests await rendered orientation instead
+of assuming a fixed animation duration on every GPU.
 
 Generated reports belong in ignored `.metrics/`, coverage and `target/` folders.
 The maintenance log records the scope/results; a score on one file is not a
