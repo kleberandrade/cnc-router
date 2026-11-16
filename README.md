@@ -12,11 +12,23 @@ routers, created by **Kleber Andrade**. Draw parts, configure stock and tooling,
 preview toolpaths in 3D, and export G-code for GRBL, Marlin or LinuxCNC/Mach3.
 The product interface is in Brazilian Portuguese; contributor documentation is in English.
 
+[Open Oficina CNC](https://oficina-cnc.vercel.app/app/)
+
 The editor and CAM engine run locally in the browser. Optional feedback uses a
 Vercel Function and private Blob storage; analytics and performance integrations
 are also included. No account is required. The source is publicly available on
 [GitHub](https://github.com/kleberandrade/cnc-router); see the completed
 [publication review](docs/security-review.md).
+
+## Screenshots
+
+Draw and arrange parts in the 2D editor, with stock, dimensions and machining settings.
+
+![Oficina CNC editor showing a cutting board with engraved text and a handle](public/landing/hero-editor.webp)
+
+Preview the toolpath and material removal in the 3D simulator before exporting G-code.
+
+![Oficina CNC 3D simulator showing the tool, stock and machining timeline](public/landing/hero-simulador.webp)
 
 ## Requirements
 
