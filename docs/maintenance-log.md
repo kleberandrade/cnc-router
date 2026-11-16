@@ -205,3 +205,16 @@ Publication was authorized after passing relevant checks; the delivery message r
   Vercel analytics script notices from the static landing page. All 484 unit tests
   passed with coverage gates (91.40% lines), and 13 focused browser checks passed
   for product metadata, SEO, persistence, simulation, sheets and G-code export.
+
+- The first production deployment (`fd5b1cc`, 0.35.5) reached Ready and passed the
+  live editor/simulator/export checks, but GET/OPTIONS on feedback returned 504.
+  Vercel runtime logs explicitly reported that a plain default `(req, res)` handler
+  ignores returned Web `Response` objects. Three new entry-point regression checks
+  failed with `default.fetch is not a function` before the fix.
+- Patch 0.35.6 uses the documented `export default { fetch }` entry contract;
+  the core validation/stream/storage rules remain unchanged. Regression tests mock
+  Blob storage and verify no writes for configuration, method and preflight checks.
+- Local 0.35.6 checks passed: build, lint (18 existing warnings), all 487 unit tests
+  in 73 files with unchanged passing coverage, and all 13 focused browser checks.
+  The 0.35.5 full CI also passed while this production-only integration issue was
+  reproduced; a local preview cannot exercise Vercel's function entry contract.

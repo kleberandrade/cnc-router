@@ -1,3 +1,11 @@
+## [0.35.6 — Maintenance — Send feedback responses through the Vercel Web handler] — 2026-11-16
+
+- Export the feedback endpoint with Vercel's `fetch` Web Standard contract so
+  returned responses reach the client instead of timing out under the legacy
+  default-function signature. Preserve validation, byte limits and private storage.
+- Reproduce the entry-point mismatch with regression checks for unavailable
+  configuration, production-origin preflight and method rejection, without storage writes.
+
 ## [0.35.5 — Maintenance — Use the existing production domain] — 2026-11-16
 
 - Point product links, SEO metadata, sitemap, generated program/sheet attribution

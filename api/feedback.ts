@@ -21,7 +21,6 @@ async function handler(req: Request): Promise<Response> {
   });
 }
 
-export const POST = handler;
-export const OPTIONS = handler;
-export const GET = handler;
-export default handler;
+// A plain default function uses Vercel's legacy (req, res) signature, which ignores
+// returned Web Responses. The fetch export preserves the Request/Response contract.
+export default { fetch: handler };
