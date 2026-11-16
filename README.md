@@ -14,15 +14,16 @@ The product interface is in Brazilian Portuguese; contributor documentation is i
 
 The editor and CAM engine run locally in the browser. Optional feedback uses a
 Vercel Function and private Blob storage; analytics and performance integrations
-are also included. No account is required. The source repository remains private
-pending completion of its [visibility review](docs/security-review.md).
+are also included. No account is required. The source is publicly available on
+[GitHub](https://github.com/kleberandrade/cnc-router); see the completed
+[publication review](docs/security-review.md).
 
 ## Requirements
 
 - Node.js **26.13.1** (recommended, `.nvmrc`) or supported Node **24.22.3+** within v24.
 - npm **11+**; use npm and the committed `package-lock.json`.
 - A modern browser with Canvas, Web Workers and WebGL. Playwright uses Chromium.
-- Git for cloning. Repository access is currently required.
+- Git for cloning.
 
 ## Install and quick start
 
@@ -103,7 +104,7 @@ For an existing Chromium, set `PW_CHROMIUM_PATH` to its absolute executable path
 
 [CI](.github/workflows/ci.yml) runs unit coverage, lint, dependency auditing, the
 executable example, production build and Chromium E2E on pushes to `main` and PRs.
-The CI badge is live; private-repository badges may require authentication.
+The CI badge shows the latest workflow result on `main`.
 See the [maintenance log](docs/maintenance-log.md) for actual local results and limits.
 
 ## Architecture and contributing

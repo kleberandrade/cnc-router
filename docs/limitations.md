@@ -30,5 +30,6 @@
   byte budget. They are not executable project validation or authenticated evidence.
   Retention and deletion are operator tasks; no scheduled cleanup is implemented.
 - Dependency audit has four low-severity development-tree alerts from deepmerge.
-  Publication review is incomplete because historical Actions logs expired; the
-  repository remains private. Scanner silence cannot prove absence of sensitive data.
+  These are maintenance findings, not publication blockers. The completed
+  [publication review](security-review.md) records its scope and evidence limits;
+  scanner silence cannot prove absence of sensitive data.

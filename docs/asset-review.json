@@ -1,0 +1,1053 @@
+{
+  "reviewDate": "2026-11-16",
+  "baselineCommit": "9f702850b49e64837c98e77593116f4182f12526",
+  "reachableCommits": 41,
+  "uniqueBlobs": 1125,
+  "counts": {
+    "font": 2,
+    "pgm": 2,
+    "png": 73,
+    "svg": 19,
+    "webp": 7
+  },
+  "method": "Deduplicate all reachable Git trees by blob ID; inspect raster overviews and targeted originals, OCR PNG/WebP originals, inspect SVG source and raster metadata, verify font and starter licenses. See security-review.md for scope and limitations.",
+  "viteSourceCommit": "c11a671c2af3a0fa8db8345e684798a91fa105d7",
+  "assets": [
+    {
+      "blob": "ae2c2d4368cd43af31c8bc80eb3fb4c61dfdd408",
+      "paths": [
+        "public/fonts/Inter-Bold.ttf"
+      ],
+      "format": "font",
+      "bytes": 344072,
+      "provenance": "Inter Project Authors; embedded font name/license metadata",
+      "license": "OFL-1.1; public/fonts/OFL-Inter.txt"
+    },
+    {
+      "blob": "9a53a64e570218c116ccc5712bd9df613411622e",
+      "paths": [
+        "public/fonts/Inter-Regular.ttf"
+      ],
+      "format": "font",
+      "bytes": 342408,
+      "provenance": "Inter Project Authors; embedded font name/license metadata",
+      "license": "OFL-1.1; public/fonts/OFL-Inter.txt"
+    },
+    {
+      "blob": "4a7cc57fd074d7d31b79c3913ddef5371702688d",
+      "paths": [
+        "public/examples/raposa.pgm"
+      ],
+      "format": "pgm",
+      "bytes": 36015,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "25ba99572539fbcf65544259abbf08b0b414f5f5",
+      "paths": [
+        "public/examples/relevo-oficina.pgm"
+      ],
+      "format": "pgm",
+      "bytes": 15015,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "4db0b79b446ea24760e69e926719c9f2b35b8503",
+      "paths": [
+        "docs/sprints/img/sprint-18-antes-1600.png"
+      ],
+      "format": "png",
+      "bytes": 206154,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "e62f299568f74ba59ecf67506bdb23b065908886",
+      "paths": [
+        "docs/sprints/img/sprint-18-depois-1280-mais.png"
+      ],
+      "format": "png",
+      "bytes": 132572,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "ed36ad5341f75c734ce3c8e64bd794e8ec4d63fe",
+      "paths": [
+        "docs/sprints/img/sprint-18-depois-1600.png"
+      ],
+      "format": "png",
+      "bytes": 208949,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "6a7cc3e31e71be96a6b515f80346807d68cfc9fd",
+      "paths": [
+        "docs/sprints/img/sprint-19-novidades.png"
+      ],
+      "format": "png",
+      "bytes": 206457,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "fc5d4db353c23a905a98670298d607dc3c51b1f4",
+      "paths": [
+        "docs/sprints/img/sprint-19-sobre.png"
+      ],
+      "format": "png",
+      "bytes": 170356,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "1003b5b3a37c7377360232f1953bf0b76e67f4af",
+      "paths": [
+        "docs/sprints/img/sprint-20-feedback.png"
+      ],
+      "format": "png",
+      "bytes": 162284,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "350b5d4dffef1076f75e52f45ad287ca61de8600",
+      "paths": [
+        "docs/sprints/img/sprint-21-empty.png"
+      ],
+      "format": "png",
+      "bytes": 158883,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "53486b53cb91802e288a98242a23f50b5cf0d3ee",
+      "paths": [
+        "docs/sprints/img/sprint-21-exemplo.png"
+      ],
+      "format": "png",
+      "bytes": 122426,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "2b796912ed7df9eb0518614640f2246131baa352",
+      "paths": [
+        "docs/sprints/img/sprint-21-tour.png"
+      ],
+      "format": "png",
+      "bytes": 171313,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "c45c5700821cc7d60eebc3f6f12afd4a57ed5298",
+      "paths": [
+        "docs/sprints/img/sprint-22-fusion.png"
+      ],
+      "format": "png",
+      "bytes": 146502,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "7e96018b3d8cc8acf98af219d2609c0ef7c45080",
+      "paths": [
+        "docs/sprints/img/sprint-22-usinagem.png"
+      ],
+      "format": "png",
+      "bytes": 129759,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "033bd6394a5f8ffe43d5e6e433f22eb625235455",
+      "paths": [
+        "docs/sprints/img/sprint-23-aluminio.png"
+      ],
+      "format": "png",
+      "bytes": 145808,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "ff8838d031a0882a8e2545ba23fc23d907116b75",
+      "paths": [
+        "docs/sprints/img/sprint-23-dialogo.png"
+      ],
+      "format": "png",
+      "bytes": 28981,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "0bdf03fc0a6856822b9706dd97488221e870b05f",
+      "paths": [
+        "docs/sprints/img/sprint-23-origem-timeline.png"
+      ],
+      "format": "png",
+      "bytes": 129008,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "d037bcc18b69bd11c2f502f1f79b1b732166bfe7",
+      "paths": [
+        "docs/sprints/img/sprint-24-empty.png"
+      ],
+      "format": "png",
+      "bytes": 182127,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "1ee815f711d95924294f0161ee35cf789bc0c527",
+      "paths": [
+        "docs/sprints/img/sprint-24-galeria.png"
+      ],
+      "format": "png",
+      "bytes": 210458,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "ab78e100b5f7ec92517d44ec6068bbeacba8e65e",
+      "paths": [
+        "docs/sprints/img/sprint-24-raposa.png"
+      ],
+      "format": "png",
+      "bytes": 156720,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "f1f270749752825ef5cf14564dede67d0d092c43",
+      "paths": [
+        "docs/sprints/img/sprint-24-spfc.png"
+      ],
+      "format": "png",
+      "bytes": 150243,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "8b9cc3d3d9834adeb3b42363ce4ca640765af8f7",
+      "paths": [
+        "docs/sprints/img/sprint-24-submenu.png"
+      ],
+      "format": "png",
+      "bytes": 72954,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "86018ece401743808cbbf9271e05b412dbb883dc",
+      "paths": [
+        "docs/sprints/img/sprint-25-engrenagens.png"
+      ],
+      "format": "png",
+      "bytes": 224212,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "c890b02ea22cabec860167d180b8ad87161376b7",
+      "paths": [
+        "docs/sprints/img/sprint-25-galeria.png"
+      ],
+      "format": "png",
+      "bytes": 261648,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "be0d278555e2a85b4ed2bb06a63d7d13913118fd",
+      "paths": [
+        "docs/sprints/img/sprint-25-galeria.png"
+      ],
+      "format": "png",
+      "bytes": 249414,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "8e465fd25a4a4984727d0fa20c5057ca2a61bc6c",
+      "paths": [
+        "docs/sprints/img/sprint-25-importar.png"
+      ],
+      "format": "png",
+      "bytes": 241351,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "9019c180edb54623cad6658908f2fb9f31825253",
+      "paths": [
+        "docs/sprints/img/sprint-25-numero-casa.png"
+      ],
+      "format": "png",
+      "bytes": 226779,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "63cd2138552004989803dfaeda852518acec90e5",
+      "paths": [
+        "docs/sprints/img/sprint-25-raposa-sim.png"
+      ],
+      "format": "png",
+      "bytes": 160764,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "de30339a777fb393e862e2deaf3dfbfbc0817b8d",
+      "paths": [
+        "docs/sprints/img/sprint-25-raposa.png"
+      ],
+      "format": "png",
+      "bytes": 230382,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "c222543005627688c4875894c2fce1a559093b48",
+      "paths": [
+        "docs/sprints/img/sprint-25-relevo-sim.png"
+      ],
+      "format": "png",
+      "bytes": 148318,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "68070d43b6ecc5a4302004baae8ef2b6acaa04ce",
+      "paths": [
+        "docs/sprints/img/sprint-25-relevo.png"
+      ],
+      "format": "png",
+      "bytes": 215010,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "0b15b5b1c0d34c77fa71426b1b15e3118c49ffd9",
+      "paths": [
+        "docs/sprints/img/sprint-25-relogio-parede.png"
+      ],
+      "format": "png",
+      "bytes": 248566,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "24a005baed605201420670e4bf0c2c2e69ffb57a",
+      "paths": [
+        "docs/sprints/img/sprint-26-bandeja-divisorias.png"
+      ],
+      "format": "png",
+      "bytes": 227503,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "1b980e25f7043f02ee43015213b80a74c60946b2",
+      "paths": [
+        "docs/sprints/img/sprint-26-caixa-dedos.png"
+      ],
+      "format": "png",
+      "bytes": 222404,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "c73447c75285211e81098bd0df26ac71439675c9",
+      "paths": [
+        "docs/sprints/img/sprint-26-descanso-panela.png"
+      ],
+      "format": "png",
+      "bytes": 252517,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "39601a8159d29f42ca5ab0e79c4313472399a64a",
+      "paths": [
+        "docs/sprints/img/sprint-26-dobradica-viva.png"
+      ],
+      "format": "png",
+      "bytes": 229130,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "e2d8fd98a91870af774b3810b3e7c94c5db3b996",
+      "paths": [
+        "docs/sprints/img/sprint-26-filtro.png"
+      ],
+      "format": "png",
+      "bytes": 284285,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "85ddb1f547483bcfcfd066f2911894af95a97d08",
+      "paths": [
+        "docs/sprints/img/sprint-26-gabarito-32.png"
+      ],
+      "format": "png",
+      "bytes": 229097,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "0604ef5b6ff441268bb25f00e6659ad554a3c8b1",
+      "paths": [
+        "docs/sprints/img/sprint-26-galeria.png"
+      ],
+      "format": "png",
+      "bytes": 290505,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "fb319f6446a5707060d3b6ed5b9e4a5828b3f5f4",
+      "paths": [
+        "docs/sprints/img/sprint-26-pratinho-relevo.png"
+      ],
+      "format": "png",
+      "bytes": 233474,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "1d0505872e0694f3d7d64e8d960816d529c7a5ee",
+      "paths": [
+        "docs/sprints/img/sprint-26-pratinho-sim.png"
+      ],
+      "format": "png",
+      "bytes": 163229,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "d7ea095483e6a409780da9a49c822ce57a60fe9f",
+      "paths": [
+        "docs/sprints/img/sprint-26-suporte-celular.png"
+      ],
+      "format": "png",
+      "bytes": 210411,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "b4685b63d209358d3d06ca86a959e8ef8f24cf3e",
+      "paths": [
+        "docs/sprints/img/sprint-26-suporte-celular.png"
+      ],
+      "format": "png",
+      "bytes": 215153,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "fe930ea8739cb37ee8360e4d718f66089b19f0b6",
+      "paths": [
+        "docs/sprints/img/sprint-26-tabua-carnes.png"
+      ],
+      "format": "png",
+      "bytes": 214302,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "9bd6a4d83246c61e122f91ddf42c5c778e37e073",
+      "paths": [
+        "docs/sprints/img/sprint-28-explodir-texto.png"
+      ],
+      "format": "png",
+      "bytes": 140656,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "b142ab0d1291fb302335ba6e75c812c7a42dbd93",
+      "paths": [
+        "docs/sprints/img/sprint-28-flange-editor.png"
+      ],
+      "format": "png",
+      "bytes": 117506,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "b9f93dbe7cb7e4bc4c4a9da01aee8b918a82f855",
+      "paths": [
+        "docs/sprints/img/sprint-28-import-dxf.png"
+      ],
+      "format": "png",
+      "bytes": 38090,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "9dab670b1927dc168434940527b0352f2bbedb84",
+      "paths": [
+        "docs/sprints/img/sprint-29-desenho-alca.png"
+      ],
+      "format": "png",
+      "bytes": 30241,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "b9d88e6662c208217953ec8477adc90fbd6421a1",
+      "paths": [
+        "docs/sprints/img/sprint-29-desenho-tabua.png"
+      ],
+      "format": "png",
+      "bytes": 27863,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "d2ee7938a414ca164a9a5d7f55efd45039a587fb",
+      "paths": [
+        "docs/sprints/img/sprint-29-drop.png"
+      ],
+      "format": "png",
+      "bytes": 94157,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "6d293be409dcc299963d716946b75526fbf91f61",
+      "paths": [
+        "docs/sprints/img/sprint-29-folha-oficina.png"
+      ],
+      "format": "png",
+      "bytes": 105804,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "319f2b5c9c1b28489eef22c6022a69d6374dcd87",
+      "paths": [
+        "docs/sprints/img/sprint-29-imprimir.png"
+      ],
+      "format": "png",
+      "bytes": 46459,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "45a71b74913a064bca54f4640b4faf6098db0bd3",
+      "paths": [
+        "docs/sprints/img/sprint-30-desenho-workspace.png"
+      ],
+      "format": "png",
+      "bytes": 89732,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "4e69cb0a3fb73944476246d13b1e73594ab6c2d4",
+      "paths": [
+        "docs/sprints/img/sprint-30-estacoes.png"
+      ],
+      "format": "png",
+      "bytes": 52205,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "6dab3938dc4c20e94089283f34ba369de4513096",
+      "paths": [
+        "docs/sprints/img/sprint-30-folha-workspace.png"
+      ],
+      "format": "png",
+      "bytes": 129575,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "0dc59278f4bacab3f48b626741292a83707c6601",
+      "paths": [
+        "docs/sprints/img/sprint-31-peca-3d.png"
+      ],
+      "format": "png",
+      "bytes": 103864,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "04c0189560bb18f9f37bfe9fa060ae9e7ebf5cf5",
+      "paths": [
+        "docs/sprints/img/sprint-31-prateleira.png"
+      ],
+      "format": "png",
+      "bytes": 101851,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "3a39c35958420ab63f4237912f06679ffb3c5817",
+      "paths": [
+        "docs/sprints/img/sprint-31-von-mises.png"
+      ],
+      "format": "png",
+      "bytes": 340905,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "8d3f419ddc5e03c0049b674d9cfec3d691aa2065",
+      "paths": [
+        "docs/sprints/img/sprint-32-landing-cover.png"
+      ],
+      "format": "png",
+      "bytes": 332806,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "008f8855653eeb588072be32861e236e048f8415",
+      "paths": [
+        "docs/sprints/img/sprint-32-landing-cover.png"
+      ],
+      "format": "png",
+      "bytes": 314308,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "427b2e93023c1791d018eaed5a50d05ad3401413",
+      "paths": [
+        "docs/sprints/img/sprint-32-landing-dark.png"
+      ],
+      "format": "png",
+      "bytes": 308460,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "98fc1e93480066238b9119baa0351382476f64bd",
+      "paths": [
+        "docs/sprints/img/sprint-32-landing-full.png"
+      ],
+      "format": "png",
+      "bytes": 1161928,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "2a9d798c6a464d1f3b19359fe29121ce2b60add9",
+      "paths": [
+        "docs/sprints/img/sprint-32-landing-nav.png"
+      ],
+      "format": "png",
+      "bytes": 141306,
+      "provenance": "Oficina CNC application screenshot or generated technical sheet; cross-checked against sprint/source history",
+      "license": "Original project work under MIT; third-party font/icon/trademark rights retained"
+    },
+    {
+      "blob": "2ed4f5c06c0142245fb0a7476c4b4f506ac72342",
+      "paths": [
+        "public/examples/raposa.png"
+      ],
+      "format": "png",
+      "bytes": 3252,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "eef6b04852f26907ade85e4a266c2269c05f081c",
+      "paths": [
+        "public/examples/relevo-oficina.png"
+      ],
+      "format": "png",
+      "bytes": 9760,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "fe7da06e181eee68fd0a32f91f637b171c465156",
+      "paths": [
+        "public/icons/apple-touch-icon.png"
+      ],
+      "format": "png",
+      "bytes": 5435,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "54324cac8cb102ae128f87525a481129e3fd8198",
+      "paths": [
+        "public/icons/apple-touch-icon.png"
+      ],
+      "format": "png",
+      "bytes": 851,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "450d3bdb9726ac57b48d78ff4c5e64144ea27c29",
+      "paths": [
+        "public/icons/icon-192.png"
+      ],
+      "format": "png",
+      "bytes": 5929,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "eb18f55ad2031387b03080cdf8b148721870edd0",
+      "paths": [
+        "public/icons/icon-192.png"
+      ],
+      "format": "png",
+      "bytes": 917,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "63b15caaada704f09421eed9d480db9ff81152c4",
+      "paths": [
+        "public/icons/icon-512-maskable.png"
+      ],
+      "format": "png",
+      "bytes": 11423,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "668e4beea5a47952db3c3f63cae396a3ad6d1ede",
+      "paths": [
+        "public/icons/icon-512-maskable.png"
+      ],
+      "format": "png",
+      "bytes": 2866,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "41a248b2810cfd69120a813fcad9c01d0677136e",
+      "paths": [
+        "public/icons/icon-512.png"
+      ],
+      "format": "png",
+      "bytes": 17494,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "93dabbe5e55c8fed7f7f546a0fc009a9f64aebcf",
+      "paths": [
+        "public/icons/icon-512.png"
+      ],
+      "format": "png",
+      "bytes": 2892,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "a19d354777fe52046017867df4b30c2278c4f8f8",
+      "paths": [
+        "public/og-image.png"
+      ],
+      "format": "png",
+      "bytes": 45016,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "64e915414f9b1ed5ff62278db93e92bb11ea3fd0",
+      "paths": [
+        "public/og-image.png"
+      ],
+      "format": "png",
+      "bytes": 46072,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "02251f4b956c55af2d76fd0788124d7eee2b45eb",
+      "paths": [
+        "src/assets/hero.png"
+      ],
+      "format": "png",
+      "bytes": 13057,
+      "provenance": "create-vite React TypeScript template; exact upstream blob match",
+      "license": "MIT; trademarks retained",
+      "source": "https://github.com/vitejs/vite/blob/c11a671c2af3a0fa8db8345e684798a91fa105d7/packages/create-vite/template-react-ts/src/assets/hero.png"
+    },
+    {
+      "blob": "dbd1ee2bde973b6383398671e265fe2f32a5c6fb",
+      "paths": [
+        "public/examples/gato.svg"
+      ],
+      "format": "svg",
+      "bytes": 609,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "5760189c8c5a96c475d17bf65857c3c1ad6b63ad",
+      "paths": [
+        "public/examples/pata.svg"
+      ],
+      "format": "svg",
+      "bytes": 1015,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "50b2035b3adcb51bbd2c1d747e3a23e7853ce3ff",
+      "paths": [
+        "public/examples/raposa.svg"
+      ],
+      "format": "svg",
+      "bytes": 723,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "8bcd0cc98875e7c550253fd73d0926ca282deb28",
+      "paths": [
+        "public/favicon.svg",
+        "public/icons/icon.svg"
+      ],
+      "format": "svg",
+      "bytes": 603,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "6893eb13237060adc0c968a690149a49faa2d7d3",
+      "paths": [
+        "public/favicon.svg"
+      ],
+      "format": "svg",
+      "bytes": 9522,
+      "provenance": "create-vite React TypeScript template; exact upstream blob match",
+      "license": "MIT; trademarks retained",
+      "source": "https://github.com/vitejs/vite/blob/c11a671c2af3a0fa8db8345e684798a91fa105d7/packages/create-vite/template-react-ts/public/favicon.svg"
+    },
+    {
+      "blob": "48cc0a02d028e8c4115af0e12400280e6ea4f7e5",
+      "paths": [
+        "public/icons.svg"
+      ],
+      "format": "svg",
+      "bytes": 3511,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "e9522193d9f796a9748e9ad8c952a5df73c87db9",
+      "paths": [
+        "public/icons.svg"
+      ],
+      "format": "svg",
+      "bytes": 5031,
+      "provenance": "create-vite React TypeScript template; exact upstream blob match",
+      "license": "MIT; trademarks retained",
+      "source": "https://github.com/vitejs/vite/blob/c11a671c2af3a0fa8db8345e684798a91fa105d7/packages/create-vite/template-react-ts/public/icons.svg"
+    },
+    {
+      "blob": "c517fcd3a536c4f19903a4f94be4158254fe7de5",
+      "paths": [
+        "public/icons/icon-maskable.svg"
+      ],
+      "format": "svg",
+      "bytes": 661,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "0376eb10e624f7575932909d6fa930bf84f45294",
+      "paths": [
+        "public/landing/thumb-caixa-dedos.svg"
+      ],
+      "format": "svg",
+      "bytes": 3331,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "e6c336410cd36aed78b08d5371a7618d15b6fe2d",
+      "paths": [
+        "public/landing/thumb-engrenagens.svg"
+      ],
+      "format": "svg",
+      "bytes": 6948,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "8078dd512739bcf61d1a2710db97a275a3a00e0f",
+      "paths": [
+        "public/landing/thumb-numero-casa.svg"
+      ],
+      "format": "svg",
+      "bytes": 4193,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "623a2069dc1b7c1e7f73a020a9530d0fe77d1be4",
+      "paths": [
+        "public/landing/thumb-pratinho-relevo.svg"
+      ],
+      "format": "svg",
+      "bytes": 1142,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "c9809e19307a0eb09fcab7ca102ba37fa2785390",
+      "paths": [
+        "public/landing/thumb-suporte-celular.svg"
+      ],
+      "format": "svg",
+      "bytes": 1171,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "cf4a948a3aacd46f9b5e80512c1a19db8124bf22",
+      "paths": [
+        "public/landing/thumb-tabua-carnes.svg"
+      ],
+      "format": "svg",
+      "bytes": 4079,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "7abb6090134f0ba74cb218f20000f2ced510792d",
+      "paths": [
+        "public/og-image.svg"
+      ],
+      "format": "svg",
+      "bytes": 1400,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "d02a41c7ba3c70607bd0ed1f9dec021a9542ed39",
+      "paths": [
+        "public/og-image.svg"
+      ],
+      "format": "svg",
+      "bytes": 1330,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "6c87de9bb3358469122cc991d5cf578927246184",
+      "paths": [
+        "src/assets/react.svg"
+      ],
+      "format": "svg",
+      "bytes": 4126,
+      "provenance": "create-vite React TypeScript template; exact upstream blob match",
+      "license": "MIT; trademarks retained",
+      "source": "https://github.com/vitejs/vite/blob/c11a671c2af3a0fa8db8345e684798a91fa105d7/packages/create-vite/template-react-ts/src/assets/react.svg"
+    },
+    {
+      "blob": "5101b674df391399da71c767aa5c976426c9dc7a",
+      "paths": [
+        "src/assets/vite.svg"
+      ],
+      "format": "svg",
+      "bytes": 8709,
+      "provenance": "create-vite React TypeScript template; exact upstream blob match",
+      "license": "MIT; trademarks retained",
+      "source": "https://github.com/vitejs/vite/blob/c11a671c2af3a0fa8db8345e684798a91fa105d7/packages/create-vite/template-react-ts/src/assets/vite.svg"
+    },
+    {
+      "blob": "a07cca8768b04c3e062abace96bc6b80938422ef",
+      "paths": [
+        "src/lib/__tests__/fixtures/inkscape-px.svg"
+      ],
+      "format": "svg",
+      "bytes": 421,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "54ac45447937c3ea4a1041f50f081ce9e8881e63",
+      "paths": [
+        "public/landing/folha-a4.webp"
+      ],
+      "format": "webp",
+      "bytes": 54410,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "0c9b0d913a5476455851f1281752faecdc50a447",
+      "paths": [
+        "public/landing/gabarito-11.webp"
+      ],
+      "format": "webp",
+      "bytes": 13858,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "720dec525aa843eb8617571dc725b3eb82ff02b2",
+      "paths": [
+        "public/landing/hero-editor.webp"
+      ],
+      "format": "webp",
+      "bytes": 54932,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "6833ed8008e650a2ce0bd3bfa324317278198978",
+      "paths": [
+        "public/landing/hero-folha.webp"
+      ],
+      "format": "webp",
+      "bytes": 64662,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "65450e2c12b78f4a9cf37706cd2b39697e025c57",
+      "paths": [
+        "public/landing/hero-resistencia.webp"
+      ],
+      "format": "webp",
+      "bytes": 83648,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "a461a24070fe46c0eb604cc7c5a1a6e69144d47a",
+      "paths": [
+        "public/landing/hero-simulador.webp"
+      ],
+      "format": "webp",
+      "bytes": 51068,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    },
+    {
+      "blob": "5350850b9ced7f51b8f0db44e380e60080c32f2e",
+      "paths": [
+        "public/landing/import-dxf.webp"
+      ],
+      "format": "webp",
+      "bytes": 14758,
+      "provenance": "Oficina CNC drawing, generated example/thumbnail, branding or test fixture; cross-checked against source/sprint history",
+      "license": "Original project work under MIT; third-party font/icon rights retained"
+    }
+  ]
+}

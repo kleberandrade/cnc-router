@@ -16,8 +16,8 @@ Date: 2026-11-15 (America/Sao_Paulo).
   duplication at 0.8 in that file. Mutation testing is recorded after completion.
 - Reviewed all fetched branches/tags and scanned history/current files using
   Gitleaks. Examined GitHub surfaces and available Actions logs. Kept visibility
-  private because 17 of 24 run logs have expired (HTTP 410), preventing complete
-  review. See security-review.md for scope and remaining findings.
+  private pending wiki/image review; the initial assessment also incorrectly treated
+  17 expired run logs as a blocker. The completed review below supersedes that decision.
 
 Publication was authorized after passing relevant checks; the delivery message records the final remote commit and CI outcome.
 
@@ -150,3 +150,28 @@ Publication was authorized after passing relevant checks; the delivery message r
   best-of-three value was 120 ms, rectangle add 96 ms, drawing workspace 32 ms,
   with real numeric-key events, the original budget and no outer retry.
   TypeScript and lint passed; no new production warnings or dependency changes.
+
+## Publication review completion — 2026-11-16
+
+- Confirmed the authenticated GitHub wiki is empty (first-page creation screen).
+  Enumerated all 41 reachable commits/1,125 unique blobs at `9f70285`: 1,041 text
+  blobs and 84 binary assets. Reviewed all 103 image/font/SVG blobs, including
+  removed files and older versions; committed a path/blob provenance inventory.
+- Visually inspected all 82 raster images using labelled overviews/targeted originals,
+  OCR-processed 80 PNG/WebP originals, inspected SVG source, raster containers and
+  existing font metadata/licenses. No sensitive image content or identified
+  unauthorized third-party artwork remained. Club screenshots document own geometric
+  teaching examples; historical sources explicitly distinguish them from official art.
+- Matched five historical starter assets byte for byte with pinned official Vite
+  template blobs and retained its MIT notice. Preserved all original images/history.
+- Refreshed GitHub surfaces: 28 runs, 89 available log files, eight artifacts. Expanded
+  embedded Playwright report data/traces; visually reviewed and OCR-processed 71
+  unique raster resources/frames. Trace requests are localhost-only, without auth
+  or cookie headers. Complete text/history scans found no source secrets; the sole
+  remote scanner hit was a temporary clone token in the private owner API response,
+  absent from source/logs/artifacts/images and never committed.
+- Corrected the report: 17 unavailable HTTP-410 logs are an evidence limitation,
+  not a publication blocker. No logs, artifacts, commits or tags were removed.
+  Baseline CI 43801228360 passed 484 unit tests and 146 E2E checks (two intentional
+  tablet skips), with no accepted flaky retry. This follow-up changes documentation
+  and attribution only; runtime and deployment configuration remain unchanged.
