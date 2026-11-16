@@ -1,3 +1,12 @@
+## [0.35.5 — Maintenance — Use the existing production domain] — 2026-11-16
+
+- Point product links, SEO metadata, sitemap, generated program/sheet attribution
+  and non-browser share links to the existing `cnc-router-ten.vercel.app` domain.
+  The previously documented `oficina-cnc.vercel.app` address returns HTTP 404.
+- Explicitly allow the existing production origin in the optional feedback handler,
+  while retaining previous aliases and its validation/storage boundaries.
+- Add editor/simulator screenshots and the working application link to the README.
+
 ## [0.35.4 — Maintenance — Preserve the static editor canvas] — 2026-11-16
 
 - Memoize the table/grid/stock/origin layer independently of part selection and

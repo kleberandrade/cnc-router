@@ -12,7 +12,7 @@ routers, created by **Kleber Andrade**. Draw parts, configure stock and tooling,
 preview toolpaths in 3D, and export G-code for GRBL, Marlin or LinuxCNC/Mach3.
 The product interface is in Brazilian Portuguese; contributor documentation is in English.
 
-[Open Oficina CNC](https://oficina-cnc.vercel.app/app/)
+[Open Oficina CNC](https://cnc-router-ten.vercel.app/app/)
 
 The editor and CAM engine run locally in the browser. Optional feedback uses a
 Vercel Function and private Blob storage; analytics and performance integrations

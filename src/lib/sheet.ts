@@ -216,7 +216,7 @@ export function setupSheet(shapes: Shape[], settings: MachineSettings, derived: 
     (problems.length
       ? `<div class="sheet-warn"><h2>Confira antes de rodar</h2><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`
       : `<p class="sheet-ok">Sem avisos de validação.</p>`) +
-    `<footer>Arquivo: ${esc(settings.projectName ? settings.projectName : "projeto")}.gcode · gerado no navegador em oficina-cnc.vercel.app</footer>` +
+    `<footer>Arquivo: ${esc(settings.projectName ? settings.projectName : "projeto")}.gcode · gerado no navegador em cnc-router-ten.vercel.app</footer>` +
     `</section>`;
 
   return { title: "Folha de oficina", html };

@@ -4,14 +4,14 @@ import { gotoWorkspace } from "./helpers";
 test.describe("SEO", () => {
   test("serves canonical, Open Graph, JSON-LD and brand icon", async ({ page, request }) => {
     await page.goto("/app/");
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://oficina-cnc.vercel.app/app/");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://cnc-router-ten.vercel.app/app/");
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
       "Oficina CNC — desenhe, simule, exporte G-code",
     );
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
-      "https://oficina-cnc.vercel.app/og-image.png",
+      "https://cnc-router-ten.vercel.app/og-image.png",
     );
     await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.svg");
 
@@ -23,13 +23,13 @@ test.describe("SEO", () => {
 
     const robots = await request.get("/robots.txt");
     expect(robots.ok()).toBe(true);
-    expect(await robots.text()).toContain("Sitemap: https://oficina-cnc.vercel.app/sitemap.xml");
+    expect(await robots.text()).toContain("Sitemap: https://cnc-router-ten.vercel.app/sitemap.xml");
 
     const sitemap = await request.get("/sitemap.xml");
     expect(sitemap.ok()).toBe(true);
     const sm = await sitemap.text();
-    expect(sm).toContain("https://oficina-cnc.vercel.app/</loc>");
-    expect(sm).toContain("https://oficina-cnc.vercel.app/app/</loc>");
+    expect(sm).toContain("https://cnc-router-ten.vercel.app/</loc>");
+    expect(sm).toContain("https://cnc-router-ten.vercel.app/app/</loc>");
 
     const og = await request.get("/og-image.png");
     expect(og.ok()).toBe(true);
@@ -37,7 +37,7 @@ test.describe("SEO", () => {
 
   test("landing: canonical próprio, descrição e sem bundle do app", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://oficina-cnc.vercel.app/");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://cnc-router-ten.vercel.app/");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /router CNC de bancada/);
     // a landing não pode carregar o bundle do app
     expect(await page.locator('script[type="module"]').count()).toBe(0);

@@ -7,7 +7,7 @@ export const SHARE_PARAM = "p";
 export const SHARE_MAX_URL = 8000;
 
 /** Build a shareable URL (`#p=<lz-string>`) for the project. */
-export function buildShareUrl(shapes: Shape[], settings: MachineSettings, base = typeof location !== "undefined" ? `${location.origin}${location.pathname}` : "https://oficina-cnc.vercel.app/"): { url: string; length: number; tooLong: boolean } {
+export function buildShareUrl(shapes: Shape[], settings: MachineSettings, base = typeof location !== "undefined" ? `${location.origin}${location.pathname}` : "https://cnc-router-ten.vercel.app/"): { url: string; length: number; tooLong: boolean } {
   const packed = compressToEncodedURIComponent(serializeProject(shapes, settings));
   const url = `${base}#${SHARE_PARAM}=${packed}`;
   return { url, length: url.length, tooLong: url.length > SHARE_MAX_URL };

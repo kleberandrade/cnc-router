@@ -6,7 +6,7 @@ import { handleFeedback } from "./_lib/feedback-core.js";
  * (`feedback/AAAA-MM/<timestamp>-<tipo>-<id>.json`). Requires BLOB_READ_WRITE_TOKEN; without it
  * returns 501 so the app can fall back to e-mail.
  */
-const ORIGINS = ["https://oficina-cnc.vercel.app", "https://cnc-router.vercel.app", "http://localhost:5173", "http://localhost:4173"];
+const ORIGINS = ["https://cnc-router-ten.vercel.app", "https://oficina-cnc.vercel.app", "https://cnc-router.vercel.app", "http://localhost:5173", "http://localhost:4173"];
 
 async function handler(req: Request): Promise<Response> {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {

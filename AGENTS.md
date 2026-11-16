@@ -1,7 +1,7 @@
 # Oficina CNC — agent guide
 
 Product: **Oficina CNC**. npm repository: `cnc-router`. Author: Kleber Andrade
-(`pdjkleber@gmail.com`). Existing production URL: `https://oficina-cnc.vercel.app`.
+(`pdjkleber@gmail.com`). Existing production URL: `https://cnc-router-ten.vercel.app`.
 
 Historical sprint plans/Definition of Done: `docs/sprints/README.md`. Current setup:
 README and `docs/development.md`. Layout: `docs/design-tokens.md`. Optional feedback:

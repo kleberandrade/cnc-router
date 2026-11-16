@@ -3,7 +3,7 @@ export const PRODUCT = {
   name: "Oficina CNC",
   tagline: "Desenhe, simule e exporte G-code no navegador — sem instalar nada.",
   audience: "Para quem tem uma router de hobby ou de pequena oficina (3018, 3040, 6040…) e quer ir do desenho ao G-code sem outro programa.",
-  url: "https://oficina-cnc.vercel.app",
+  url: "https://cnc-router-ten.vercel.app",
   repository: "", // preencher se o repositório for público
   license: "MIT © 2026 Kleber Andrade. Componentes de terceiros mantêm suas próprias licenças.",
 } as const;

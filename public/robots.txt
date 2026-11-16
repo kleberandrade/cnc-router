@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://oficina-cnc.vercel.app/sitemap.xml
+Sitemap: https://cnc-router-ten.vercel.app/sitemap.xml

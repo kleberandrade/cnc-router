@@ -186,3 +186,22 @@ Publication was authorized after passing relevant checks; the delivery message r
   temporary clone-token field. All 41 baseline commits and 18 tag object hashes
   remain intact; no force push or deletions. Existing deployments remained 24;
   Git-triggered deployment stays disabled. This final receipt changes only docs.
+
+## Requested production deployment — 2026-11-16
+
+- The owner explicitly authorized a manual Vercel production deployment and README
+  images after the repository publication. Added references to the already-reviewed
+  editor/simulator WebP assets, without changing their contents.
+- Authenticated dashboard inspection identified the existing `cnc-router` project
+  and `cnc-router-ten.vercel.app` production domain; the previously documented
+  `oficina-cnc.vercel.app` returned HTTP 404. Corrected active product/SEO/share/sheet
+  links and the explicit feedback origin for patch 0.35.5. Historical sprint records
+  and sample program headers retain their original references.
+- Keep Git-triggered deployment disabled and use the project's manual deployment
+  action. No new project, domain purchase, credential change or feedback submission
+  is part of this deployment validation.
+- Local validation for 0.35.5: Node 26.13.1 production build passed; lint retained
+  zero errors/18 existing warnings. The build reports the two existing unbundled
+  Vercel analytics script notices from the static landing page. All 484 unit tests
+  passed with coverage gates (91.40% lines), and 13 focused browser checks passed
+  for product metadata, SEO, persistence, simulation, sheets and G-code export.
