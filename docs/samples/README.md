@@ -1,21 +1,31 @@
-# Amostras de G-code
+# G-code reference samples
 
-Arquivos gerados pelo app, usados como referência de regressão e para conferência visual num visualizador externo (ex.: ncviewer.com).
+These text programs exercise the CAM engine for regression review and external
+simulation. They are not validated machine jobs and must not be sent to hardware
+as part of testing.
 
-| Arquivo | Origem | Uso |
-|---|---|---|
-| `baseline-v0.gcode` | Sprint 00 — retângulo 40×30 contorno 5 mm, círculo r15 pocket 3 mm, triângulo contorno 2 mm, settings padrão | Baseline (regenerado na Sprint 01 com o cabeçalho `; machine … | stock …`): o motor de percurso da Sprint 03 deve reproduzir este arquivo (diff vazio fora do cabeçalho). |
+- `baseline-v0.gcode`: initial rectangle/circle/triangle baseline, retained historically.
+- `baseline-v1.gcode`: the same shapes with multi-pass toolpath ordering and zigzag pockets.
+- `sprint06-compensacao-tabs-rampa.gcode`: compensated outline, inside hole, pocket,
+  holding tabs and ramp entry with a 6 mm cutter.
+- `sprint14-{grbl,marlin}.gcode`, `sprint14-linuxcnc.ngc` and
+  `sprint14-linuxcnc-inch.ngc`: helical pocket entry, peck drilling, tool-change
+  pauses and controller endings; the inch program uses G20 and scaled coordinates.
+- `sprint25-contorno-relevo.gcode`: contour-parallel pocket around an island and a
+  varying-Z 2.5D relief with a ball-nose tool.
 
-| `baseline-v1.gcode` | Sprint 06 — mesmas formas do v0 (sem compensação, `side` indefinido = "na linha") após o novo motor: ordem automática (pocket primeiro), pocket limitado pela forma real + passe de parede | Referência atual de regressão. |
-| `sprint06-compensacao-tabs-rampa.gcode` | Peça 80×60 recorte por fora com 4 tabs, furo Ø20 por dentro, rebaixo 20×15, fresa Ø6, rampa 5° | Conferir visualmente: contorno externo com cantos arredondados a 3 mm da linha, tabs a Z-15,2, ordem rebaixo → furo → recorte. |
+Run from the repository root:
 
-| `sprint14-grbl.gcode` / `sprint14-marlin.gcode` / `sprint14-linuxcnc.ngc` / `sprint14-linuxcnc-inch.ngc` | Sprint 14 — rebaixo 50×30 com hélice de entrada, furação Ø3 com bicadas de 4 mm (fresa 3 mm, troca), recorte 100×60 com tabs; o mesmo programa nos três pós-processadores e em polegadas (G20) | Conferir num visualizador: hélice em vez de mergulho vertical no rebaixo, ciclos de furação, troca de fresa por pausa (M0 / (MSG,…)+M0), fim M2 / M84 / M30; a versão em polegadas tem as mesmas linhas de movimento com coordenadas ÷ 25,4. |
-| `sprint25-contorno-relevo.gcode` | Sprint 25 — rebaixo em anel (moldura com ilha) por **contorno paralelo** e um **relevo** 2,5D (cúpula 40×30, 3 mm) com fresa esférica Ø3 | Conferir: no anel, anéis concêntricos de dentro para fora e um só mergulho por passe (sem sobe-e-desce entre linhas); no relevo, linhas G1 contínuas com Z variando (desbaste em passes de 2 mm e acabamento). |
+```bash
+node --import tsx docs/samples/generate-samples.ts
+node --import tsx docs/samples/generate-baseline.ts > /tmp/baseline.gcode
+```
 
-Nota (Sprint 25): os samples antigos passaram a ser gerados com `pocketStrategy: "zigzag"` explícito — o padrão de projetos novos é contorno paralelo, e os arquivos anteriores continuam idênticos.
+The first command rewrites tracked samples; inspect the diff before committing.
+The second prints one baseline without changing tracked files. Build-time version
+constants fall back to test/dev values outside Vite. Old examples explicitly use
+`pocketStrategy: "zigzag"`; new projects default to contour-parallel pocketing.
+Review headers, units, safe-height retractions, pass depths, tabs and controller
+syntax. No physical machining result is implied.
 
-Nota (Sprint 14): `baseline-v1` e `sprint06-…` foram regenerados — a hop entre linhas do rebaixo que encostavam na parede (retração + G0 + mergulho a cada duas linhas) deu lugar a um avanço direto ao longo da parede; o cabeçalho ganhou a linha `post … | units …` e o tempo estimado passou a considerar aceleração.
-
-Como regenerar todos: `npx tsx docs/samples/generate-samples.ts`.
-
-Como regenerar (a partir da raiz do projeto): `npx tsx docs/samples/generate-baseline.ts > docs/samples/baseline-v0.gcode`.
+For a minimal new reference that only prints G-code, run `npm run --silent example`.

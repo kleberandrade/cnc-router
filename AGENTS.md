@@ -1,60 +1,110 @@
-# Oficina CNC — guia para agentes
+# Oficina CNC — agent guide
 
-Produto: **Oficina CNC**. Repo npm: `cnc-router`. Produção: `https://oficina-cnc.vercel.app`. Autor: Kleber Andrade (`pdjkleber@gmail.com`).
+Product: **Oficina CNC**. npm repository: `cnc-router`. Author: Kleber Andrade
+(`pdjkleber@gmail.com`). Existing production URL: `https://oficina-cnc.vercel.app`.
 
-Sprints e DoD completa: [`docs/sprints/README.md`](docs/sprints/README.md). Tokens e layout: [`docs/design-tokens.md`](docs/design-tokens.md). Feedback/Blob: [`docs/feedback.md`](docs/feedback.md).
+Historical sprint plans/Definition of Done: `docs/sprints/README.md`. Current setup:
+README and `docs/development.md`. Layout: `docs/design-tokens.md`. Optional feedback:
+`docs/feedback.md`. Publication review: `docs/security-review.md`.
 
-## Stack
+## Stack and architecture
 
-Vite + React + TypeScript. Gerenciador: **npm** (não pnpm; não commitar `pnpm-lock.yaml`). Zustand (`useProjectStore`, `useSimStore`, `useUiStore`, `zundo` para desfazer), Konva (editor 2D), Three.js (simulador, chunk sob demanda), Clipper (offset/booleanas), opentype.js (texto), Vercel Function + Blob (`api/feedback.ts`).
+Vite + React + TypeScript, using **npm** and `package-lock.json` (do not add a pnpm
+lockfile). Zustand manages project/UI/simulation state; zundo provides undo. Konva
+renders the 2D editor, Three.js the lazy-loaded simulator, Clipper offsets/booleans,
+opentype.js text outlines. `api/feedback.ts` optionally wires a Vercel Function to
+private Blob storage. Use the supported Node version from `.nvmrc`.
 
-## Arquitetura da UI (desde a Sprint 22)
+The top bar (`TopBar.tsx`) contains app actions, workspaces/context tabs and ribbon.
+Ribbon actions are `RibbonGroupDef[]` data rendered by `OverflowRibbon` in
+`Ribbon.tsx`: groups have key/title/priority/items and items define
+icon/label/onClick/testId/shortcut/description/featured/menu/custom. Never add a
+standalone ribbon button. The ribbon fits, compacts to icons, then sends lower
+priority groups to **Mais**; it never scrolls. Group labels open vertical menus
+with `<id>-gm` test IDs. The 1280 px layout is near its width budget. Run
+`e2e/ribbon-fusion.spec.ts` before adding ribbon actions. Occasional shape-specific
+actions belong in their side-panel section.
 
-- **Barra superior em 3 linhas** (`TopBar.tsx`): app bar (menu, nome do projeto, undo/redo, Exportar) → abas **Desenhar | Simular** + abas de contexto (FORMAS · USINAGEM · VISTA / REPRODUZIR) → **ribbon**. Ações da ribbon são **dados** (`RibbonGroupDef[]` em `TopBar.tsx`, renderizadas por `OverflowRibbon` em `Ribbon.tsx`): grupo tem `key/title/priority/items`; item tem `icon/label/onClick/testId/shortcut/description/featured/menu/custom`. Nunca criar botão solto na ribbon: adicione um item ao grupo/aba certa. A ribbon nunca rola: cabe → compacta (só ícones) → move grupos de menor prioridade para **Mais ▾**. O rótulo do grupo abre o menu vertical do grupo (test ids `<id>-gm`).
-- **Tooltips**: `description` (1–2 linhas, tom da oficina) + `shortcut` no item → tooltip rico. Não usar `title` junto com `description`.
-- **Painel lateral** (`SidePanel.tsx`): 4 abas — `shape` (Peça: navegador + seleção), `machine` (área útil + chapa + origem), `cut` (material, fresa, fresas extras, parâmetros), `post` (movimento, pós-processador, unidades). Ids antigos (`navigator/stock/material/tools`) são aliases em `uiStore.setSection`. Subgrupos com `<Group title>`; campos com `NumberField` (`hint` para texto auxiliar). Textos de `select` curtos; nada com reticências sem `title`.
-- **Diálogos**: sempre `components/Dialog.tsx` (`<Dialog open onClose title size>`); confirmação/pergunta via `confirmDialog({...})` / `promptDialog({...})` (promises; `AskHost` já montado no `App`). **Proibido** `window.alert/confirm/prompt` (teste `no-native-dialogs.test.ts` falha). Avisos não bloqueantes: `Notice` (`setNotice`).
-- **Origem da chapa**: `OriginPicker` (5 pontos: cantos + centro; `StockOrigin`); `originPoint()` em `lib/toolpath.ts` é a única fonte da conversão.
-- **Simulador**: cores da peça vêm de `materialLook(settings.material)` (`lib/materials.ts`).
-- **Tokens**: `src/index.css` — tipografia `--fs-xs/sm/md/base/lg`, `--control-h`, espaçamento `--s1..s6`; densidade/tamanho de texto via `data-density`/`data-text` no `<html>`. Nada de `font-size` fixo novo em componentes; use os tokens.
+Tooltips use a brief `description` plus `shortcut`; do not duplicate with `title`.
+The side panel has shape/machine/cut/post tabs. Legacy navigator/stock/material/tools
+section IDs map through `uiStore.setSection`. Use Group and NumberField (with hints),
+short select labels, and `title` for any truncated text.
 
-## Convenções
+Use `components/Dialog.tsx`, `confirmDialog`/`promptDialog` and the mounted AskHost
+for dialogs. Native `window.alert/confirm/prompt` are prohibited and tested.
+Non-blocking feedback uses Notice/setNotice. Stock origin has five visual points
+in OriginPicker; `originPoint()` in `lib/toolpath.ts` owns coordinate conversion.
+Simulator materials come from `materialLook` in `lib/materials.ts`.
 
-- Unidades internas em **mm**; a UI mostra o sufixo da unidade.
-- Lógica pura em `src/lib/` (sem React). Componentes só orquestram.
-- **Dados derivados** (validação, percurso, tempo) vêm de `useDerived(selector)` (`state/derived.ts`, calculados no worker `workers/derived.worker.ts`); componentes não chamam `buildToolpath`/`validateProject` no render nem em handlers. Exemplos novos/alterados: rode `npm run gen:thumbs` (miniaturas em `public/examples/thumbs.json`; teste falha se estiver velho). Latência de toque: `e2e/inp.spec.ts` (< 200 ms com CPU 4×).
-- **Importar DXF/SVG** passa sempre pelo `ImportVectorDialog` (`uiStore.vectorFile`): nada entra na chapa sem prévia. Heurística de geometria na importação precisa de escape visível (a chave "inferir furos" é o modelo) — não adivinhe em silêncio. Fontes do usuário ficam em IndexedDB (`lib/userFonts.ts`) e **não** entram no `.json` nem no link; quem precisa levar o texto usa "Explodir em contornos".
-- **Ribbon tem orçamento de largura**: no viewport de 1280 px ela já está no limite. Item novo empurra a barra para o modo compacto (todos os grupos viram só ícone) — antes de adicionar um, rode `e2e/ribbon-fusion.spec.ts`. Ação ocasional e ligada a um tipo de peça vai para a seção correspondente do painel, não para a ribbon.
-- Estado do projeto em `useProjectStore` (persistido; `PROJECT_SCHEMA_VERSION` + `migrateProject` a cada mudança de forma/config); UI em `useUiStore`; simulação em `useSimStore`.
-- Operações por peça: principal em `shape.operation/side/tabs/depth`; extras em `shape.extraOps` (expandidas em `lib/expand.ts` — percurso/G-code/simulador não sabem da diferença). Texto também expande em polígonos ali.
-- Textos de UI em **pt-BR**; identificadores em inglês.
-- **Tom da UI**: falar como alguém da oficina, não como um manual. Frases curtas, concretas, na segunda pessoa implícita (“desenhe”, “esse arquivo não abriu”). Evitar jargão de spec (“não foi possível”, “inválido”, “resultante(s)”, “ao menos uma forma”) e tom burocrático. Sem fofura, sem emoji, sem gíria. Números e unidades ficam; o resto soa falado. Vale para notices, hints, tooltips (`description`), diálogos, Sobre, README.
-- Ícones: `lucide-react`. Sem emoji ou glifo unicode decorativo. Wordmark: Bricolage Grotesque (`--font-brand`); marca `BrandMark`.
-- Versão: `package.json` sobe o *minor* a cada sprint fechada (`0.NN.0` = Sprint NN); a versão entra no build via `define` (`lib/version.ts`) e aparece no menu, rodapé, Sobre, G-code e PWA. Ao fechar: entrada no `CHANGELOG.md` no formato `## [0.NN.0 — Sprint NN — Tema] — data` (o diálogo Novidades lê daí) e `git tag vX.Y.Z`.
-- Políticas (privacidade, cookies, termos) em `src/content/legal.ts`; produto/autor em `src/content/about.ts`; exemplos em `src/content/examples.ts`.
+## Domain and implementation conventions
 
-## Testes
+- Internal units are **mm**; UI fields show units. Pure logic belongs in `src/lib/`;
+  components orchestrate it. Validate external input once at its boundary.
+- Derived validation/toolpath/timing comes from `useDerived(selector)` in
+  `state/derived.ts`, calculated in `workers/derived.worker.ts`. Do not call
+  buildToolpath/validateProject in component renders or handlers. Structural work
+  runs in the FEM worker. Keep UI latency low; `e2e/inp.spec.ts` tests a 200 ms
+  interaction budget under 4× CPU throttling.
+- Regenerate thumbnails (`npm run gen:thumbs`) after changing gallery examples;
+  tests check their hashes. The build also generates landing thumbnails.
+- DXF/SVG imports always enter through ImportVectorDialog (`uiStore.vectorFile`)
+  and show a preview. Import heuristics need a visible escape (like infer-holes).
+  User fonts stay in IndexedDB, not project JSON/share URLs; use exploded outlines
+  for portable text.
+- Project state is in useProjectStore. Shape/settings changes require appropriate
+  PROJECT_SCHEMA_VERSION/migrateProject updates. UI and simulator state stay separate.
+- Primary operations live in shape.operation/side/tabs/depth; extraOps expand via
+  lib/expand.ts. Text also expands there; toolpath/export/simulation consume the
+  expanded representation without special cases.
+- UI text remains **pt-BR**, identifiers and current contributor documentation are
+  English. Use short, concrete workshop language, without bureaucratic error prose,
+  decorative emoji or new jargon. Do not silently translate the product interface.
+- Use typography/spacing/control tokens in src/index.css and density/text attributes
+  on html. Do not add fixed font sizes in components. Icons use lucide-react;
+  BrandMark and Bricolage Grotesque define the product mark.
+- Legal policies live in src/content/legal.ts, identity/author in content/about.ts,
+  examples in content/examples.ts. Original code is MIT; retain third-party rights
+  and notices. Do not replace historical attribution with the root license.
+- Version comes from package.json through Vite defines and appears in UI, G-code and
+  PWA. A completed sprint increments the minor (0.NN.0); fixes increment patch.
+  Add a CHANGELOG entry (`## [version — theme] — date`), which supplies in-app news.
 
-- Unitários: `src/**/__tests__/*.test.ts(x)` ao lado do código; `api/__tests__` para a função de feedback.
-- E2E: `e2e/`. Reutilizar `e2e/helpers.ts` (`ribbonClick` acha a ação em qualquer aba/Mais; `alignClick`). O Playwright inicia com o tour marcado como feito e o aviso de armazenamento fechado (`storageState` no config) — para testar esses fluxos, limpe as chaves no próprio teste. Preservar `data-testid` existentes; novos fluxos de UI ganham spec.
-- Acessibilidade: `e2e/a11y.spec.ts` (axe, 0 violações sérias/críticas, contraste incluído) — telas novas entram lá.
-- Thresholds: 80 % linhas/statements/funções, 75 % branches (`npm run test:coverage`).
-- Nova lógica em `src/lib/*` e `src/state/*` tem teste unitário próprio.
+## Tests and Definition of Done
 
-## Definition of Done
+Unit/component tests live beside code under `__tests__`; feedback core tests are
+in `api/__tests__`. E2E tests live in `e2e/`. Reuse helpers (`ribbonClick`,
+`alignClick`, workspace navigation), preserve existing test IDs and cover new UI
+flows. Playwright marks the first-run tour/storage notice done; clear the relevant
+keys inside tests specifically covering onboarding. New screens enter the axe
+accessibility suite, with zero serious/critical violations including contrast.
 
-Uma sprint só fecha quando tudo abaixo for verdade (além da DoD do arquivo da sprint):
+For each completed change:
 
-1. `npm run build` limpo (sem erros nem warnings novos).
-2. `npm run lint` limpo.
-3. `npm run test:coverage` passa e mantém os thresholds.
-4. `npm run test:e2e` passa no Chromium (mobile/tablet se tocou layout).
-5. Se tocou `src/lib/toolpath.ts` ou `src/lib/gcode.ts`: sample em `docs/samples/` conferido (cabeçalho, unidades, multi-passe, safe height).
-6. Fluxo básico (adicionar forma → ajustar → simular → exportar) sem regressão.
-7. README + JSDoc em tipos novos + entrada no `CHANGELOG.md` + versão no `package.json` + tag.
-8. Sem `console.log`, `any`, `window.alert/confirm/prompt` novos; sem `title` duplicando tooltip; sem texto cortado sem `title`.
-9. Checklist marcado em `docs/sprints/sprint-NN-*.md` e `Status: concluída — data` no topo; tabela em `docs/sprints/README.md` com ✅; screenshots em `docs/sprints/img/` quando a UI mudou.
+1. A clean production build, including the TypeScript API/script/sample checks,
+   with no new warnings; lint passes.
+2. Coverage passes the configured 82% statements/lines, 80% functions, 77% branches.
+   New src/lib or state logic has behavioral unit coverage.
+3. Chromium E2E passes, plus mobile/tablet when layout changes. Validate the basic
+   add shape → adjust → simulate → export flow. Await visible state in browser tests.
+4. Toolpath/G-code changes include sample review for header, units, multi-pass motion
+   and safe height. Never substitute tests for physical machining validation.
+5. Update README/guides, JSDoc for new types, changelog and version as applicable.
+6. Do not add console logging, any, native dialogs, duplicate tooltip titles or
+   clipped text without an accessible full label.
+7. On closing a numbered sprint, update its checklist/status/date and index and add
+   screenshots when UI changes. Tag completed sprint releases as requested; patch
+   maintenance is not a new numbered sprint.
 
-## Commits
+Prefer an observed failing regression test before the correction; refactor only
+with behavior pinned. Avoid tests that merely mirror the implementation or fake
+canvas/WebGL correctness. No machine movement, G-code execution, serial connections
+or production feedback writes belong in test validation.
 
-Só commitar quando o usuário pedir. Mensagem em 1–2 frases no *why*. Não dar push a menos que peçam.
+## Git and publication
+
+Commit only when requested; small commits explain why, what and validation.
+Do not push unless requested. Preserve others' local changes. Never force-push or
+rewrite history without explicit authorization. Repository visibility is a separate
+conditional action: remain private while security/privacy/rights findings or
+relevant review gaps remain. Keep tokens, feedback/customer data and raw review
+logs out of Git. Do not manually deploy or publish packages without a request.

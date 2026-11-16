@@ -1,144 +1,130 @@
 # Oficina CNC
 
-Editor web para CNC router: desenhe peças (formas prontas ou SVG importado) sobre a mesa e a chapa da sua máquina, configure a máquina e exporte G-code (GRBL, Marlin ou LinuxCNC/Mach3, em mm ou polegadas), com simulação 3D do percurso da fresa antes de rodar na máquina.
+[![CI](https://github.com/kleberandrade/cnc-router/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kleberandrade/cnc-router/actions/workflows/ci.yml)
+[![Node.js 26 LTS](https://img.shields.io/badge/Node.js-26_LTS-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/en/download)
+[![TypeScript 6](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React 19](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![Vite 8](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Funcionalidades atuais: quatro estações de trabalho (Desenhar, Simular, Folha técnica, Resistência — dropdown estilo Fusion), análise estrutural orientativa (von Mises em worker validado contra casos analíticos, flexão de prateleira, peça em 3D, análise no conjunto — peças encostadas valem como coladas e recortes passantes viram furos descontados, com a folha técnica do conjunto montado), folha de oficina e desenho técnico cotado na tela e na impressora (escala 1:1 como gabarito, SVG baixável), arrastar/colar arquivo direto na tela, importação de DXF/SVG com prévia, escolha de camadas, unidade e furos inferidos (laço de dentro vira furo da peça), fontes `.ttf`/`.otf` suas e "explodir texto" em contornos editáveis, cálculo de percurso/validação em Web Worker (toques rápidos no celular), importação de imagem (PNG/JPG → silhueta vetorizada ou relevo 2,5D), rebaixos por contorno paralelo, 14 exemplos em galeria com filtro por assunto (encaixes com folga, caixa de dedos, dobradiça viva, bandeja, gabarito 32, tábua, número da casa, relógio, engrenagens, placas por SVG e imagem, pratinho em relevo 2,5D), ilustrações nas opções, barra estilo Fusion (abas, menus de grupo, tooltips), operações adicionais por peça, verificação do resultado, link do projeto, exemplos prontos e tour de primeiro uso, preferências de densidade/texto, booleanas (união/subtração/interseção), nesting automático na chapa, texto com fontes embarcadas, rebaixos com ilhas, hélice de entrada, furação com bicadas, estimativa de tempo com aceleração, pós-processadores GRBL/Marlin/LinuxCNC e G20; importação SVG/DXF, várias fresas por projeto (troca com M0), navegador de peças, tema escuro, simulador 3D em tempo real com remoção de material, fresa realista e ViewCube, passo a passo (segmento/passe/forma), barra de tempo e estimativa de tempo total; presets de máquina (3018, 3040, 6040, 6090, 1010, 1325 ou personalizada), presets de material (MDF, compensado, pinus, alumínio) que preenchem avanço/mergulho/RPM/passe/stepover a partir do Ø da fresa (com override manual), chapa/base com espessura, posição e origem (canto ou centro), validação de limites (fora da mesa/chapa, profundidade × espessura × curso Z), editor em mm com grade e réguas, exportação GRBL multi-passe (contorno e pocket), persistência local do projeto.
+**Oficina CNC** is a browser-based CAD/CAM workshop for hobby and small-workshop CNC
+routers, created by **Kleber Andrade**. Draw parts, configure stock and tooling,
+preview toolpaths in 3D, and export G-code for GRBL, Marlin or LinuxCNC/Mach3.
+The product interface is in Brazilian Portuguese; contributor documentation is in English.
 
-100% client-side — não precisa de servidor/backend para funcionar. Instalável como **PWA** (funciona offline) e responsivo (desktop, tablet e celular com toque). Produção: [oficina-cnc.vercel.app](https://oficina-cnc.vercel.app) (marca **Oficina CNC**, Open Graph e ícones próprios).
+The editor and CAM engine run locally in the browser. Optional feedback uses a
+Vercel Function and private Blob storage; analytics and performance integrations
+are also included. No account is required. The source repository remains private
+pending completion of its [visibility review](docs/security-review.md).
 
-No dashboard da Vercel, ative **Web Analytics** e **Speed Insights** (o app já inclui `@vercel/analytics` e `@vercel/speed-insights`). **Observability** (Edge Requests, Fast Data Transfer, Build Diagnostics) fica disponível sem código extra. **Runtime Logs** só terá conteúdo se no futuro existirem Serverless/Edge Functions — hoje o site é 100% estático.
+## Requirements
 
-## Sobre o projeto e o autor
+- Node.js **26.13.1** (recommended, `.nvmrc`) or supported Node **24.22.3+** within v24.
+- npm **11+**; use npm and the committed `package-lock.json`.
+- A modern browser with Canvas, Web Workers and WebGL. Playwright uses Chromium.
+- Git for cloning. Repository access is currently required.
 
-**Oficina CNC** é um projeto de **Kleber Andrade** ([kleberandrade.dev](https://kleberandrade.dev), `pdjkleber@gmail.com`) — idealização, projeto e desenvolvimento — para quem tem uma router de hobby ou de pequena oficina e quer ir do desenho ao G-code sem outro programa. Produção: [oficina-cnc.vercel.app](https://oficina-cnc.vercel.app). No app: menu **Oficina CNC → Sobre** (autor, contato, licenças) e **Novidades** (últimas sprints).
-
-**Versionamento:** `package.json` segue as sprints — cada sprint fechada sobe o *minor* (`0.19.0` = Sprint 19), correções sobem o *patch*; a versão, o sha do commit (`VERCEL_GIT_COMMIT_SHA` no deploy) e a data entram no build via `define` do Vite e aparecem no menu, no rodapé, no Sobre e no cabeçalho do G-code. Ao fechar uma sprint: `git tag vX.Y.Z`.
-
-**Sugestões e problemas:** menu **Oficina CNC → Sugestões e problemas…** — vai para uma Vercel Function que guarda o envio no Vercel Blob (privado); sem o Blob configurado o app oferece e-mail. Detalhes em [`docs/feedback.md`](docs/feedback.md).
-
-## Stack
-
-- **Vite + React + TypeScript**
-- **Konva / react-konva** — editor 2D de formas
-- **Three.js** — simulador 3D do toolpath
-- **Zustand** — estado do projeto (formas + configurações da máquina)
-- **Vitest + Testing Library** — testes unitários e de componente
-- **Playwright** — testes end-to-end e smoke test
-
-## Rodando localmente
-
-```bash
-npm install
-npm run dev        # servidor de desenvolvimento
-npm run build      # build de produção (dist/) — estático, hospedável em qualquer CDN
-npm run preview    # serve o build de produção localmente
-```
-
-## Testes
+## Install and quick start
 
 ```bash
-npm run test              # testes unitários (vitest)
-npm run test:watch        # modo watch
-npm run test:coverage     # com relatório de cobertura (thresholds: 80% linhas/statements/funções, 75% branches)
-
-npx playwright install    # baixa os navegadores do Playwright (uma vez só)
-npm run test:e2e          # end-to-end: desktop (chromium), celular (Pixel 7) e tablet (iPad) — todos em Chromium
-npm run test:e2e:ui       # mesma coisa, com UI interativa do Playwright
+git clone https://github.com/kleberandrade/cnc-router.git
+cd cnc-router
+npm ci
+npm run dev
 ```
 
-Os dois conjuntos rodam no CI (GitHub Actions, `.github/workflows/ci.yml`) a cada push/PR. Para usar um Chromium
-já instalado em vez de baixar, exporte `PW_CHROMIUM_PATH=/caminho/para/chrome` antes de `npm run test:e2e`.
+If you manage Node with nvm, run `nvm install` and `nvm use` inside the repository
+before `npm ci`; otherwise install a supported Node version directly.
 
-### Estratégia de cobertura
+Open [the local app](http://localhost:5173/app/) (the root URL serves the landing page).
+No environment variables are needed for drawing, simulation or G-code export.
+For a production build and local preview:
 
-A lógica de negócio pura (`src/lib/*` — geração de G-code, geometria, importação de SVG — e `src/state/store.ts`)
-tem cobertura de testes unitários. `Toolbar.tsx` também é coberto via testes de componente (Testing Library).
-
-`Editor.tsx` (canvas Konva) e `Simulator.tsx` (WebGL/Three.js) são **excluídos da cobertura unitária** de propósito:
-jsdom não renderiza canvas/WebGL de verdade, então testar essas peças com mocks pesados dá falsa confiança.
-Em vez disso, eles são cobertos pelos testes Playwright (`e2e/smoke.spec.ts`, `e2e/gcode-export.spec.ts`), que
-rodam num navegador real e verificam o fluxo completo: adicionar forma → exportar G-code → simular percurso.
-
-## Planejamento (sprints)
-
-O roadmap está em [`docs/sprints/`](docs/sprints/README.md) — cada sprint tem escopo, checklist e Definition of Done.
-A auditoria que originou o plano está em [`docs/auditoria.md`](docs/auditoria.md); o histórico de mudanças em [`CHANGELOG.md`](CHANGELOG.md).
-
-## Arquitetura
-
-```
-api/
-├─ feedback.ts           # Vercel Function: POST /api/feedback → Vercel Blob (privado)
-└─ _lib/feedback-core.ts # validação, honeypot, rate limit, CORS (testável)
-src/
-├─ types.ts              # Shape (retângulo c/ cantos, círculo, path c/ ilhas, polígono regular, rasgo, texto), MachineSettings
-├─ lib/
-│  ├─ geometry.ts         # shape → pontos (mm), bounding box, scanlines para pocket
-│  ├─ toolpath.ts          # formas → Segment[] (compensação, pocket real, tabs, rampa, ordem) — fonte única
-│  ├─ offset.ts            # offset de polígonos (Clipper), scanlines recortadas, perímetro
-│  ├─ timing.ts            # estimativa de tempo por segmento/total
-│  ├─ passes.ts            # profundidades por passe
-│  ├─ playback.ts          # posição no tempo, fronteiras de passo (segmento/passe/forma)
-│  ├─ heightmap.ts         # remoção de material (campo de alturas) para o simulador
-│  ├─ toolModel.ts         # fresa 3D (spindle, pinça, haste, ponta reta/esférica/V)
-│  ├─ gcode.ts             # Segment[] → G-code (via pós-processador) + validação/cabeçalho
-│  ├─ post/index.ts        # pós-processadores GRBL / Marlin / LinuxCNC-Mach3, G20/G21
-│  ├─ feedback.ts          # payload/diagnóstico/envio do formulário de sugestões (fallback mailto)
-│  ├─ boolean.ts           # união/subtração/interseção (Clipper) → path com furos
-│  ├─ nesting.ts           # organizar peças na chapa (MaxRects, rotação 0/90)
-│  ├─ svgImport.ts         # SVG (unidades, viewBox, transform, curvas amostradas) → Shape[] + avisos
-│  ├─ dxfImport.ts         # DXF (LINE, POLYLINE c/ bulge, CIRCLE, ARC, ELLIPSE, SPLINE, INSERT) → Shape[]
-│  │                       #   + camadas, unidade e furos inferidos por camada (com guarda de moldura)
-│  ├─ tools.ts             # fresa efetiva por peça (biblioteca de fresas)
-│  ├─ text.ts              # fontes embarcadas (opentype.js) → contornos de texto com furos; explodeText
-│  ├─ userFonts.ts         # fontes .ttf/.otf do usuário (IndexedDB; não viajam no .json nem no link)
-│  ├─ expand.ts            # texto → um polígono (com ilhas) por glifo para usinagem
-│  ├─ validate.ts          # avisos/erros: limites da mesa, chapa, profundidade, Z
-│  ├─ machinePresets.ts    # tamanhos comuns de router
-│  ├─ materials.ts         # presets de material (MDF, compensado, pinus, alumínio) e escala por Ø
-│  ├─ editorMath.ts        # escala/grade/clamp do editor (puro, testável)
-│  ├─ projectFile.ts       # salvar/abrir projeto .json versionado
-│  ├─ pwa.ts               # registro do service worker, atualização e instalação
-│  ├─ numberInput.ts       # parse defensivo de campos numéricos
-│  └─ ids.ts               # ids únicos de formas
-├─ state/store.ts          # Zustand (+persist em localStorage): formas + configurações da máquina
-├─ state/simStore.ts       # estado do player da simulação (tempo, velocidade, modo de passo)
-├─ state/uiStore.ts        # estado de UI (aviso, seção aberta, zoom/pan, ferramenta ativa)
-└─ components/
-   ├─ TopBar.tsx            # barra única: menu do projeto, abas, ribbon por contexto, exportar
-   ├─ useProjectActions.tsx # ações do projeto (formas, importar/abrir/salvar/exportar) + atalhos globais
-   ├─ SidePanel.tsx         # painel em acordeão: peça, máquina, chapa, material, corte
-   ├─ StatusBar.tsx         # rodapé: mesa/chapa, nº formas, tempo estimado, avisos clicáveis
-   ├─ NumberField.tsx       # campo numérico com unidade/step/validação
-   ├─ BottomBar.tsx         # barra de ações do celular
-   ├─ BottomSheet.tsx       # folha inferior (ajustes) do celular
-   ├─ PwaBanner.tsx         # aviso de atualização / instalar app
-   ├─ Toolbar.tsx           # wrapper TopBar+SidePanel+StatusBar (usado nos testes)
-   ├─ Notice.tsx            # avisos inline (substitui alert)
-   ├─ Editor.tsx             # canvas 2D (Konva) — mesa em mm, chapa, handles, snap, marquee, polígono
-   ├─ InlineDimensions.tsx   # cotas editáveis ao lado da forma selecionada
-   ├─ Navigator.tsx          # árvore de peças (ordem, olho, cadeado, renomear)
-   ├─ ToolLibrary.tsx        # biblioteca de fresas
-   └─ Simulator.tsx           # visualização 3D (Three.js) do percurso da ferramenta
+```bash
+npm run build
+npm run preview
 ```
 
-## Extensões futuras sugeridas
+Open [the preview app](http://localhost:4173/app/). `dist/` contains static assets;
+`api/feedback.ts` requires a separate Vercel Function runtime. Vite does not serve it.
+Git-triggered Vercel deployments are disabled in `vercel.json` to keep source/CI
+publication separate from deployment. The owner can re-enable `git.deploymentEnabled`
+when a deployment is explicitly intended.
 
-- Nesting automático de peças na chapa
+## Use the workshop
 
-## Design
+1. In **Desenhar**, open **Exemplos…** or add a rectangle/circle using the ribbon.
+2. In the side panel, set **Máquina** (work area, stock, thickness and origin).
+3. Under **Usinagem**, choose the material, tool, feed, spindle speed and pass depth.
+   Internal geometry is in millimetres; export can use millimetres or inches.
+4. Choose outline, pocket, engraving or drilling; inspect validation notices.
+5. Switch to **Simular**, inspect the toolpath and stock removal, then **Exportar**.
+6. Save a project JSON from the menu. Local browser storage is convenient persistence,
+   not a backup. A shared project URL contains the project in its fragment; recipients
+   can read it. User-installed fonts do not travel with JSON or share links.
 
-Tokens, regras de layout e ícones: [`docs/design-tokens.md`](docs/design-tokens.md).
+DXF/SVG imports show a preview with layer, unit and hole-inference controls. PNG/JPEG
+can become traced silhouettes or 2.5D reliefs. The gallery contains 14 examples,
+including finger joints, a phone stand, a cutting board and image-based machining.
+The **Folha técnica** workspace provides dimensioned sheets and printing; **Resistência**
+provides indicative structural analysis, including glued touching parts.
 
-## Convenções de coordenadas
+## Executable examples
 
-- Internamente tudo é em **mm**, no sistema da **mesa**: X para a direita, Y para o fundo da máquina, origem no canto frontal esquerdo da área útil.
-- A **origem de trabalho** (G54, X0 Y0 do G-code) é definida pela chapa: canto frontal esquerdo ou centro. O G-code exportado já sai transformado.
-- SVGs importados são convertidos para mm (viewBox/width/height) e espelhados em Y, para que o desenho fique com a mesma orientação do arquivo.
-- No DXF, laços fechados dentro de outro viram **furos** da peça que os contém, agrupados **dentro de cada camada** — assim cotas e hachuras não se misturam ao contorno. Uma borda retangular em volta de uma chapa de peças acabadas é reconhecida como moldura e importada solta; o caso ambíguo (moldura em volta de uma peça só) não é adivinhado — a chave "inferir furos" no diálogo resolve.
-- Fontes carregadas por você ficam no navegador (IndexedDB) e **não** vão no `.json` nem no link compartilhado: é arquivo de fonte, com licença própria, e o link tem teto de tamanho. Para levar o texto junto, use **Explodir em contornos**.
-- **Compensação da fresa**: contornos "por fora" mantêm o tamanho da peça, "por dentro" o do furo, "na linha" seguem o traçado com o centro da fresa. Rebaixos ficam sempre dentro da forma.
+Generate a 40 × 30 mm, 3 mm deep rectangular pocket without opening a browser:
 
-## Atalhos de teclado
+```bash
+npm run --silent example > /tmp/oficina-example.gcode
+```
 
-R retângulo · C círculo · T texto · P polígono (Enter/duplo clique fecha, Esc cancela) · N polígono regular · O rasgo · S snap · Shift+clique / arrastar no fundo = seleção múltipla · Del excluir · Ctrl+D duplicar · Ctrl+Z / Ctrl+Y desfazer/refazer · Ctrl+S salvar projeto · setas movem 1 mm (Shift = 10 mm) · Esc desseleciona · roda do mouse zoom · +/−/0 zoom/ajustar · espaço + arrastar move a vista · no simulador: espaço play/pause, ←/→ passo, Home/End.
+The [example source](examples/generate-gcode.ts) calls the same pure CAM engine as
+the app. It only writes text to stdout and never opens a serial port or sends commands.
+[Sample programs](docs/samples/README.md) cover compensation, tabs, ramps, drilling,
+post-processors and reliefs. Generated G-code is a simulation/reference artifact;
+review it for the actual machine, tool, workholding and controller before machining.
+
+## Tests and quality
+
+```bash
+npm run lint
+npm run test
+npm run test:coverage
+npm run build
+npx playwright install chromium
+npm run test:e2e -- --workers=1
+npm audit --audit-level=moderate
+```
+
+Coverage gates are **82% statements/lines, 80% functions, 77% branches**. Konva's
+Editor and the WebGL Simulator are excluded from unit coverage because jsdom cannot
+render them; browser tests cover those flows. E2E projects include desktop Chromium,
+Pixel 7 and iPad emulation. Build before running E2E: the runner serves `dist/`.
+For an existing Chromium, set `PW_CHROMIUM_PATH` to its absolute executable path.
+
+[CI](.github/workflows/ci.yml) runs unit coverage, lint, dependency auditing, the
+executable example, production build and Chromium E2E on pushes to `main` and PRs.
+The CI badge is live; private-repository badges may require authentication.
+See the [maintenance log](docs/maintenance-log.md) for actual local results and limits.
+
+## Architecture and contributing
+
+- `src/lib/`: pure geometry, toolpaths, G-code, import/export, verification and FEA.
+- `src/workers/`: derived CAM calculations and structural solver off the UI thread.
+- `src/state/`: project, UI and simulation stores (Zustand/zundo).
+- `src/components/`: React, Konva editor and lazy-loaded Three.js simulation.
+- `src/content/`: examples, product identity and in-app policies.
+- `api/`: optional feedback HTTP handler and independently testable core.
+- `examples/`, `docs/samples/`: executable reference programs.
+
+Read [AGENTS.md](AGENTS.md) for project conventions, [development](docs/development.md)
+for testing and data flow, [feedback](docs/feedback.md) for the optional backend, and
+[limitations](docs/limitations.md) before interpreting simulation or analysis results.
+The [changelog](CHANGELOG.md) and historical [sprint plans](docs/sprints/README.md)
+preserve earlier Portuguese records; they describe past work rather than current setup.
+
+## License and attribution
+
+Original code and documentation: [MIT](LICENSE), © 2026 Kleber Andrade.
+Third-party software and fonts retain their licenses; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). MIT does not grant rights to third-party
+trademarks, artwork or user-imported designs. Author: [kleberandrade.dev](https://kleberandrade.dev).
