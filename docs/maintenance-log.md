@@ -175,3 +175,14 @@ Publication was authorized after passing relevant checks; the delivery message r
   Baseline CI 43801228360 passed 484 unit tests and 146 E2E checks (two intentional
   tablet skips), with no accepted flaky retry. This follow-up changes documentation
   and attribution only; runtime and deployment configuration remain unchanged.
+
+- Pushed review/attribution commit `ef52be7`; CI 43804676927 passed 484 unit tests
+  and 146 browser checks, with two intentional skips and zero flaky/unexpected
+  results. Refreshed all relevant GitHub surfaces: 29 runs/ten artifacts; reviewed
+  the new 27 log files and two artifacts, including embedded report JSON. The four
+  new raster resource files match previously reviewed coverage assets by SHA-256.
+- Applied the authorized visibility change to public on 2026-11-16. Anonymous
+  GitHub API access confirms `private: false`, `visibility: public`, and a null
+  temporary clone-token field. All 41 baseline commits and 18 tag object hashes
+  remain intact; no force push or deletions. Existing deployments remained 24;
+  Git-triggered deployment stays disabled. This final receipt changes only docs.

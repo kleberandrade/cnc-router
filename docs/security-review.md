@@ -1,7 +1,7 @@
 # Repository visibility and security review
 
 Review completed: 2026-11-16, America/Sao_Paulo. Scope:
-`kleberandrade/cnc-router`. **Decision: approve public visibility.** No unresolved
+`kleberandrade/cnc-router`. **Decision: public visibility approved and applied.** No unresolved
 sensitive-content finding or identified unauthorized third-party asset remains in
 the reviewed publication surfaces. This supersedes the earlier keep-private decision,
 which incorrectly treated expired logs as a blocker and left wiki/image review open.
@@ -139,12 +139,21 @@ was accepted. The 200 ms interaction budget and 4× CPU throttle were retained.
 This follow-up changes documentation, provenance inventory and license attribution,
 not application logic, dependencies or deployment configuration.
 
-Publication requires the corrected documentation to be committed/pushed normally,
-its CI to pass, and a final remote-content refresh. Then change visibility and verify
-anonymous repository access. Preserve all 41 baseline commits and all 18 tags; do
-not force-push, rewrite history, delete artifacts or trigger a hosting deployment.
-`vercel.json` keeps Git-triggered deployment disabled. The maintenance log records
-execution and verification of these steps.
+The correction was pushed normally as `ef52be7f290f21a054e9e71d82b7fd9fe0f0df3a`.
+[CI 43804676927](https://github.com/kleberandrade/cnc-router/actions/runs/43804676927)
+passed again: 484 unit tests, 146 browser checks, two intentional skips, zero flaky
+or unexpected results. Its final remote refresh found 29 runs and ten artifacts;
+27 newly downloaded log files and the two new artifacts were reviewed. The new
+artifact raster files exactly match already-reviewed coverage resources. No new
+publication-content findings appeared. Issues/PRs/comments/releases remained empty,
+and the existing deployment count remained 24.
+
+Applied public visibility on 2026-11-16 and verified the unauthenticated GitHub API
+returns `private: false` and `visibility: public`; its temporary clone-token field
+is null. The 41 baseline commits and all 18 tag object IDs remain intact. No force
+push, history rewrite or deletion of logs/artifacts was used. `vercel.json` still
+keeps Git-triggered deployment disabled. The final documentation receipt adds no
+application or deployment change.
 
 ## Limitations
 
