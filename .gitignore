@@ -29,3 +29,10 @@ playwright-report
 test-results
 _sync
 _to_delete
+
+# Secrets and local quality-tool output
+.env
+.env.*
+!.env.example
+.metrics/
+target/

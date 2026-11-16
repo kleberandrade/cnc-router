@@ -47,17 +47,58 @@ export function shortId(): string {
   return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
 }
 
-/** Validate a parsed body; returns a problem message or null. */
-export function validate(p: unknown, maxBytes = MAX_BODY, size = 0): string | null {
-  if (!p || typeof p !== "object") return "corpo inválido";
-  const b = p as Partial<FeedbackPayload>;
-  if (b.website) return "spam";
-  if (!TYPES.has(b.type as string)) return "tipo inválido";
-  if (typeof b.title !== "string" || b.title.trim().length < 3 || b.title.length > 140) return "título deve ter entre 3 e 140 caracteres";
-  if (typeof b.message !== "string" || b.message.trim().length < 10 || b.message.length > 5000) return "mensagem deve ter entre 10 e 5000 caracteres";
-  if (b.email !== undefined && b.email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email)) return "e-mail inválido";
-  if (size > maxBytes) return "corpo grande demais";
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function textInRange(value: unknown, min: number, max: number): boolean {
+  return typeof value === "string" && value.trim().length >= min && value.length <= max;
+}
+
+function validEmail(value: unknown): boolean {
+  if (value === undefined || value === "") return true;
+  return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function optionalProblem(b: Record<string, unknown>): string | null {
+  if (b.diagnostics !== undefined && !isRecord(b.diagnostics)) return "diagnóstico inválido";
+  if (b.lastError !== undefined && b.lastError !== null && typeof b.lastError !== "string") return "último erro inválido";
+  if (!validEmail(b.email)) return "e-mail inválido";
   return null;
+}
+
+function requiredProblem(b: Record<string, unknown>): string | null {
+  if (!TYPES.has(b.type as string)) return "tipo inválido";
+  if (!textInRange(b.title, 3, 140)) return "título deve ter entre 3 e 140 caracteres";
+  if (!textInRange(b.message, 10, 5000)) return "mensagem deve ter entre 10 e 5000 caracteres";
+  return null;
+}
+
+/** Validate untrusted JSON once at the boundary; returns a problem message or null. */
+export function validate(p: unknown, maxBytes = MAX_BODY, size = 0): string | null {
+  if (!isRecord(p)) return "corpo inválido";
+  if (size > maxBytes) return "corpo grande demais";
+  if (p.website !== undefined && typeof p.website !== "string") return "campo website inválido";
+  if (p.website) return "spam";
+  return optionalProblem(p) ?? requiredProblem(p);
+}
+
+/** Read at most the configured byte budget, independent of Content-Length. */
+async function readBody(req: Request, maxBytes: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return text + decoder.decode();
+      size += value.byteLength;
+      if (size > maxBytes) { await reader.cancel(); return null; }
+      text += decoder.decode(value, { stream: true });
+    }
+  } finally { reader.releaseLock(); }
 }
 
 /** Sliding-window limiter (in-memory per function instance — good enough against accidents, not attacks). */
@@ -70,37 +111,53 @@ export function allow(ip: string, perMinute: number, now: number): boolean {
 }
 export function resetRate(): void { rate.clear(); }
 
-export async function handleFeedback(req: Request, deps: Deps): Promise<Response> {
-  const now = deps.now ?? (() => new Date());
+function requestPolicy(req: Request, deps: Deps): { cors: Record<string, string>; response?: Response } {
   const origin = req.headers.get("origin");
   const allowed = !origin || (deps.origins ?? []).includes(origin);
   const cors: Record<string, string> = origin && allowed ? { "access-control-allow-origin": origin, vary: "Origin" } : {};
-  if (req.method === "OPTIONS") return new Response(null, { status: allowed ? 204 : 403, headers: { ...cors, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type" } });
-  if (req.method !== "POST") return json(405, { error: "método não permitido" }, { allow: "POST, OPTIONS" });
-  if (!allowed) return json(403, { error: "origem não permitida" });
+  if (req.method === "OPTIONS") return { cors, response: new Response(null, { status: allowed ? 204 : 403, headers: { ...cors, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type" } }) };
+  if (req.method !== "POST") return { cors, response: json(405, { error: "método não permitido" }, { allow: "POST, OPTIONS" }) };
+  if (!allowed) return { cors, response: json(403, { error: "origem não permitida" }) };
 
+  return { cors };
+}
+
+export async function handleFeedback(req: Request, deps: Deps): Promise<Response> {
+  const { cors, response } = requestPolicy(req, deps);
+  if (response) return response;
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
-  if (!allow(ip, deps.ratePerMinute ?? 5, now().getTime())) return json(429, { error: "muitos envios — tente de novo em 1 minuto" }, { "retry-after": "60", ...cors });
+  const time = (deps.now ?? (() => new Date()))();
+  if (!allow(ip, deps.ratePerMinute ?? 5, time.getTime())) return json(429, { error: "muitos envios — tente de novo em 1 minuto" }, { "retry-after": "60", ...cors });
+  return acceptBody(req, deps, cors, ip, time);
+}
 
-  const raw = await req.text();
-  if (raw.length > (deps.maxBodyBytes ?? MAX_BODY)) return json(413, { error: "corpo grande demais (máx. 1 MB)" }, cors);
+async function acceptBody(req: Request, deps: Deps, cors: Record<string, string>, ip: string, time: Date): Promise<Response> {
   let body: unknown;
-  try { body = JSON.parse(raw); } catch { return json(400, { error: "JSON inválido" }, cors); }
-  const problem = validate(body, deps.maxBodyBytes ?? MAX_BODY, raw.length);
-  if (problem === "spam") return json(200, { ok: true, id: "ok" }, cors); // silently accept honeypot hits
+  try {
+    const raw = await readBody(req, deps.maxBodyBytes ?? MAX_BODY);
+    if (raw === null) return json(413, { error: "corpo grande demais" }, cors);
+    body = JSON.parse(raw);
+  } catch { return json(400, { error: "JSON inválido" }, cors); }
+  const problem = validate(body);
+  if (problem === "spam") return json(200, { ok: true, id: "ok" }, cors);
   if (problem) return json(400, { error: problem }, cors);
+  return storeFeedback(body as FeedbackPayload, req, deps, cors, ip, time);
+}
 
-  const p = body as FeedbackPayload;
+async function storeFeedback(p: FeedbackPayload, req: Request, deps: Deps, cors: Record<string, string>, ip: string, time: Date): Promise<Response> {
   const id = (deps.id ?? shortId)();
-  const receivedAt = now().toISOString();
-  const stored: Stored = { ...p, id, receivedAt, ip, userAgent: req.headers.get("user-agent") ?? undefined };
-  delete (stored as Partial<Stored>).website;
+  const receivedAt = time.toISOString();
+  const stored: Stored = {
+    type: p.type, title: p.title, message: p.message,
+    email: p.email, diagnostics: p.diagnostics, project: p.project, lastError: p.lastError,
+    id, receivedAt, ip, userAgent: req.headers.get("user-agent") ?? undefined,
+  };
   const month = receivedAt.slice(0, 7);
   const pathname = `feedback/${month}/${receivedAt.replace(/[:.]/g, "-")}-${p.type}-${id}.json`;
   try {
     await deps.save(pathname, JSON.stringify(stored, null, 2));
-  } catch (err) {
-    return json(502, { error: "não foi possível guardar o envio", detail: (err as Error).message }, cors);
+  } catch {
+    return json(502, { error: "não foi possível guardar o envio" }, cors);
   }
   return json(200, { ok: true, id, receivedAt }, cors);
 }

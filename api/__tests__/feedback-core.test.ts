@@ -69,4 +69,42 @@ describe("feedback core", () => {
     expect(res.status).toBe(502);
     expect(await res.json()).toMatchObject({ error: expect.stringContaining("guardar") });
   });
+  it("counts UTF-8 bytes rather than UTF-16 characters at the request boundary", async () => {
+    const body = JSON.stringify({ ...good, message: "é".repeat(100) });
+    const limit = new TextEncoder().encode(body).byteLength;
+    expect((await handleFeedback(req(body), { ...deps, maxBodyBytes: limit })).status).toBe(200);
+    expect((await handleFeedback(req(body), { ...deps, maxBodyBytes: limit - 1 })).status).toBe(413);
+    expect(saved).toHaveLength(1);
+  });
+  it.each([
+    { email: 123 }, { email: ["a@b.co"] }, { diagnostics: [] },
+    { diagnostics: "browser" }, { diagnostics: null }, { lastError: {} }, { website: {} },
+  ])("rejects malformed optional fields: %j", async (field) => {
+    expect((await handleFeedback(req({ ...good, ...field }), deps)).status).toBe(400);
+    expect(saved).toHaveLength(0);
+  });
+  it("does not expose storage provider error details", async () => {
+    const res = await handleFeedback(req(good), { ...deps, save: async () => { throw new Error("private storage configuration"); } });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "não foi possível guardar o envio" });
+  });
+  it("does not persist arbitrary unrecognized top-level fields", async () => {
+    await handleFeedback(req({ ...good, unexpected: "untrusted" }), deps);
+    expect(JSON.parse(saved[0].body)).not.toHaveProperty("unexpected");
+  });
+
+  it("stops reading an oversized streamed request before storing it", async () => {
+    const cancel = vi.fn();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new TextEncoder().encode("x".repeat(101))); },
+      cancel,
+    });
+    const request = new Request("https://oficina-cnc.vercel.app/api/feedback", {
+      method: "POST", body: stream, duplex: "half",
+    } as RequestInit);
+    expect((await handleFeedback(request, { ...deps, maxBodyBytes: 100 })).status).toBe(413);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(saved).toHaveLength(0);
+  });
+
 });
