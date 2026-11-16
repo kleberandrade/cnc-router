@@ -50,4 +50,11 @@ describe("NumberField", () => {
     expect(input).toHaveValue(80);
   });
 
+  it("uses one unit for the default arrow-key step", () => {
+    const onChange = vi.fn();
+    render(<NumberField label="X" value={10} onChange={onChange} testId="f" />);
+    fireEvent.keyDown(screen.getByTestId("f"), { key: "ArrowUp" });
+    expect(onChange).toHaveBeenLastCalledWith(11);
+  });
+
 });

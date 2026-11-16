@@ -2,7 +2,7 @@ import { PRODUCT, AUTHOR } from "./about";
 
 export interface LegalDoc { id: "privacidade" | "cookies" | "termos"; title: string; updated: string; sections: { h: string; p: string[] }[] }
 
-const updated = "2026-08-16";
+const updated = "2026-11-15";
 
 export const LEGAL: LegalDoc[] = [
   {
@@ -60,7 +60,7 @@ export const LEGAL: LegalDoc[] = [
         "Tudo que você desenha é seu. O autor não vê nem guarda seus projetos, a não ser que você os envie pelo formulário de sugestões.",
       ] },
       { h: "Uso do app", p: [
-        "Você pode usar o app livremente para fins pessoais, educacionais e comerciais na sua oficina. Não pode revender o app, remover a identificação do autor nem usá-lo para atividades ilegais.",
+        "O código original do app usa a licença MIT: você pode usar, modificar e redistribuir, inclusive comercialmente, preservando o aviso de autoria e a licença. Fontes e componentes de terceiros mantêm suas próprias licenças.",
       ] },
       { h: "Mudanças", p: [
         "O app evolui por sprints e estes termos podem mudar; a data no topo indica a última versão. Lei aplicável: Brasil.",

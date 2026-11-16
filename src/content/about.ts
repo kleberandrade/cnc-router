@@ -5,7 +5,7 @@ export const PRODUCT = {
   audience: "Para quem tem uma router de hobby ou de pequena oficina (3018, 3040, 6040…) e quer ir do desenho ao G-code sem outro programa.",
   url: "https://oficina-cnc.vercel.app",
   repository: "", // preencher se o repositório for público
-  license: "Todos os direitos reservados © 2026 Kleber Andrade. Uso pessoal e educacional livre; o código-fonte pode ser aberto no futuro.",
+  license: "MIT © 2026 Kleber Andrade. Componentes de terceiros mantêm suas próprias licenças.",
 } as const;
 
 export const AUTHOR = {
@@ -23,7 +23,7 @@ export const THIRD_PARTY: { name: string; license: string; url: string }[] = [
   { name: "clipper-lib", license: "Boost Software License 1.0", url: "https://github.com/junmer/clipper-lib" },
   { name: "opentype.js", license: "MIT", url: "https://opentype.js.org" },
   { name: "dxf-parser", license: "MIT", url: "https://github.com/gdsestimating/dxf-parser" },
-  { name: "svg-path-properties", license: "MIT", url: "https://github.com/rveciana/svg-path-properties" },
+  { name: "svg-path-properties", license: "ISC", url: "https://github.com/rveciana/svg-path-properties" },
   { name: "lucide-react (ícones)", license: "ISC", url: "https://lucide.dev" },
   { name: "Inter (fonte)", license: "SIL Open Font License 1.1", url: "https://rsms.me/inter" },
   { name: "Fraunces (fonte)", license: "SIL Open Font License 1.1", url: "https://github.com/undercasetype/Fraunces" },

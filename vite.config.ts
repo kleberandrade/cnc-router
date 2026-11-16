@@ -90,9 +90,10 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
+    maxWorkers: 2,
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
-    exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**', '**/_to_delete/**', '**/_sync/**'],
+    exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**', '**/_to_delete/**', '**/_sync/**', '**/target/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
@@ -111,6 +112,9 @@ export default defineConfig({
         // thin Vercel wiring around api/_lib/feedback-core.ts (needs @vercel/blob + env)
         'api/feedback.ts',
         'scripts/',
+        'examples/',
+        'docs/samples/',
+        'target/',
       ],
       thresholds: {
         lines: 82,

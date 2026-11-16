@@ -1,3 +1,14 @@
+## [0.35.2 — Maintenance — Feedback boundaries and supported toolchain] — 2026-11-15
+
+- Bound feedback streams by bytes, validate optional fields, store recognized fields only,
+  and keep storage provider details out of HTTP responses.
+- Keep numeric editing drafts separate from external dimensions to prevent delayed
+  synchronization from corrupting values or showing stale dimensions after resizing.
+- Refresh dependencies, use Node 26 LTS in CI and document remaining build-tool advisories.
+- Add an offline G-code example, English usage/contributor documentation, truthful badges,
+  MIT for original work and the missing Inter OFL notice; preserve third-party rights.
+- Record repository visibility review limitations; no physical machining was tested.
+
 # Changelog
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem as sprints em `docs/sprints/`.
